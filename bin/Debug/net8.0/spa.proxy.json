@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "",
+"RedirectUrl": "",
+"LaunchCommand": "",
+"WorkingDirectory": "C:\\Users\\User\\source\\repos\\invoice-admin-web",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

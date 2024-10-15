@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "sZVAb1YBTzWhUIIEFwBA1Nr2EhU5fo7mz5YtX1P9pAE=",
+  "Source": "invoice-admin-web",
+  "BasePath": "_content/invoice-admin-web",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
