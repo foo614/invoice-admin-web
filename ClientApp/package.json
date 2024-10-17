@@ -35,10 +35,13 @@
     "test:update": "npm run jest -- -u",
     "tsc": "tsc --noEmit"
   },
-  "browserslist": [ "defaults" ],
+  "browserslist": [
+    "defaults"
+  ],
   "dependencies": {
     "@ant-design/icons": "^4.8.3",
     "@ant-design/pro-components": "^2.7.19",
+    "@faker-js/faker": "^9.0.3",
     "antd": "^5.21.2",
     "antd-style": "^3.7.0",
     "classnames": "^2.5.1",
@@ -78,6 +81,8 @@
     "umi-presets-pro": "^2.0.3",
     "umi-serve": "^1.9.11"
   },
-  "engines": { "node": ">=12.0.0" },
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "proxy": "http://localhost:5000"
 }

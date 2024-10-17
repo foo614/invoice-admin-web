@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("invoice-admin-web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f0c96753db688faf11262dc95dc0ecaf027d18c5")]
 [assembly: System.Reflection.AssemblyProductAttribute("invoice-admin-web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("invoice-admin-web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
