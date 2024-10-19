@@ -1,22 +1,18 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "jsx": "preserve",
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "baseUrl": "./",
-    "skipLibCheck": true,
-    "experimentalDecorators": true,
+    "target": "es5",
+    "module": "commonjs",
     "strict": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
+    "jsx": "react",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": false, // Disable source map generation
+    "outDir": "./dist",
     "paths": {
-      "@/*": ["./src/*"],
-      "@@/*": ["./src/.umi/*"],
-      "@@test/*": ["./src/.umi-test/*"]
+      "@/*": [ "./src/*" ],
+      "@@/*": [ "./src/.umi/*" ],
+      "@@test/*": [ "./src/.umi-test/*" ]
     }
   },
   "include": ["./**/*.d.ts", "./**/*.ts", "./**/*.tsx"]

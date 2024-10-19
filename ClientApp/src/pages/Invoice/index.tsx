@@ -1,4 +1,3 @@
-import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -11,7 +10,8 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, message } from 'antd';
+import { Button, Drawer, message, Modal } from 'antd';
+import crypto from 'crypto';
 import React, { useRef, useState } from 'react';
 
 /**
@@ -40,10 +40,62 @@ const fetchTransactions = async () => {
 const handleAdd = async (fields: any) => {
   const hide = message.loading('Adding...');
   try {
-    // Mock add operation
-    hide();
-    message.success('Added successfully');
-    return true;
+    // Prepare JSON document
+    const document = {
+      _D: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
+      _A: 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
+      _B: 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
+      Invoice: [
+        {
+          ID: [{ _: fields.invoiceId }],
+          IssueDate: [{ _: fields.issueDate }],
+          IssueTime: [{ _: fields.issueTime }],
+          InvoiceTypeCode: [{ _: fields.invoiceTypeCode, listVersionID: '1.1' }],
+          DocumentCurrencyCode: [{ _: fields.currencyCode }],
+          // Add other necessary fields
+        },
+      ],
+    };
+
+    // Convert JSON document to string
+    const documentString = JSON.stringify(document);
+
+    // Encode JSON document to Base64
+    const documentBase64 = Buffer.from(documentString).toString('base64');
+
+    // Calculate SHA256 hash of Base64-encoded document
+    const documentHash = crypto.createHash('sha256').update(documentBase64).digest('hex');
+
+    // Prepare payload for API submission
+    const payload = {
+      format: 'JSON',
+      documentHash: documentHash,
+      codeNumber: fields.invoiceId,
+      document: documentBase64,
+    };
+
+    // Call the API to submit the document
+    const response = await fetch(
+      'https://sdk.myinvois.hasil.gov.my/einvoicingapi/02-submit-documents/',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const result = await response.json();
+    if (response.ok) {
+      hide();
+      message.success('Added successfully');
+      return true;
+    } else {
+      hide();
+      message.error(`Adding failed: ${result.error?.message || 'Unknown error'}`);
+      return false;
+    }
   } catch (error) {
     hide();
     message.error('Adding failed, please try again!');
@@ -84,6 +136,70 @@ const handleRemove = async (selectedRows: any[]) => {
     message.error('Delete failed, please try again!');
     return false;
   }
+};
+
+/**
+ * Handle LHDN submission
+ */
+const handleLHDNSubmission = async (record: any) => {
+  const mappedRecord = {
+    Irn: record.Irn,
+    IssueDate: record.DocDtls.Dt,
+    IssueTime: '00:00:00', // Assuming time is not provided in the input
+    InvoiceTypeCode: record.DocDtls.Typ,
+    CurrencyCode: 'MYR', // Assuming currency is MYR
+    SellerName: record.SellerDtls.LglNm,
+    SellerCity: record.SellerDtls.Loc,
+    SellerPostalCode: record.SellerDtls.Pin,
+    SellerCountry: 'MY', // Assuming country is Malaysia
+    BuyerName: record.BuyerDtls.LglNm,
+    BuyerCity: record.BuyerDtls.Loc,
+    BuyerPostalCode: record.BuyerDtls.Pin,
+    BuyerCountry: 'MY', // Assuming country is Malaysia
+    TotalAmount: record.ValDtls.TotInvVal,
+    ItemList: record.ItemList.map((item: any) => ({
+      Id: item.SlNo,
+      Qty: item.Qty,
+      Unit: item.Unit,
+      TotItemVal: item.TotItemVal,
+      Description: item.PrdDesc,
+      UnitPrice: item.UnitPrice,
+    })),
+  };
+  Modal.confirm({
+    title: 'Confirm Submission',
+    content: 'Are you sure you want to submit this invoice to LHDN?' + JSON.stringify(record),
+    onOk: async () => {
+      const hide = message.loading('Submitting...');
+      try {
+        // Call the API to submit the document
+        const response = await fetch('https://localhost:5001/api/invoice/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(mappedRecord),
+        });
+
+        const result = await response.json();
+        console.log(result);
+        if (response.ok) {
+          hide();
+          message.success('Submitted successfully');
+          return true;
+        } else {
+          hide();
+          message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
+          return false;
+        }
+      } catch (error) {
+        hide();
+        message.error('Submission failed, please try again!');
+        console.log(error);
+        return false;
+      }
+    },
+  });
 };
 
 const InvoiceSubmission: React.FC = () => {
@@ -154,8 +270,9 @@ const InvoiceSubmission: React.FC = () => {
           <a
             key="config"
             onClick={() => {
-              handleUpdateModalOpen(true);
+              // handleUpdateModalOpen(true);
               setCurrentRow(record);
+              handleLHDNSubmission(record);
             }}
           >
             LHDN Submission
@@ -320,17 +437,17 @@ const InvoiceSubmission: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
-        toolBarRender={() => [
-          <Button
-            type="primary"
-            key="primary"
-            onClick={() => {
-              handleModalOpen(true);
-            }}
-          >
-            <PlusOutlined /> New
-          </Button>,
-        ]}
+        // toolBarRender={() => [
+        //   <Button
+        //     type="primary"
+        //     key="primary"
+        //     onClick={() => {
+        //       handleModalOpen(true);
+        //     }}
+        //   >
+        //     <PlusOutlined /> New
+        //   </Button>,
+        // ]}
         request={fetchTransactions}
         columns={columns}
         rowSelection={{
