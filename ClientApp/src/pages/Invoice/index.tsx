@@ -11,28 +11,27 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Button, Drawer, message, Modal } from 'antd';
-import crypto from 'crypto';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 /**
  * Fetch e-invoice transactions
  */
-const fetchTransactions = async () => {
-  try {
-    const response = await fetch('/api/eInvoiceTransactions', {
-      method: 'GET',
-    });
-    const data = await response.json();
-    return {
-      data: data.data,
-      success: data.success,
-      total: data.total,
-    };
-  } catch (error) {
-    message.error('Failed to fetch e-invoice transactions.');
-    return { data: [], success: false, total: 0 };
-  }
-};
+// const fetchTransactions = async () => {
+//   try {
+//     const response = await fetch('/api/eInvoiceTransactions', {
+//       method: 'GET',
+//     });
+//     const data = await response.json();
+//     return {
+//       data: data.data,
+//       success: data.success,
+//       total: data.total,
+//     };
+//   } catch (error) {
+//     message.error('Failed to fetch e-invoice transactions.');
+//     return { data: [], success: false, total: 0 };
+//   }
+// };
 
 /**
  * Handle add operation
@@ -40,62 +39,9 @@ const fetchTransactions = async () => {
 const handleAdd = async (fields: any) => {
   const hide = message.loading('Adding...');
   try {
-    // Prepare JSON document
-    const document = {
-      _D: 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
-      _A: 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
-      _B: 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
-      Invoice: [
-        {
-          ID: [{ _: fields.invoiceId }],
-          IssueDate: [{ _: fields.issueDate }],
-          IssueTime: [{ _: fields.issueTime }],
-          InvoiceTypeCode: [{ _: fields.invoiceTypeCode, listVersionID: '1.1' }],
-          DocumentCurrencyCode: [{ _: fields.currencyCode }],
-          // Add other necessary fields
-        },
-      ],
-    };
-
-    // Convert JSON document to string
-    const documentString = JSON.stringify(document);
-
-    // Encode JSON document to Base64
-    const documentBase64 = Buffer.from(documentString).toString('base64');
-
-    // Calculate SHA256 hash of Base64-encoded document
-    const documentHash = crypto.createHash('sha256').update(documentBase64).digest('hex');
-
-    // Prepare payload for API submission
-    const payload = {
-      format: 'JSON',
-      documentHash: documentHash,
-      codeNumber: fields.invoiceId,
-      document: documentBase64,
-    };
-
-    // Call the API to submit the document
-    const response = await fetch(
-      'https://sdk.myinvois.hasil.gov.my/einvoicingapi/02-submit-documents/',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      },
-    );
-
-    const result = await response.json();
-    if (response.ok) {
-      hide();
-      message.success('Added successfully');
-      return true;
-    } else {
-      hide();
-      message.error(`Adding failed: ${result.error?.message || 'Unknown error'}`);
-      return false;
-    }
+    hide();
+    message.success('Added successfully');
+    return true;
   } catch (error) {
     hide();
     message.error('Adding failed, please try again!');
@@ -138,82 +84,19 @@ const handleRemove = async (selectedRows: any[]) => {
   }
 };
 
-/**
- * Handle LHDN submission
- */
-const handleLHDNSubmission = async (record: any) => {
-  const mappedRecord = {
-    Irn: record.Irn,
-    IssueDate: record.DocDtls.Dt,
-    IssueTime: '00:00:00', // Assuming time is not provided in the input
-    InvoiceTypeCode: record.DocDtls.Typ,
-    CurrencyCode: 'MYR', // Assuming currency is MYR
-    SellerName: record.SellerDtls.LglNm,
-    SellerCity: record.SellerDtls.Loc,
-    SellerPostalCode: record.SellerDtls.Pin,
-    SellerCountry: 'MY', // Assuming country is Malaysia
-    BuyerName: record.BuyerDtls.LglNm,
-    BuyerCity: record.BuyerDtls.Loc,
-    BuyerPostalCode: record.BuyerDtls.Pin,
-    BuyerCountry: 'MY', // Assuming country is Malaysia
-    TotalAmount: record.ValDtls.TotInvVal,
-    ItemList: record.ItemList.map((item: any) => ({
-      Id: item.SlNo,
-      Qty: item.Qty,
-      Unit: item.Unit,
-      TotItemVal: item.TotItemVal,
-      Description: item.PrdDesc,
-      UnitPrice: item.UnitPrice,
-    })),
-  };
-  Modal.confirm({
-    title: 'Confirm Submission',
-    content: 'Are you sure you want to submit this invoice to LHDN?' + JSON.stringify(record),
-    onOk: async () => {
-      const hide = message.loading('Submitting...');
-      try {
-        // Call the API to submit the document
-        const response = await fetch('https://localhost:5001/api/invoice/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(mappedRecord),
-        });
-
-        const result = await response.json();
-        console.log(result);
-        if (response.ok) {
-          hide();
-          message.success('Submitted successfully');
-          return true;
-        } else {
-          hide();
-          message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
-          return false;
-        }
-      } catch (error) {
-        hide();
-        message.error('Submission failed, please try again!');
-        console.log(error);
-        return false;
-      }
-    },
-  });
-};
-
 const InvoiceSubmission: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<any>();
   const [selectedRowsState, setSelectedRows] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<any[]>([]); // State for table data
 
   const actionRef = useRef<ActionType>();
 
   const columns: ProColumns<any>[] = [
     {
-      title: 'Invoice ID',
+      title: 'Transaction ID',
       dataIndex: 'Irn',
       render: (dom, entity) => {
         return (
@@ -227,6 +110,10 @@ const InvoiceSubmission: React.FC = () => {
           </a>
         );
       },
+    },
+    {
+      title: 'e-Invoice Code',
+      dataIndex: 'uuid',
     },
     {
       title: 'Seller GSTIN',
@@ -272,7 +159,7 @@ const InvoiceSubmission: React.FC = () => {
             onClick={() => {
               // handleUpdateModalOpen(true);
               setCurrentRow(record);
-              handleLHDNSubmission(record);
+              handleLHDNSubmission(record, actionRef, setSelectedRows);
             }}
           >
             LHDN Submission
@@ -428,6 +315,165 @@ const InvoiceSubmission: React.FC = () => {
     },
   ];
 
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch('/api/eInvoiceTransactions', {
+        method: 'GET',
+      });
+      const data = await response.json();
+      setTableData(data.data); // Set the table data in state
+      return {
+        data: data.data,
+        success: data.success,
+        total: data.total,
+      };
+    } catch (error) {
+      message.error('Failed to fetch e-invoice transactions.');
+      return { data: [], success: false, total: 0 };
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const result = await fetchTransactions();
+      setTableData(result.data); // Set the fetched data in the table
+    };
+    loadData();
+  }, []);
+
+  /**
+   * Handle LHDN submission
+   */
+  const handleLHDNSubmission = async (record: any, actionRef: any, setSelectedRows: any) => {
+    const mappedRecord = {
+      Irn: 'INV124567',
+      IssueDate: '2024-10-19',
+      // record.DocDtls.Dt ||
+      IssueTime: record.DocDtls.Tm || '00:30:00Z', // Assuming time is not provided
+      InvoiceTypeCode: '01',
+      // record.DocDtls.Typ ||
+      CurrencyCode: 'MYR', // Assuming currency is MYR
+
+      // Supplier details
+      SupplierName: record.SellerDtls.LglNm || 'Supplier Name',
+      SupplierCity: record.SellerDtls.Loc || 'Kuala Lumpur',
+      SupplierPostalCode: record.SellerDtls.Pin,
+      SupplierCountryCode: 'MY', // Assuming Malaysia
+      SupplierEmail: record.SellerDtls.Em || 'supplier@email.com',
+      SupplierTelephone: record.SellerDtls.Ph || '+60-123456789',
+      SupplierTIN: 'IG26339098050',
+      // record.SellerDtls.Gstin, // Assuming GSTIN is used as TIN
+      SupplierBRN: record.SellerDtls.Brn || 'IG26339098050',
+      SupplierSST: record.SellerDtls.Sst || 'NA',
+      SupplierTTX: record.SellerDtls.Ttx || 'NA',
+      SupplierAddressLine1: record.SellerDtls.Addr1,
+      SupplierAddressLine2: record.SellerDtls.Addr2 || '',
+      SupplierAddressLine3: record.SellerDtls.Addr3 || '',
+      SupplierIndustryCode: record.SellerDtls.IndustryClassificationCode || '46510',
+      SupplierAdditionalAccountID:
+        record.SellerDtls.AdditionalAccountID || 'CPT-CCN-W-211111-KL-000002',
+      SupplierCountrySubentityCode: record.SellerDtls.Stcd,
+
+      // Buyer details
+      BuyerName: record.BuyerDtls.LglNm,
+      BuyerCity: record.BuyerDtls.Loc,
+      BuyerPostalCode: record.BuyerDtls.Pin,
+      BuyerCountryCode: 'MY', // Assuming Malaysia
+      BuyerEmail: record.BuyerDtls.Em,
+      BuyerTelephone: record.BuyerDtls.Ph,
+      CustomerTIN: 'IG26339098050',
+      // record.BuyerDtls.Gstin || 'Buyer TIN', // Assuming GSTIN is used as TIN
+      CustomerBRN: record.BuyerDtls.Brn || 'Recipient BRN',
+      CustomerAddressLine1: record.BuyerDtls.Addr1,
+      CustomerAddressLine2: record.BuyerDtls.Addr2 || '',
+      CustomerAddressLine3: record.BuyerDtls.Addr3 || '',
+      CustomerCountrySubentityCode: record.BuyerDtls.Stcd,
+      CustomerCity: 'Kuala Lumpur',
+      CustomerCountryCode: 'MYS',
+      CustomerPostalCode: '81300',
+      CustomerName: 'Buyer Name',
+      CustomerTelephone: '+60-123456789',
+      CustomerEmail: 'buyer@email.com',
+
+      // Invoice period details
+      StartDate: '2024-09-01',
+      EndDate: '2024-10-10',
+      InvoicePeriodDescription: 'Monthly',
+
+      // Additional document references
+      BillingReferenceID: record.BillingReferenceID || 'E12345678912',
+      AdditionalDocumentReferenceID: record.AdditionalDocumentReferenceID || 'IG26339098050',
+
+      // Total and item list
+      TotalAmount: record.ValDtls.TotInvVal,
+      ItemList: record.ItemList.map((item: any) => ({
+        Id: item.SlNo,
+        Qty: item.Qty,
+        Unit: item.Unit,
+        TotItemVal: item.TotItemVal,
+        Description: item.PrdDesc,
+        UnitPrice: item.UnitPrice,
+      })),
+    };
+    Modal.confirm({
+      title: 'Confirm Submission',
+      content: 'Are you sure you want to submit this invoice to LHDN?' + JSON.stringify(record),
+      onOk: async () => {
+        const hide = message.loading('Submitting...');
+        try {
+          // Call the API to submit the document
+          const response = await fetch('https://localhost:5001/api/invoice/submit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mappedRecord),
+          });
+
+          const result = await response.json();
+          console.log(result);
+          if (response.ok) {
+            hide();
+            message.success('Submitted successfully');
+            const updatedData = tableData.map((row) => {
+              if (row.Irn === record.Irn) {
+                return {
+                  ...row,
+                  uuid: result.acceptedDocuments[0].uuid, // Update the UUID
+                  status: 'submitted', // Update the status
+                };
+              }
+              return row;
+            });
+
+            // Update the state
+            setTableData(updatedData);
+            return true;
+          } else {
+            hide();
+            // Check if the response contains validation errors
+            if (result.error?.details && result.error.details.length > 0) {
+              // Iterate through the details array and collect error messages
+              const errorMessages = result.error.details
+                .map((detail: any) => `${detail.message} (Code: ${detail.code})`)
+                .join('\n');
+              message.error(`Submission failed:\n${errorMessages}`);
+            } else {
+              // Fallback in case no details are provided
+              message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
+            }
+            return false;
+          }
+        } catch (error) {
+          hide();
+          message.error('Submission failed, please try again!');
+          console.log(error);
+          return false;
+        }
+      },
+    });
+  };
+
   return (
     <PageContainer>
       <ProTable
@@ -437,18 +483,8 @@ const InvoiceSubmission: React.FC = () => {
         search={{
           labelWidth: 120,
         }}
-        // toolBarRender={() => [
-        //   <Button
-        //     type="primary"
-        //     key="primary"
-        //     onClick={() => {
-        //       handleModalOpen(true);
-        //     }}
-        //   >
-        //     <PlusOutlined /> New
-        //   </Button>,
-        // ]}
-        request={fetchTransactions}
+        // request={fetchTransactions}
+        dataSource={tableData}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {

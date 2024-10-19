@@ -30,8 +30,8 @@ else
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
-app.UseStaticFiles(); // Serve static files from wwwroot
 
 app.UseRouting();
 
