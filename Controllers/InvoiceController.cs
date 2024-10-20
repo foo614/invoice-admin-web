@@ -176,7 +176,11 @@ namespace invoice_admin_web.Controllers
                         },
                         LegalMonetaryTotal = new[]
                         {
-                            new { PayableAmount = new [] { new { _ = record.TotalAmount, currencyID = "MYR" } } }
+                            new {
+                                PayableAmount = new [] { new { _ = record.TotalAmount, currencyID = "MYR" } },
+                                TaxExclusiveAmount = new [] { new { _ = 0, currencyID = "MYR" } },
+                                TaxInclusiveAmount = new [] { new { _ = 0, currencyID = "MYR" } },
+                            }
                         },
                         InvoiceLine = record.ItemList.ConvertAll(item => new
                         {
@@ -210,7 +214,7 @@ namespace invoice_admin_web.Controllers
                                             {
                                                 new
                                                 {
-                                                    _ = "MY",  // Replace with appropriate ISO 3166-1 code for the country
+                                                    _ = "MYS",  // Replace with appropriate ISO 3166-1 code for the country
                                                     listID = "ISO3166-1",
                                                     listAgencyID = "6"
                                                 }
@@ -222,8 +226,54 @@ namespace invoice_admin_web.Controllers
                             Price = new []
                             {
                                 new { PriceAmount = new [] { new { _ = item.UnitPrice, currencyID = "MYR" } } }
+                            },
+                            TaxTotal = new[]
+                            {
+                                new
+                                {
+                                     TaxAmount = new[] { new { _ = item.TaxAmount, currencyID = "MYR" } },
+                                     TaxSubtotal = new[]
+                                     {
+                                        new
+                                        {
+                                            TaxableAmount = new[] { new { _ = item.TaxableAmount, currencyID = "MYR" } },
+                                            TaxAmount = new[] { new { _ = item.TaxAmount, currencyID = "MYR" } },
+                                            TaxCategory = new[]
+                                            {
+                                                new 
+                                                { 
+                                                    ID = new[] { new { _ = "01" } }, 
+                                                    TaxScheme = new[] { new { ID = new[] { new { _ = "OTH", schemeID = "UN/ECE 5153", schemeAgencyID = "6" } } } } 
+                                                }
+                                            }
+                                        }
+                                     }
+                                }
                             }
                         }),
+                        TaxTotal = new[]
+                        {
+                            new
+                            {
+                                TaxAmount = new[] { new { _ =  Convert.ToDecimal(record.TaxAmount), currencyID = "MYR" } },
+                                TaxSubtotal = new[]
+                                {
+                                    new
+                                    {
+                                        TaxableAmount = new[] { new { _ = Convert.ToDecimal(record.TaxableAmount), currencyID = "MYR" } },
+                                        TaxAmount = new[] { new { _ =  Convert.ToDecimal(record.TaxAmount), currencyID = "MYR" } },
+                                        TaxCategory = new[]
+                                        {
+                                            new
+                                            {
+                                                ID = new[] { new { _ = "01" } },
+                                                TaxScheme = new[] { new { ID = new[] { new { _ = "OTH", schemeID = "UN/ECE 5153", schemeAgencyID = "6" } } } }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         UBLExtensions = new[]
                         {
                             new
@@ -289,7 +339,7 @@ namespace invoice_admin_web.Controllers
                                                                                                                                 },
                                                                                                                                 DigestValue = new[]
                                                                                                                                 {
-                                                                                                                                    new { _ = "KKBSTyiPKGkGl1AFqcPziKCEIDYGtnYUTQN4ukO7G40=" }
+                                                                                                                                    new { _ = "tj0XtM/FsDzmOcHabTxkKcnH54KkZjkB72ah/utcaqA=" }
                                                                                                                                 }
                                                                                                                             }
                                                                                                                         },
@@ -419,19 +469,19 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
         public async Task<IActionResult> GetRecentDocuments(
             [FromQuery] int pageNo,
             [FromQuery] int pageSize,
-            [FromQuery] string submissionDateFrom,
-            [FromQuery] string submissionDateTo,
-            [FromQuery] string issueDateFrom,
-            [FromQuery] string issueDateTo,
-            [FromQuery] string direction,
-            [FromQuery] string status,
-            [FromQuery] string documentType,
-            [FromQuery] string receiverIdType,
-            [FromQuery] string receiverId,
-            [FromQuery] string receiverTin,
-            [FromQuery] string issuerTin,
-            [FromQuery] string issuerIdType,
-            [FromQuery] string issuerId)
+            [FromQuery] string? submissionDateFrom,
+            [FromQuery] string? submissionDateTo,
+            [FromQuery] string? issueDateFrom,
+            [FromQuery] string? issueDateTo,
+            [FromQuery] string? direction,
+            [FromQuery] string? status,
+            [FromQuery] string? documentType,
+            [FromQuery] string? receiverIdType,
+            [FromQuery] string? receiverId,
+            [FromQuery] string? receiverTin,
+            [FromQuery] string? issuerTin,
+            [FromQuery] string? issuerIdType,
+            [FromQuery] string? issuerId)
         {
             try
             {
@@ -610,6 +660,9 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
         // Invoice Line Items
         public decimal TotalAmount { get; set; }
         public List<Item> ItemList { get; set; }
+        public string TaxableAmount { get; set; }
+        public string TaxAmount { get; set; }
+
     }
 
     // Item class
@@ -621,5 +674,10 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
         public decimal TotItemVal { get; set; }
         public string Description { get; set; }
         public decimal UnitPrice { get; set; }
+
+        // New Tax Fields
+        public decimal TaxAmount { get; set; }       // Total tax amount for the item
+        public decimal TaxableAmount { get; set; }   // Taxable amount for the item
+        public decimal TaxPercent { get; set; }      // Tax percentage applied
     }
 }

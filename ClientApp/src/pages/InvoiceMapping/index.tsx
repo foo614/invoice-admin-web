@@ -159,10 +159,10 @@ const InvoiceSubmission: React.FC = () => {
             onClick={() => {
               // handleUpdateModalOpen(true);
               setCurrentRow(record);
-              handleLHDNSubmission(record, actionRef, setSelectedRows);
+              handleLHDNSubmission(record);
             }}
           >
-            LHDN Submission
+            Submit to LHDN
           </a>
         ),
       ],
@@ -341,15 +341,34 @@ const InvoiceSubmission: React.FC = () => {
     loadData();
   }, []);
 
+  // Helper function to generate a random dynamic number
+  const generateRandomNumber = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
+  const dynamicIrn = `INV${generateRandomNumber(100000, 999999)}`;
+
+  // Generate random IssueDate within the current year
+  const currentYear = new Date().getFullYear();
+  const randomMonth = generateRandomNumber(1, 12);
+  const randomDay = generateRandomNumber(1, 28); // To avoid handling month-specific day limits
+  const randomIssueDate = `${currentYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')}`;
+
+  // Generate random IssueTime in the format HH:mm:ssZ
+  const randomHour = generateRandomNumber(0, 23);
+  const randomMinute = generateRandomNumber(0, 59);
+  const randomSecond = generateRandomNumber(0, 59);
+  const randomIssueTime = `${String(randomHour).padStart(2, '0')}:${String(randomMinute).padStart(2, '0')}:${String(randomSecond).padStart(2, '0')}Z`;
+
   /**
    * Handle LHDN submission
    */
-  const handleLHDNSubmission = async (record: any, actionRef: any, setSelectedRows: any) => {
+  const handleLHDNSubmission = async (record: any) => {
     const mappedRecord = {
-      Irn: 'INV124567',
+      Irn: dynamicIrn,
       IssueDate: '2024-10-19',
       // record.DocDtls.Dt ||
-      IssueTime: record.DocDtls.Tm || '00:30:00Z', // Assuming time is not provided
+      IssueTime: record.DocDtls.Tm || randomIssueTime, // Assuming time is not provided
       InvoiceTypeCode: '01',
       // record.DocDtls.Typ ||
       CurrencyCode: 'MYR', // Assuming currency is MYR
@@ -358,7 +377,7 @@ const InvoiceSubmission: React.FC = () => {
       SupplierName: record.SellerDtls.LglNm || 'Supplier Name',
       SupplierCity: record.SellerDtls.Loc || 'Kuala Lumpur',
       SupplierPostalCode: record.SellerDtls.Pin,
-      SupplierCountryCode: 'MY', // Assuming Malaysia
+      SupplierCountryCode: 'MYS', // Assuming Malaysia
       SupplierEmail: record.SellerDtls.Em || 'supplier@email.com',
       SupplierTelephone: record.SellerDtls.Ph || '+60-123456789',
       SupplierTIN: 'IG26339098050',
@@ -378,7 +397,7 @@ const InvoiceSubmission: React.FC = () => {
       BuyerName: record.BuyerDtls.LglNm,
       BuyerCity: record.BuyerDtls.Loc,
       BuyerPostalCode: record.BuyerDtls.Pin,
-      BuyerCountryCode: 'MY', // Assuming Malaysia
+      BuyerCountryCode: 'MYS', // Assuming Malaysia
       BuyerEmail: record.BuyerDtls.Em,
       BuyerTelephone: record.BuyerDtls.Ph,
       CustomerTIN: 'IG26339098050',
@@ -405,6 +424,8 @@ const InvoiceSubmission: React.FC = () => {
       AdditionalDocumentReferenceID: record.AdditionalDocumentReferenceID || 'IG26339098050',
 
       // Total and item list
+      TaxableAmount: record.TaxableAmount,
+      TaxAmount: record.TaxAmount,
       TotalAmount: record.ValDtls.TotInvVal,
       ItemList: record.ItemList.map((item: any) => ({
         Id: item.SlNo,
@@ -417,7 +438,7 @@ const InvoiceSubmission: React.FC = () => {
     };
     Modal.confirm({
       title: 'Confirm Submission',
-      content: 'Are you sure you want to submit this invoice to LHDN?' + JSON.stringify(record),
+      content: 'Are you sure you want to submit this invoice to LHDN?',
       onOk: async () => {
         const hide = message.loading('Submitting...');
         try {
@@ -477,7 +498,7 @@ const InvoiceSubmission: React.FC = () => {
   return (
     <PageContainer>
       <ProTable
-        headerTitle="E-Invoice Submission Table"
+        headerTitle="Document Mapping Table"
         actionRef={actionRef}
         rowKey="Irn"
         search={{

@@ -22,12 +22,12 @@ export default [
       },
     ],
   },
-  {
-    path: '/welcome',
-    name: 'welcome',
-    icon: 'smile',
-    component: './Welcome',
-  },
+  // {
+  //   path: '/welcome',
+  //   name: 'welcome',
+  //   icon: 'smile',
+  //   component: './Welcome',
+  // },
   // {
   //   path: '/admin',
   //   name: 'admin',
@@ -52,14 +52,36 @@ export default [
   //   component: './TableList',
   // },
   {
-    name: 'list.invoice-list',
+    path: '/e-invoice',
+    name: 'eInvoice',
     icon: 'table',
-    path: '/invoice',
-    component: './Invoice',
+    access: 'canAdmin',
+    routes: [
+      {
+        path: '/e-invoice',
+        redirect: '/e-invoice/invoice-mapping',
+      },
+      {
+        path: '/e-invoice/LHDN-submission',
+        name: 'LHDN Document List',
+        component: './LHDNSubmission',
+      },
+      {
+        path: '/e-invoice/invoice-mapping',
+        name: 'Document Mapping',
+        component: './InvoiceMapping',
+      },
+    ],
   },
+  // {
+  //   name: 'list.invoice-list',
+  //   icon: 'table',
+  //   path: '/invoice',
+  //   component: './Invoice',
+  // },
   {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/e-invoice/invoice-mapping',
   },
   {
     path: '*',
