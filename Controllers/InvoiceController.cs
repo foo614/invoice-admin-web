@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -39,7 +40,7 @@ namespace invoice_admin_web.Controllers
                         ID = new [] { new { _ = record.Irn } },
                         IssueDate = new [] { new { _ = record.IssueDate } },
                         IssueTime = new [] { new { _ = record.IssueTime } },
-                        InvoiceTypeCode = new [] { new { _ = record.InvoiceTypeCode, listVersionID = "1.1" } },
+                        InvoiceTypeCode = new [] { new { _ = record.InvoiceTypeCode, listVersionID = "1.0" } },
                         DocumentCurrencyCode = new [] { new { _ = record.CurrencyCode } },
                         InvoicePeriod = new []
                         {
@@ -56,7 +57,7 @@ namespace invoice_admin_web.Controllers
                             {
                                 AdditionalDocumentReference = new []
                                 {
-                                    new { ID = new [] { new { _ = record.BillingReferenceID } } }
+                                    new { ID = new [] { new { _ = record.BillingReferenceID } } },
                                 }
                             }
                         },
@@ -274,132 +275,199 @@ namespace invoice_admin_web.Controllers
                                 }
                             }
                         },
-                        UBLExtensions = new[]
-                        {
-                            new
-                            {
-                                UBLExtension = new[]
-                                {
-                                    new
-                                    {
-                                        ExtensionURI = new[] { new { _ = "urn:oasis:names:specification:ubl:dsig:enveloped:xades" } },
-                                        ExtensionContent = new[]
-                                        {
-                                            new
-                                            {
-                                                UBLDocumentSignatures = new[]
-                                                {
-                                                    new
-                                                    {
-                                                        SignatureInformation = new[]
-                                                        {
-                                                            new
-                                                            {
-                                                                ID = new[] { new { _ = "urn:oasis:names:specification:ubl:signature:1" } },
-                                                                ReferencedSignatureID = new[] { new { _ = "urn:oasis:names:specification:ubl:signature:Invoice" } },
-                                                                Signature = new[]
-                                                                {
-                                                                    new
-                                                                    {
-                                                                        Id = "signature",
-                                                                        Object = new[]
-                                                                        {
-                                                                            new
-                                                                            {
-                                                                                QualifyingProperties = new[]
-                                                                                {
-                                                                                    new
-                                                                                    {
-                                                                                        Target = "signature",
-                                                                                        SignedProperties = new[]
-                                                                                        {
-                                                                                            new
-                                                                                            {
-                                                                                                Id = "id-xades-signed-props",
-                                                                                                SignedSignatureProperties = new[]
-                                                                                                {
-                                                                                                    new
-                                                                                                    {
-                                                                                                        SigningTime = new[] { new { _ = "2024-07-23T15:27:47Z" } },
-                                                                                                        SigningCertificate = new[]
-                                                                                                        {
-                                                                                                            new
-                                                                                                            {
-                                                                                                                Cert = new[]
-                                                                                                                {
-                                                                                                                    new
-                                                                                                                    {
-                                                                                                                        CertDigest = new[]
-                                                                                                                        {
-                                                                                                                            new
-                                                                                                                            {
-                                                                                                                                DigestMethod = new[]
-                                                                                                                                {
-                                                                                                                                    new { _ = "", Algorithm = "http://www.w3.org/2001/04/xmlenc#sha256" }
-                                                                                                                                },
-                                                                                                                                DigestValue = new[]
-                                                                                                                                {
-                                                                                                                                    new { _ = "tj0XtM/FsDzmOcHabTxkKcnH54KkZjkB72ah/utcaqA=" }
-                                                                                                                                }
-                                                                                                                            }
-                                                                                                                        },
-                                                                                                                        IssuerSerial = new[]
-                                                                                                                        {
-                                                                                                                            new
-                                                                                                                            {
-                                                                                                                                X509IssuerName = new[] { new { _ = "CN=Trial LHDNM Sub CA V1, OU=Terms of use at http://www.posdigicert.com.my, O=LHDNM, C=MY" } },
-                                                                                                                                X509SerialNumber = new[] { new { _ = "162880276254639189035871514749820882117" } }
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    }
-                                                                                                                }
-                                                                                                            }
-                                                                                                        }
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        },
-                                                                        KeyInfo = new[]
-                                                                        {
-                                                                            new
-                                                                            {
-                                                                                X509Data = new[]
-                                                                                {
-                                                                                    new
-                                                                                    {
-                                                                                        X509Certificate = new[]
-                                                                                        {
-                                                                                            new { _ = "MIIFlDCCA3ygAwIBAgIQeomZorO+0AwmW2BRdWJMxTANBgkqhkiG9w0BAQsFADB1MQswCQYDVQQGEwJNWTEOMAwGA1UEChMFTEhETk0xNjA0BgNVBAsTLVRlcm1zIG9mIHVzZSBhdCBodHRwOi8vd3d3LnBvc2RpZ2ljZXJ0LmNvbS5teTEeMBwGA1UEAxMVVHJpYWwgTEhETk0gU3ViIENBIFYxMB4XDTI0MDYwNjAyNTIzNloXDTI0MDkwNjAyNTIzNlowgZwxCzAJBgNVBAYTAk1ZMQ4wDAYDVQQKEwVEdW1teTEVMBMGA1UEYRMMQzI5NzAyNjM1MDYwMRswGQYDVQQLExJUZXN0IFVuaXQgZUludm9pY2UxDjAMBgNVBAMTBUR1bW15MRIwEAYDVQQFEwlEMTIzNDU2NzgxJTAjBgkqhkiG9w0BCQEWFmFuYXMuYUBmZ3Zob2xkaW5ncy5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQChvfOzAofnU60xFO7NcmF2WRi+dgor1D7ccISgRVfZC30Fdxnt1S6ZNf78Lbrz8TbWMicS8plh/pHy96OJvEBplsAgcZTd6WvaMUB2oInC86D3YShlthR6EzhwXgBmg/g9xprwlRqXMT2p4+K8zmyJZ9pIb8Y+tQNjm/uYNudtwGVm8A4hEhlRHbgfUXRzT19QZml6V2Ea0wQI8VyWWa8phCIkBD2w4F8jG4eP5/0XSQkTfBHHf+GV/YDJx5KiiYfmB1nGfwoPHix6Gey+wRjIq87on8Dm5+8ei8/bOhcuuSlpxgwphAP3rZrNbRN9LNVLSQ5md41asoBHfaDIVPVpAgMBAAGjgfcwgfQwHwYDVR0lBBgwFgYIKwYBBQUHAwQGCisGAQQBgjcKAwwwEQYDVR0OBAoECEDwms66hrpiMFMGA1UdIARMMEowSAYJKwYBBAGDikUBMDswOQYIKwYBBQUHAgEWLWh0dHBzOi8vd3d3LnBvc2RpZ2ljZXJ0LmNvbS5teS9yZXBvc2l0b3J5L2NwczATBgNVHSMEDDAKgAhNf9lrtsUI0DAOBgNVHQ8BAf8EBAMCBkAwRAYDVR0fBD0wOzA5oDegNYYzaHR0cDovL3RyaWFsY3JsLnBvc2RpZ2ljZXJ0LmNvbS5teS9UcmlhbExIRE5NVjEuY3JsMA0GCSqGSIb3DQEBCwUAA4ICAQBwptnIb1OA8NNVotgVIjOnpQtowew87Y0EBWAnVhOsMDlWXD/s+BL7vIEbX/BYa0TjakQ7qo4riSHyUkQ+X+pNsPEqolC4uFOp0pDsIdjsNB+WG15itnghkI99c6YZmbXcSFw9E160c7vG25gIL6zBPculHx5+laE59YkmDLdxx27e0TltUbFmuq3diYBOOf7NswFcDXCo+kXOwFfgmpbzYS0qfSoh3eZZtVHg0r6uga1UsMGb90+IRsk4st99EOVENvo0290lWhPBVK2G34+2TzbbYnVkoxnq6uDMw3cRpXX/oSfya+tyF51kT3iXvpmQ9OMF3wMlfKwCS7BZB2+iRja/1WHkAP7QW7/+0zRBcGQzY7AYsdZUllwYapsLEtbZBrTiH12X4XnZjny9rLfQLzJsFGT7Q+e02GiCsBrK7ZHNTindLRnJYAo4U2at5+SjqBiXSmz0DG+juOyFkwiWyD0xeheg4tMMO2pZ7clQzKflYnvFTEFnt+d+tvVwNjTboxfVxEv2qWF6qcMJeMvXwKTXuwVI2iUqmJSzJbUY+w3OeG7fvrhUfMJPM9XZBOp7CEI1QHfHrtyjlKNhYzG3IgHcfAZUURO16gFmWgzAZLkJSmCIxaIty/EmvG5N3ZePolBOa7lNEH/eSBMGAQteH+Twtiu0Y2xSwmmsxnfJyw=="
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        }
-                                    }
-                                }
-                            },
-                        },
-                        Signature = new[]
-                        {
-                            new
-                            {
-                                ID = new [] { new { _ = "urn:oasis:names:specification:ubl:signature:Invoice" } },
-                                SignatureMethod = new [] { new { _ = "urn:oasis:names:specification:ubl:dsig:enveloped:xades" } }
-                            }
-                        }
+                        //UBLExtensions = new[]
+                        //{
+                        //    new
+                        //    {
+                        //        UBLExtension = new[]
+                        //        {
+                        //            new
+                        //            {
+                        //                ExtensionURI = new[] { new { _ = "urn:oasis:names:specification:ubl:dsig:enveloped:xades" } },
+                        //                ExtensionContent = new[]
+                        //                {
+                        //                    new
+                        //                    {
+                        //                        UBLDocumentSignatures = new[]
+                        //                        {
+                        //                            new
+                        //                            {
+                        //                                SignatureInformation = new[]
+                        //                                {
+                        //                                    new
+                        //                                    {
+                        //                                        ID = new[] { new { _ = "urn:oasis:names:specification:ubl:signature:1" } },
+                        //                                        ReferencedSignatureID = new[] { new { _ = "urn:oasis:names:specification:ubl:signature:Invoice" } },
+                        //                                        Signature = new[]
+                        //                                        {
+                        //                                            new
+                        //                                            {
+                        //                                                Id = "signature",
+                        //                                                Object = new[]
+                        //                                                {
+                        //                                                    new
+                        //                                                    {
+                        //                                                        QualifyingProperties = new[]
+                        //                                                        {
+                        //                                                            new
+                        //                                                            {
+                        //                                                                Target = "signature",
+                        //                                                                SignedProperties = new[]
+                        //                                                                {
+                        //                                                                    new
+                        //                                                                    {
+                        //                                                                        Id = "id-xades-signed-props",
+                        //                                                                        SignedSignatureProperties = new[]
+                        //                                                                        {
+                        //                                                                            new
+                        //                                                                            {
+                        //                                                                                SigningTime = new[] { new { _ = "2024-07-27T13:22:39Z" } },
+                        //                                                                                SigningCertificate = new[]
+                        //                                                                                {
+                        //                                                                                    new
+                        //                                                                                    {
+                        //                                                                                        Cert = new[]
+                        //                                                                                        {
+                        //                                                                                            new
+                        //                                                                                            {
+                        //                                                                                                CertDigest = new[]
+                        //                                                                                                {
+                        //                                                                                                    new
+                        //                                                                                                    {
+                        //                                                                                                        DigestMethod = new[]
+                        //                                                                                                        {
+                        //                                                                                                            new { _ = "", Algorithm = "http://www.w3.org/2001/04/xmlenc#sha256" }
+                        //                                                                                                        },
+                        //                                                                                                        DigestValue = new[]
+                        //                                                                                                        {
+                        //                                                                                                            new { _ = "tj0XtM/FsDzmOcHabTxkKcnH54KkZjkB72ah/utcaqA=" }
+                        //                                                                                                        }
+                        //                                                                                                    }
+                        //                                                                                                },
+                        //                                                                                                IssuerSerial = new[]
+                        //                                                                                                {
+                        //                                                                                                    new
+                        //                                                                                                    {
+                        //                                                                                                        X509IssuerName = new[] { new { _ = "CN=Trial LHDNM Sub CA V1, OU=Terms of use at http://www.posdigicert.com.my, O=LHDNM, C=MY" } },
+                        //                                                                                                        X509SerialNumber = new[] { new { _ = "114094489988964920302056692430494377791" } }
+                        //                                                                                                    }
+                        //                                                                                                }
+                        //                                                                                            }
+                        //                                                                                        }
+                        //                                                                                    }
+                        //                                                                                }
+                        //                                                                            }
+                        //                                                                        }
+                        //                                                                    }
+                        //                                                                }
+                        //                                                            }
+                        //                                                        }
+                        //                                                    }
+                        //                                                },
+                        //                                                KeyInfo = new[]
+                        //                                                {
+                        //                                                    new
+                        //                                                    {
+                        //                                                        X509Data = new[]
+                        //                                                        {
+                        //                                                            new
+                        //                                                            {
+                        //                                                                X509Certificate = new[]
+                        //                                                                {
+                        //                                                                    new { _ = "MIIFHzCCAwegAwIBAgIQVdXMqnRtSVpwGsGggAonPzANBgkqhkiG9w0BAQsFADB1MQswCQYDVQQGEwJNWTEOMAwGA1UEChMFTEhETk0xNjA0BgNVBAsTLVRlcm1zIG9mIHVzZSBhdCBodHRwOi8vd3d3LnBvc2RpZ2ljZXJ0LmNvbS5teTEeMBwGA1UEAxMVVHJpYWwgTEhETk0gU3ViIENBIFYxMB4XDTIyMDcwMTA4MzQxM1oXDTI0MDcwMTA4MzQxM1owSTELMAkGA1UEBhMCTVkxIzAhBgNVBAMTGk1PSEQgUkVEWlVBTiBCSU4gTU9IRCBUQUlCMRUwEwYDVQQFEww4MTEwMDYxNDYwNDMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCNpRGjwDdMWIwHlKkJS1ZsNwEGIMJeMfwwjtoBzVj2a4D5Xt+P5hMnCvLwqujh3qnid7WeNmZtS509arZxiitWblUeeFGptXDUzt3ulp/ceZQlmJHhGgiKypxzETqSjnLZxZZWmvLlC+ZAWZF8nmt6cWDHXtffnaEWw2YokeANFx4OUJfvp1VsGVMJcVhZDdC3km5iItLGkVQCIZmSwn7dyEnG/zheOlzly4RBAJSaqfWPFHHoaaS5tsCDjAtwOWaop1RzU4fxiN3CoGmqdHOr4N40d8uPQZi4HGGBk6uOhd/wN2x6EgBeaEzan1jAUugnhfrwlT/FuoRYJmfoG55BAgMBAAGjgdYwgdMwEQYDVR0OBAoECEkjV6b8B33oMFMGA1UdIARMMEowSAYJKwYBBAGDikUBMDswOQYIKwYBBQUHAgEWLWh0dHBzOi8vd3d3LnBvc2RpZ2ljZXJ0LmNvbS5teS9yZXBvc2l0b3J5L2NwczATBgNVHSMEDDAKgAhNf9lrtsUI0DAOBgNVHQ8BAf8EBAMCA/gwRAYDVR0fBD0wOzA5oDegNYYzaHR0cDovL3RyaWFsY3JsLnBvc2RpZ2ljZXJ0LmNvbS5teS9UcmlhbExIRE5NVjEuY3JsMA0GCSqGSIb3DQEBCwUAA4ICAQCASolPfBpkv1bWInX1WepC9G6GbuI8Y/mx23Ktiu8AAFyn8l+nD7I5Er6V8lq4riS2QJvkiHin4G3THTrSHbx/9MQME8Vl/LPkiosI/I9+2lMDJaYRfZJ6CrgFTW1yfzwoCS/t9ZGeAbSZfgwq3MzXEgzmcpW7LWQtfxB+mw4nc9z6dvGU4Y8gJuKsspJvb4zCPxkyo5IxDW2MABxQnFeeSiMWvGWDe/1rrFPNv3tiJqP3+avwCSGmW7kEpcStpYuOaCvh4zefFVdlqIU7zMgr12+oft0xMFLhMSmWmzhEqSntZi0qY2jCp+v+QkxHy6JMAAYOmljb36siVM6u/uIXieEQNVABGnRrl+jpVRz45Z9ozXA647EEvA4G5R0wwwvL/bh/DWh2zA8yGNMsR0JQx+74BBDVaulV29h5lHW+IqrwChKzNj27aDE7SYqwHxaETTjp1nV1Zd8t9o8MvpXCWEsH194r06ebpCkMh3IxIR/jn01PRzjz7iaKEegCBpl23BRHXib8DMq5jK/z2CLmvHlJbNRRxd42psp7wVdX48YQhYCNdps/lJmgQxTo7HJFjirxpWdMUP7lxML21YDLCyAXOG0e4g00SqA8SJg3ROSzZXKZP0nvezSryXWmr8STTTGia+YjjynHoK8o0/uYgCW2SC+ZfhPH9gHJv9ZeNQ==" },
+                        //                                                                },
+                        //                                                                X509SubjectName = new[] {
+                        //                                                                    new { _ = "SERIALNUMBER=811006146043, CN=MOHD REDZUAN BIN MOHD TAIB, C=MY" }
+                        //                                                                },
+                        //                                                                X509IssuerSerial = new[] {
+                        //                                                                    new
+                        //                                                                    {
+                        //                                                                        X509IssuerName = new []
+                        //                                                                        {
+                        //                                                                            new
+                        //                                                                            {
+                        //                                                                                _ = "CN=Trial LHDNM Sub CA V1, OU=Terms of use at http://www.posdigicert.com.my, O=LHDNM, C=MY"
+                        //                                                                            }
+                        //                                                                        },
+                        //                                                                        X509SerialNumber = new []
+                        //                                                                        {
+                        //                                                                            new
+                        //                                                                            {
+                        //                                                                                _ = "114094489988964920302056692430494377791"
+                        //                                                                            }
+                        //                                                                        }
+                        //                                                                    }
+                        //                                                                },
+                        //                                                            }
+                        //                                                        }
+                        //                                                    }
+                        //                                                },
+                        //                                                SignatureValue = new[]
+                        //                                                {
+                        //                                                    new
+                        //                                                    {
+                        //                                                        _ = "Gw5uGjtok0IiPQ+hVH8R2xKFTojrm2fVM8P4wtcfgemqaJSAntAcacb8vcTbU6WAfLcIneEXRHTCG+qzawqBN6bjIl9yfsQ+IGReQhbZqQ43Zh2fFgPBwLo4Ywp4NqiGyGsrd/lm4PPtE8PmZbcQHTudHMYYxDDykA0ok1Lw6Xt/+lR7WHtp8+kHW37V8iPEDWAq5kfHazvke5kkzY+M/mWCzqlE4bIIiEk1lNjovGbER4K8XM3oMQUPpHkYi1P/UUMFP7QIAzMsLXKwmXx1rM77mfmOVrzNHgbetyfPJsfqiDrwQpB6KcODsui5CmhfrphMJs5gwcH7sG+6TNVn6w=="
+                        //                                                    }
+                        //                                                },
+                        //                                                SignedInfo = new[]
+                        //                                                {
+                        //                                                    new
+                        //                                                    {
+                        //                                                        SignatureMethod = new[]
+                        //                                                        {
+                        //                                                            new { _ = "", Algorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" }
+                        //                                                        },
+                        //                                                        Reference = new[]
+                        //                                                        {
+                        //                                                            new
+                        //                                                            {
+                        //                                                                Type = "http://uri.etsi.org/01903/v1.3.2#SignedProperties",
+                        //                                                                URI = "#id-xades-signed-props",
+                        //                                                                DigestMethod = new[]
+                        //                                                                {
+                        //                                                                    new { _ = "", Algorithm = "http://www.w3.org/2001/04/xmlenc#sha256" }
+                        //                                                                },
+                        //                                                                DigestValue = new[]
+                        //                                                                {
+                        //                                                                    new { _ = "KEV8ZySPs6wrKyNcwVe7x3sgDwFVRLWWB3yZNSPky1I=" }  // Replace with actual digest
+                        //                                                                }
+                        //                                                            },
+                        //                                                            new
+                        //                                                            {
+                        //                                                                Type = "",
+                        //                                                                URI = "",
+                        //                                                                DigestMethod = new[]
+                        //                                                                {
+                        //                                                                    new { _ = "", Algorithm = "http://www.w3.org/2001/04/xmlenc#sha256" }
+                        //                                                                },
+                        //                                                                DigestValue = new[]
+                        //                                                                {
+                        //                                                                    new { _ = "t+vl1+3vDeaganWrHMydIWhg7x/8xFQCa6pkBuLs2w0=" }  // Replace with actual digest
+                        //                                                                }
+                        //                                                            }
+                        //                                                        }
+                        //                                                    }
+                        //                                                }   
+                        //                                            }
+                        //                                        }
+                        //                                    }
+                        //                                }
+                        //                            }
+                        //                        }
+                        //                    }
+                        //                }
+                        //            }
+                        //        }
+                        //    },
+                        //},
+                        //Signature = new[]
+                        //{
+                        //    new
+                        //    {
+                        //        ID = new [] { new { _ = "urn:oasis:names:specification:ubl:signature:Invoice" } },
+                        //        SignatureMethod = new [] { new { _ = "urn:oasis:names:specification:ubl:dsig:enveloped:xades" } }
+                        //    }
+                        //}
                         }
                     }
                 };

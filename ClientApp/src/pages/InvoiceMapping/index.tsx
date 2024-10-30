@@ -366,7 +366,7 @@ const InvoiceSubmission: React.FC = () => {
   const handleLHDNSubmission = async (record: any) => {
     const mappedRecord = {
       Irn: dynamicIrn,
-      IssueDate: '2024-10-19',
+      IssueDate: '2024-10-29',
       // record.DocDtls.Dt ||
       IssueTime: record.DocDtls.Tm || randomIssueTime, // Assuming time is not provided
       InvoiceTypeCode: '01',
