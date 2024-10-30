@@ -22,66 +22,43 @@ export default [
       },
     ],
   },
-  // {
-  //   path: '/welcome',
-  //   name: 'welcome',
-  //   icon: 'smile',
-  //   component: './Welcome',
-  // },
-  // {
-  //   path: '/admin',
-  //   name: 'admin',
-  //   icon: 'crown',
-  //   access: 'canAdmin',
-  //   routes: [
-  //     {
-  //       path: '/admin',
-  //       redirect: '/admin/sub-page',
-  //     },
-  //     {
-  //       path: '/admin/sub-page',
-  //       name: 'sub-page',
-  //       component: './Admin',
-  //     },
-  //   ],
-  // },
-  // {
-  //   name: 'list.table-list',
-  //   icon: 'table',
-  //   path: '/list',
-  //   component: './TableList',
-  // },
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    icon: 'dashboard',
+    component: './dashboard/analysis',
+  },
   {
     path: '/e-invoice',
-    name: 'eInvoice',
+    name: 'list.invoice',
     icon: 'table',
     access: 'canAdmin',
     routes: [
       {
         path: '/e-invoice',
-        redirect: '/e-invoice/invoice-mapping',
+        redirect: '/e-invoice/preview',
       },
       {
-        path: '/e-invoice/LHDN-submission',
-        name: 'LHDN Document List',
-        component: './LHDNSubmission',
+        path: '/e-invoice/preview',
+        name: 'preview',
+        component: './invoice-mapping',
       },
       {
-        path: '/e-invoice/invoice-mapping',
-        name: 'Document Mapping',
-        component: './InvoiceMapping',
+        path: '/e-invoice/submission',
+        name: 'submission',
+        component: './invoice-submission',
       },
     ],
   },
-  // {
-  //   name: 'list.invoice-list',
-  //   icon: 'table',
-  //   path: '/invoice',
-  //   component: './Invoice',
-  // },
+  {
+    name: 'account.settings',
+    icon: 'user',
+    path: '/account',
+    component: './account/settings',
+  },
   {
     path: '/',
-    redirect: '/e-invoice/invoice-mapping',
+    redirect: '/dashboard',
   },
   {
     path: '*',

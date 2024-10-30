@@ -1,5 +1,6 @@
 import { ProDescriptions, ProTable } from '@ant-design/pro-components';
-import { Drawer, message } from 'antd';
+import { FormattedMessage } from '@umijs/max';
+import { Button, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 
 /**
@@ -199,6 +200,11 @@ const InvoiceSubmission: React.FC = () => {
           pageSize: 10,
           showQuickJumper: true,
         }}
+        toolBarRender={() => [
+          <Button key="primary">
+            <FormattedMessage id="pages.invoice.export" />
+          </Button>,
+        ]}
       />
 
       <Drawer

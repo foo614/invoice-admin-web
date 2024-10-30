@@ -663,6 +663,34 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
             }
         }
 
+        [HttpGet("unittypes")]
+        public async Task<IActionResult> GetUnitTypes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/UnitTypes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         // Token response model
         public class TokenResponse
         {

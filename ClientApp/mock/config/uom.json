@@ -1,0 +1,282 @@
+[
+  {
+    "ID": "10",
+    "DESC": "group",
+    "TEXTDESC": "A unit of count defining the number of groups (group: set of items classified together)."
+  },
+  {
+    "ID": "11",
+    "DESC": "outfit",
+    "TEXTDESC": "A unit of count defining the number of outfits (outfit: a complete set of equipment / materials / objects used for a specific purpose)."
+  },
+  {
+    "ID": "13",
+    "DESC": "ration",
+    "TEXTDESC": "A unit of count defining the number of rations (ration: a single portion of provisions)."
+  },
+  {
+    "ID": "14",
+    "DESC": "shot",
+    "TEXTDESC": "A unit of liquid measure, especially related to spirits."
+  },
+  {
+    "ID": "15",
+    "DESC": "stick, military",
+    "TEXTDESC": "A unit of count defining the number of military sticks (military stick: bombs or paratroops released in rapid succession from an aircraft)."
+  },
+  {
+    "ID": "1I",
+    "DESC": "fixed rate",
+    "TEXTDESC": "A unit of quantity expressed as a predetermined or set rate for usage of a facility or service."
+  },
+  {
+    "ID": "20",
+    "DESC": "twenty foot container",
+    "TEXTDESC": "A unit of count defining the number of shipping containers that measure 20 foot in length."
+  },
+  {
+    "ID": "21",
+    "DESC": "forty foot container",
+    "TEXTDESC": "A unit of count defining the number of shipping containers that measure 40 foot in length."
+  },
+  {
+    "ID": "22",
+    "DESC": "decilitre per gram",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "23",
+    "DESC": "gram per cubic centimetre",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "24",
+    "DESC": "theoretical pound",
+    "TEXTDESC": "A unit of mass defining the expected mass of material expressed as the number of pounds."
+  },
+  {
+    "ID": "25",
+    "DESC": "gram per square centimetre",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "27",
+    "DESC": "theoretical ton",
+    "TEXTDESC": "A unit of mass defining the expected mass of material, expressed as the number of tons."
+  },
+  {
+    "ID": "28",
+    "DESC": "kilogram per square metre",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2A",
+    "DESC": "radian per second",
+    "TEXTDESC": "Refer ISO/TC12 SI Guide"
+  },
+  {
+    "ID": "2B",
+    "DESC": "radian per second squared",
+    "TEXTDESC": "Refer ISO/TC12 SI Guide"
+  },
+  {
+    "ID": "2C",
+    "DESC": "roentgen",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2G",
+    "DESC": "volt AC",
+    "TEXTDESC": "A unit of electric potential in relation to alternating current (AC)."
+  },
+  {
+    "ID": "2H",
+    "DESC": "volt DC",
+    "TEXTDESC": "A unit of electric potential in relation to direct current (DC)."
+  },
+  {
+    "ID": "2I",
+    "DESC": "British thermal unit (international table) per hour",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2J",
+    "DESC": "cubic centimetre per second",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2K",
+    "DESC": "cubic foot per hour",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2L",
+    "DESC": "cubic foot per minute",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2M",
+    "DESC": "centimetre per second",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2N",
+    "DESC": "decibel",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2P",
+    "DESC": "kilobyte",
+    "TEXTDESC": "A unit of information equal to 10³ (1000) bytes."
+  },
+  {
+    "ID": "2Q",
+    "DESC": "kilobecquerel",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2R",
+    "DESC": "kilocurie",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2U",
+    "DESC": "megagram",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2X",
+    "DESC": "metre per minute",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2Y",
+    "DESC": "milliroentgen",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "2Z",
+    "DESC": "millivolt",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "33",
+    "DESC": "kilopascal square metre per gram",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "34",
+    "DESC": "kilopascal per millimetre",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "35",
+    "DESC": "millilitre per square centimetre second",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "37",
+    "DESC": "ounce per square foot",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "38",
+    "DESC": "ounce per square foot per 0,01inch",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "3B",
+    "DESC": "megajoule",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "3C",
+    "DESC": "manmonth",
+    "TEXTDESC": "A unit of count defining the number of months for a person or persons to perform an undertaking."
+  },
+  {
+    "ID": "40",
+    "DESC": "millilitre per second",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "41",
+    "DESC": "millilitre per minute",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4C",
+    "DESC": "centistokes",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4G",
+    "DESC": "microlitre",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4H",
+    "DESC": "micrometre (micron)",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4K",
+    "DESC": "milliampere",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4L",
+    "DESC": "megabyte",
+    "TEXTDESC": "A unit of information equal to 106 (1000000) bytes."
+  },
+  {
+    "ID": "4M",
+    "DESC": "milligram per hour",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4N",
+    "DESC": "megabecquerel",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4O",
+    "DESC": "microfarad",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4P",
+    "DESC": "newton per metre",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4Q",
+    "DESC": "ounce inch",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4R",
+    "DESC": "ounce foot",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4T",
+    "DESC": "picofarad",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4U",
+    "DESC": "pound per hour",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4W",
+    "DESC": "ton (US) per hour",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "4X",
+    "DESC": "kilolitre per hour",
+    "TEXTDESC": ""
+  }
+]
