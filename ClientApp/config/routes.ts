@@ -30,7 +30,7 @@ export default [
   },
   {
     path: '/e-invoice',
-    name: 'list.invoice',
+    name: 'list.invoice.mapping',
     icon: 'table',
     access: 'canAdmin',
     routes: [
@@ -39,13 +39,75 @@ export default [
         redirect: '/e-invoice/preview',
       },
       {
-        path: '/e-invoice/preview',
-        name: 'preview',
+        path: '/e-invoice/preview/01',
+        name: 'invoice',
         component: './invoice-mapping',
       },
       {
-        path: '/e-invoice/submission',
-        name: 'submission',
+        path: '/e-invoice/preview/02',
+        name: 'credit-note',
+        component: './invoice-mapping',
+      },
+      {
+        path: '/e-invoice/preview/03',
+        name: 'debit-note',
+        component: './invoice-mapping',
+      },
+      {
+        path: '/e-invoice/preview/11',
+        name: 'self-billed-invoice',
+        component: './invoice-mapping',
+      },
+      {
+        path: '/e-invoice/preview/12',
+        name: 'self-billed-credit-note',
+        component: './invoice-mapping',
+      },
+      {
+        path: '/e-invoice/preview/13',
+        name: 'self-billed-debit-note',
+        component: './invoice-mapping',
+      },
+    ],
+  },
+  {
+    path: '/lhdn-submission-history',
+    name: 'list.invoice.submission',
+    icon: 'table',
+    access: 'canAdmin',
+    routes: [
+      {
+        path: '/lhdn-submission-history',
+        redirect: '/lhdn-submission-history/submission',
+      },
+      {
+        path: '/lhdn-submission-history/submission/01',
+        name: 'invoice',
+        component: './invoice-submission',
+      },
+      {
+        path: '/lhdn-submission-history/submission/02',
+        name: 'credit-note',
+        component: './invoice-submission',
+      },
+      {
+        path: '/lhdn-submission-history/submission/03',
+        name: 'debit-note',
+        component: './invoice-submission',
+      },
+      {
+        path: '/lhdn-submission-history/submission/11',
+        name: 'self-billed-invoice',
+        component: './invoice-submission',
+      },
+      {
+        path: '/lhdn-submission-history/submission/12',
+        name: 'self-billed-credit-note',
+        component: './invoice-submission',
+      },
+      {
+        path: '/lhdn-submission-history/submission/13',
+        name: 'self-billed-debit-note',
         component: './invoice-submission',
       },
     ],

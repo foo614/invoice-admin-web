@@ -1,9 +1,20 @@
 import { ProForm, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { useRequest } from '@umijs/max';
 import { message } from 'antd';
-import React from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { queryCurrent } from '../service';
 import useStyles from './index.style';
+
+interface MSICOption {
+  Code: string;
+  Description: string;
+}
+
+interface StateOption {
+  Code: string;
+  State: string;
+}
 
 const BaseView: React.FC = () => {
   const { styles } = useStyles();
@@ -11,6 +22,40 @@ const BaseView: React.FC = () => {
   const { data: currentUser, loading } = useRequest(() => {
     return queryCurrent();
   });
+
+  const [msicOptions, setMsicOptions] = useState<MSICOption[]>([]);
+  const [msicLoading, setMsicLoading] = useState(false);
+  const [stateOptions, setStateOptions] = useState<StateOption[]>([]);
+  const [stateLoading, setStateLoading] = useState(false);
+
+  const fetchMsicOptions = async () => {
+    setMsicLoading(true);
+    try {
+      const response = await axios.get('https://localhost:5001/api/invoice/msiccodes');
+      setMsicOptions(response.data);
+      setMsicLoading(false);
+    } catch (error) {
+      message.error('Failed to fetch MSIC options');
+      setMsicLoading(false);
+    }
+  };
+
+  const fetchStateOptions = async () => {
+    setStateLoading(true);
+    try {
+      const response = await axios.get('https://localhost:5001/api/invoice/statecodes');
+      setStateOptions(response.data);
+      setStateLoading(false);
+    } catch (error) {
+      message.error('Failed to fetch state options');
+      setStateLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMsicOptions();
+    fetchStateOptions();
+  }, []);
 
   const handleFinish = async () => {
     message.success('Successfully updated basic information');
@@ -68,7 +113,7 @@ const BaseView: React.FC = () => {
                 ]}
               />
 
-              {/* Registration Number */}
+              {/* Scheme ID */}
               <ProFormSelect
                 width="sm"
                 name="RegistrationNumber.schemeID"
@@ -184,20 +229,23 @@ const BaseView: React.FC = () => {
                 ]}
               />
 
-              {/* MSIC Code */}
-              <ProFormText
+              {/* MSIC Code with dropdown and search */}
+              <ProFormSelect
                 width="md"
                 name="MSICCode"
                 label="MSIC Code"
                 tooltip="5-digit Malaysia Standard Industrial Classification code."
+                options={msicOptions.map((option) => ({
+                  label: `${option.Code} - ${option.Description}`,
+                  value: option.Code,
+                }))}
+                placeholder="Select or search MSIC code"
+                loading={msicLoading}
+                showSearch
                 rules={[
                   {
                     required: true,
-                    message: 'Please enter the MSIC code!',
-                  },
-                  {
-                    len: 5,
-                    message: 'MSIC code must be exactly 5 digits!',
+                    message: 'Please select the MSIC code!',
                   },
                 ]}
               />
@@ -255,18 +303,29 @@ const BaseView: React.FC = () => {
                   },
                 ]}
               />
-              <ProFormText
+
+              {/* State Code with dropdown and search */}
+              <ProFormSelect
                 width="md"
                 name="Address.State"
                 label="State"
                 tooltip="State code based on Malaysian administrative divisions."
+                options={stateOptions.map((option) => ({
+                  label: `${option.Code} - ${option.State}`,
+                  value: option.Code,
+                }))}
+                placeholder="Select or search state code"
+                loading={stateLoading}
+                showSearch
                 rules={[
                   {
                     required: true,
-                    message: 'Please enter the state!',
+                    message: 'Please select the state!',
                   },
                 ]}
               />
+
+              {/* Country */}
               <ProFormText
                 width="md"
                 name="Address.Country"

@@ -14,26 +14,6 @@ import { Button, Drawer, message, Modal } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 
 /**
- * Fetch e-invoice transactions
- */
-// const fetchTransactions = async () => {
-//   try {
-//     const response = await fetch('/api/eInvoiceTransactions', {
-//       method: 'GET',
-//     });
-//     const data = await response.json();
-//     return {
-//       data: data.data,
-//       success: data.success,
-//       total: data.total,
-//     };
-//   } catch (error) {
-//     message.error('Failed to fetch e-invoice transactions.');
-//     return { data: [], success: false, total: 0 };
-//   }
-// };
-
-/**
  * Handle add operation
  */
 const handleAdd = async (fields: any) => {
@@ -498,7 +478,7 @@ const InvoiceSubmission: React.FC = () => {
   return (
     <PageContainer>
       <ProTable
-        headerTitle="Document Mapping Table"
+        headerTitle={`Document Mapping Table`}
         actionRef={actionRef}
         rowKey="Irn"
         search={{
