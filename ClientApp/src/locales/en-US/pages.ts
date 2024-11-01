@@ -67,4 +67,9 @@ export default {
   'pages.searchTable.batchDeletion': 'batch deletion',
   'pages.searchTable.batchApproval': 'batch approval',
   'pages.invoice.export': 'Export Excel',
+  'pages.form.delete': 'Delete',
+  'pages.form.addRow': 'Add Row',
+  'pages.form.save': 'Save',
+  'pages.form.failure': 'Save failed, please try again!',
+  'pages.form.success': 'Save successful!',
 };

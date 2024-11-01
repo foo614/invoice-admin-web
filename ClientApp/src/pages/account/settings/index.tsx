@@ -2,7 +2,7 @@ import { GridContent } from '@ant-design/pro-components';
 import { Menu } from 'antd';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import BaseView from './components/base';
-import BindingView from './components/binding';
+import ClassificationMappingPage from './components/classification';
 import NotificationView from './components/notification';
 import UOMMappingPage from './components/uom';
 import useStyles from './style.style';
@@ -16,7 +16,7 @@ const Settings: React.FC = () => {
   const menuMap: Record<string, React.ReactNode> = {
     base: 'Seller Profile',
     security: 'UOM',
-    // binding: '账号绑定',
+    binding: 'Classification Codes',
     // notification: '新消息通知',
   };
   const [initConfig, setInitConfig] = useState<SettingsState>({
@@ -63,7 +63,7 @@ const Settings: React.FC = () => {
       case 'security':
         return <UOMMappingPage />;
       case 'binding':
-        return <BindingView />;
+        return <ClassificationMappingPage />;
       case 'notification':
         return <NotificationView />;
       default:

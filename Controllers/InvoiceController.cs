@@ -691,6 +691,202 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
             }
         }
 
+        [HttpGet("classificationcodes")]
+        public async Task<IActionResult> GetClassificationCodes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/ClassificationCodes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("msiccodes")]
+        public async Task<IActionResult> GetMSICCodes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/MSICSubCategoryCodes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("invoicetypes")]
+        public async Task<IActionResult> GetInvoiceTypes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/EInvoiceTypes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("currencycodes")]
+        public async Task<IActionResult> GetCurrencyCodes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/CurrencyCodes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("paymentmethods")]
+        public async Task<IActionResult> GetPaymentMethods()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/PaymentMethods.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("statecodes")]
+        public async Task<IActionResult> GetStateCodes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/StateCodes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("taxtypes")]
+        public async Task<IActionResult> GetTaxTypes()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var url = "https://sdk.myinvois.hasil.gov.my/files/TaxTypes.json";
+
+            try
+            {
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var unitTypes = JsonSerializer.Deserialize<object>(json);
+
+                    return Ok(unitTypes); // Return JSON data as-is
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         // Token response model
         public class TokenResponse
         {

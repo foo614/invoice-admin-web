@@ -1,134 +1,154 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, Select, Space, Table, message } from 'antd';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Select, Table, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import sellerUOMListData from '../../../../../mock/config/uom.json'; // Importing the local JSON file
+import sellerUOMListData from '../../../../../mock/config/uom.json';
 
-// Define TypeScript types for LHDN UOM and mapping data
+// Define TypeScript types
 interface LhdnUOM {
   Code: string;
   Name: string;
 }
 
 interface SellerUOM {
-  Code: string;
-  Name: string;
+  ID: string;
+  DESC: string;
+  TEXTDESC: string;
 }
 
 interface RowData {
   key: string;
   uomCode?: string;
-  uomMappings: { sellerUOM: string }[];
+  uomMappings: string[]; // Array to store selected seller UOM IDs
 }
 
 const UOMMappingPage: React.FC = () => {
   const [lhdnUOMList, setLhdnUOMList] = useState<LhdnUOM[]>([]);
+  const [sellerUOMList, setSellerUOMList] = useState<SellerUOM[]>([]);
   const [rows, setRows] = useState<RowData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch UOM list from the unitypes API
+  // Fetch LHDN UOM and Seller UOM lists
   const fetchUOMList = async () => {
     try {
       const response = await axios.get('https://localhost:5001/api/invoice/unittypes');
       setLhdnUOMList(response.data);
-      setLoading(false);
     } catch (error) {
-      message.error('Failed to fetch UOM list');
+      message.error('Failed to fetch LHDN UOM list');
+    }
+  };
+
+  const fetchSellerUOMList = async () => {
+    try {
+      setSellerUOMList(sellerUOMListData);
+    } catch (error) {
+      message.error('Failed to fetch Seller UOM list');
     }
   };
 
   useEffect(() => {
     fetchUOMList();
+    fetchSellerUOMList();
+    setLoading(false);
   }, []);
 
-  // Handle adding a new row
   const addRow = () => {
     const newRow: RowData = {
       key: `row-${rows.length + 1}`,
-      uomMappings: [{ sellerUOM: '' }],
+      uomMappings: [],
     };
     setRows([...rows, newRow]);
   };
 
-  // Handle adding a new mapping for a specific row
-  const addMapping = (rowKey: string) => {
-    setRows((prevRows) =>
-      prevRows.map((row) =>
-        row.key === rowKey ? { ...row, uomMappings: [...row.uomMappings, { sellerUOM: '' }] } : row,
-      ),
-    );
+  const removeRow = (rowKey: string) => {
+    setRows((prevRows) => prevRows.filter((row) => row.key !== rowKey));
   };
 
-  // Handle updating the LHDN UOM selection for a specific row
   const updateUOMCode = (rowKey: string, value: string) => {
     setRows((prevRows) =>
       prevRows.map((row) => (row.key === rowKey ? { ...row, uomCode: value } : row)),
     );
   };
 
-  // Handle updating a specific mapping within a row
-  const updateMapping = (rowKey: string, index: number, value: string) => {
+  const updateMappings = (rowKey: string, values: string[]) => {
     setRows((prevRows) =>
-      prevRows.map((row) =>
-        row.key === rowKey
-          ? {
-              ...row,
-              uomMappings: row.uomMappings.map((mapping, i) =>
-                i === index ? { sellerUOM: value } : mapping,
-              ),
-            }
-          : row,
-      ),
+      prevRows.map((row) => (row.key === rowKey ? { ...row, uomMappings: values } : row)),
     );
   };
 
-  // Define table columns
+  // Get selected LHDN UOMs to exclude from other rows
+  const getSelectedLhdnUOMs = () => {
+    const selectedUOMs = new Set<string>();
+    rows.forEach((row) => {
+      if (row.uomCode) selectedUOMs.add(row.uomCode);
+    });
+    return selectedUOMs;
+  };
+
+  // Get selected Seller UOMs to exclude from other rows
+  const getSelectedSellerUOMs = () => {
+    const selectedUOMs = new Set<string>();
+    rows.forEach((row) => row.uomMappings.forEach((uom) => selectedUOMs.add(uom)));
+    return selectedUOMs;
+  };
+
   const columns = [
     {
       title: 'LHDN UOM',
       dataIndex: 'uomCode',
       key: 'uomCode',
-      render: (_: any, record: RowData) => (
-        <Select
-          style={{ width: '100%' }}
-          placeholder="Select UOM"
-          value={record.uomCode}
-          onChange={(value) => updateUOMCode(record.key, value)}
-          options={lhdnUOMList.map((uom) => ({
-            label: `${uom.Code} - ${uom.Name}`,
-            value: uom.Code,
-          }))}
-        />
-      ),
+      render: (_: any, record: RowData) => {
+        const selectedLhdnUOMs = getSelectedLhdnUOMs();
+
+        return (
+          <Select
+            style={{ width: '100%' }}
+            placeholder="Select UOM"
+            value={record.uomCode}
+            onChange={(value) => updateUOMCode(record.key, value)}
+            options={lhdnUOMList
+              .filter((uom) => !selectedLhdnUOMs.has(uom.Code) || uom.Code === record.uomCode)
+              .map((uom) => ({
+                label: `${uom.Code} - ${uom.Name}`,
+                value: uom.Code,
+              }))}
+          />
+        );
+      },
     },
     {
       title: 'Mapped Seller UOMs',
       dataIndex: 'uomMappings',
       key: 'uomMappings',
-      render: (_: any, record: RowData) => (
-        <Space direction="vertical" style={{ width: '100%' }}>
-          {record.uomMappings.map((mapping, index) => (
-            <Select
-              key={`${record.key}-${index}`}
-              style={{ width: '100%' }}
-              placeholder="Select Seller UOM"
-              value={mapping.sellerUOM}
-              onChange={(value) => updateMapping(record.key, index, value)}
-              options={sellerUOMListData.map((uom) => ({
-                label: `${uom.ID} - ${uom.DESC}`,
+      render: (_: any, record: RowData) => {
+        const selectedSellerUOMs = getSelectedSellerUOMs();
+
+        return (
+          <Select
+            mode="multiple"
+            placeholder="Select Seller UOMs"
+            value={record.uomMappings}
+            onChange={(values) => updateMappings(record.key, values)}
+            style={{ width: '100%' }}
+            options={sellerUOMList
+              .filter(
+                (uom) => !selectedSellerUOMs.has(uom.ID) || record.uomMappings.includes(uom.ID),
+              )
+              .map((uom) => ({
+                label: `${uom.DESC}`,
                 value: uom.ID,
               }))}
-            />
-          ))}
-          <Button
-            type="dashed"
-            icon={<PlusOutlined />}
-            onClick={() => addMapping(record.key)}
-            style={{ width: '100%' }}
-          >
-            Add UOM Mapping
-          </Button>
-        </Space>
+          />
+        );
+      },
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: RowData) => (
+        <Button type="link" icon={<DeleteOutlined />} onClick={() => removeRow(record.key)} danger>
+          Delete Row
+        </Button>
       ),
     },
   ];

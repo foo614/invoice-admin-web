@@ -1,0 +1,320 @@
+[
+  {
+    "ID": "100",
+    "CTYPE": "1",
+    "NAME": "Special rebate",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "102",
+    "CTYPE": "1",
+    "NAME": "Fixed long term",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "103",
+    "CTYPE": "1",
+    "NAME": "Temporary",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "104",
+    "CTYPE": "1",
+    "NAME": "Standard",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "105",
+    "CTYPE": "1",
+    "NAME": "Yearly turnover",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "41",
+    "CTYPE": "1",
+    "NAME": "Bonus for works ahead of schedule",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "42",
+    "CTYPE": "1",
+    "NAME": "Other bonus",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "60",
+    "CTYPE": "1",
+    "NAME": "Manufacturer’s consumer discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "62",
+    "CTYPE": "1",
+    "NAME": "Due to military status",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "63",
+    "CTYPE": "1",
+    "NAME": "Due to work accident",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "64",
+    "CTYPE": "1",
+    "NAME": "Special agreement",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "65",
+    "CTYPE": "1",
+    "NAME": "Production error discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "66",
+    "CTYPE": "1",
+    "NAME": "New outlet discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "67",
+    "CTYPE": "1",
+    "NAME": "Sample discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "68",
+    "CTYPE": "1",
+    "NAME": "End-of-range discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "70",
+    "CTYPE": "1",
+    "NAME": "Incoterm discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "71",
+    "CTYPE": "1",
+    "NAME": "Point of sales threshold allowance",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "88",
+    "CTYPE": "1",
+    "NAME": "Material surcharge/deduction",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "95",
+    "CTYPE": "1",
+    "NAME": "Discount",
+    "TEXTDESC": ""
+  },
+  {
+    "ID": "AA",
+    "CTYPE": "2",
+    "NAME": "Advertising",
+    "TEXTDESC": "The service of providing advertising."
+  },
+  {
+    "ID": "AAA",
+    "CTYPE": "2",
+    "NAME": "Telecommunication",
+    "TEXTDESC": "The service of providing telecommunication activities and/or facilities."
+  },
+  {
+    "ID": "AAC",
+    "CTYPE": "2",
+    "NAME": "Technical modification",
+    "TEXTDESC": "The service of making technical modifications to a product."
+  },
+  {
+    "ID": "AAD",
+    "CTYPE": "2",
+    "NAME": "Job-order production",
+    "TEXTDESC": "The service of producing to order."
+  },
+  {
+    "ID": "AAE",
+    "CTYPE": "2",
+    "NAME": "Outlays",
+    "TEXTDESC": "The service of providing money for outlays on behalf of a trading partner."
+  },
+  {
+    "ID": "AAF",
+    "CTYPE": "2",
+    "NAME": "Off-premises",
+    "TEXTDESC": "The service of providing services outside the premises of the provider."
+  },
+  {
+    "ID": "AAH",
+    "CTYPE": "2",
+    "NAME": "Additional processing",
+    "TEXTDESC": "The service of providing additional processing."
+  },
+  {
+    "ID": "AAI",
+    "CTYPE": "2",
+    "NAME": "Attesting",
+    "TEXTDESC": "The service of certifying validity."
+  },
+  {
+    "ID": "AAS",
+    "CTYPE": "2",
+    "NAME": "Acceptance",
+    "TEXTDESC": "The service of accepting goods or services."
+  },
+  {
+    "ID": "AAT",
+    "CTYPE": "2",
+    "NAME": "Rush delivery",
+    "TEXTDESC": "The service to provide a rush delivery."
+  },
+  {
+    "ID": "AAV",
+    "CTYPE": "2",
+    "NAME": "Special construction",
+    "TEXTDESC": "The service of providing special construction."
+  },
+  {
+    "ID": "AAY",
+    "CTYPE": "2",
+    "NAME": "Airport facilities",
+    "TEXTDESC": "The service of providing airport facilities."
+  },
+  {
+    "ID": "AAZ",
+    "CTYPE": "2",
+    "NAME": "Concession",
+    "TEXTDESC": "The service allowing a party to use another party's facilities."
+  },
+  {
+    "ID": "ABA",
+    "CTYPE": "2",
+    "NAME": "Compulsory storage",
+    "TEXTDESC": "The service provided to hold a compulsory inventory."
+  },
+  {
+    "ID": "ABB",
+    "CTYPE": "2",
+    "NAME": "Fuel removal",
+    "TEXTDESC": "Remove or off-load fuel from vehicle, vessel or craft."
+  },
+  {
+    "ID": "ABC",
+    "CTYPE": "2",
+    "NAME": "Into plane",
+    "TEXTDESC": "Service of delivering goods to an aircraft from local storage."
+  },
+  {
+    "ID": "ABD",
+    "CTYPE": "2",
+    "NAME": "Overtime",
+    "TEXTDESC": "The service of providing labour beyond the established limit of working hours."
+  },
+  {
+    "ID": "ABF",
+    "CTYPE": "2",
+    "NAME": "Tooling",
+    "TEXTDESC": "The service of providing specific tooling."
+  },
+  {
+    "ID": "ABK",
+    "CTYPE": "2",
+    "NAME": "Miscellaneous",
+    "TEXTDESC": "Miscellaneous services."
+  },
+  {
+    "ID": "ABL",
+    "CTYPE": "2",
+    "NAME": "Additional packaging",
+    "TEXTDESC": "The service of providing additional packaging."
+  },
+  {
+    "ID": "ABN",
+    "CTYPE": "2",
+    "NAME": "Dunnage",
+    "TEXTDESC": "The service of providing additional padding materials required to secure and protect cargo within a shipping container."
+  },
+  {
+    "ID": "ABR",
+    "CTYPE": "2",
+    "NAME": "Containerisation",
+    "TEXTDESC": "The service of packing items into a container."
+  },
+  {
+    "ID": "ABS",
+    "CTYPE": "2",
+    "NAME": "Carton packing",
+    "TEXTDESC": "The service of packing items into a carton."
+  },
+  {
+    "ID": "ABT",
+    "CTYPE": "2",
+    "NAME": "Hessian wrapped",
+    "TEXTDESC": "The service of hessian wrapping."
+  },
+  {
+    "ID": "ABU",
+    "CTYPE": "2",
+    "NAME": "Polyethylene wrap packing",
+    "TEXTDESC": "The service of packing in polyethylene wrapping."
+  },
+  {
+    "ID": "ACF",
+    "CTYPE": "2",
+    "NAME": "Miscellaneous treatment",
+    "TEXTDESC": "Miscellaneous treatment service."
+  },
+  {
+    "ID": "ACG",
+    "CTYPE": "2",
+    "NAME": "Enamelling treatment",
+    "TEXTDESC": "The service of providing enamelling treatment."
+  },
+  {
+    "ID": "ACH",
+    "CTYPE": "2",
+    "NAME": "Heat treatment",
+    "TEXTDESC": "The service of treating with heat."
+  },
+  {
+    "ID": "ACI",
+    "CTYPE": "2",
+    "NAME": "Plating treatment",
+    "TEXTDESC": "The service of providing plating treatment."
+  },
+  {
+    "ID": "ACJ",
+    "CTYPE": "2",
+    "NAME": "Painting",
+    "TEXTDESC": "The service of painting."
+  },
+  {
+    "ID": "ACK",
+    "CTYPE": "2",
+    "NAME": "Polishing",
+    "TEXTDESC": "The service of polishing."
+  },
+  {
+    "ID": "ACL",
+    "CTYPE": "2",
+    "NAME": "Priming",
+    "TEXTDESC": "The service of priming."
+  },
+  {
+    "ID": "ACM",
+    "CTYPE": "2",
+    "NAME": "Preservation treatment",
+    "TEXTDESC": "The service of preservation treatment."
+  },
+  {
+    "ID": "ACS",
+    "CTYPE": "2",
+    "NAME": "Fitting",
+    "TEXTDESC": "Fitting service."
+  }
+]

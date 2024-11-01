@@ -65,4 +65,8 @@ export default {
   'pages.searchTable.batchDeletion': '批量删除',
   'pages.searchTable.batchApproval': '批量审批',
   'pages.invoice.export': '导出数据',
+  'pages.form.delete': '删除',
+  'pages.form.save': '保存',
+  'pages.form.failure': '保存失败，请重试!',
+  'pages.form.success': '保存成功!',
 };
