@@ -260,6 +260,7 @@ const InvoiceSubmission: React.FC = () => {
                 title: 'QR Code',
                 hideInDescriptions: !documentDetails.longId,
                 render: () => (
+                  // get endpoint from config table
                   <QRCode
                     value={`https://preprod.myinvois.hasil.gov.my/${documentDetails.uuid}/share/${documentDetails.longId}`}
                     size={150}
