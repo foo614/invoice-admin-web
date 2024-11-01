@@ -1,5 +1,6 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Select, Table, message } from 'antd';
+import { ProFormSelect } from '@ant-design/pro-components';
+import { Button, Table, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import sellerUOMListData from '../../../../../mock/config/uom.json';
@@ -28,7 +29,6 @@ const UOMMappingPage: React.FC = () => {
   const [rows, setRows] = useState<RowData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch LHDN UOM and Seller UOM lists
   const fetchUOMList = async () => {
     try {
       const response = await axios.get('https://localhost:5001/api/invoice/unittypes');
@@ -76,7 +76,6 @@ const UOMMappingPage: React.FC = () => {
     );
   };
 
-  // Get selected LHDN UOMs to exclude from other rows
   const getSelectedLhdnUOMs = () => {
     const selectedUOMs = new Set<string>();
     rows.forEach((row) => {
@@ -85,7 +84,6 @@ const UOMMappingPage: React.FC = () => {
     return selectedUOMs;
   };
 
-  // Get selected Seller UOMs to exclude from other rows
   const getSelectedSellerUOMs = () => {
     const selectedUOMs = new Set<string>();
     rows.forEach((row) => row.uomMappings.forEach((uom) => selectedUOMs.add(uom)));
@@ -101,17 +99,20 @@ const UOMMappingPage: React.FC = () => {
         const selectedLhdnUOMs = getSelectedLhdnUOMs();
 
         return (
-          <Select
-            style={{ width: '100%' }}
-            placeholder="Select UOM"
-            value={record.uomCode}
-            onChange={(value) => updateUOMCode(record.key, value)}
+          <ProFormSelect
             options={lhdnUOMList
               .filter((uom) => !selectedLhdnUOMs.has(uom.Code) || uom.Code === record.uomCode)
               .map((uom) => ({
                 label: `${uom.Code} - ${uom.Name}`,
                 value: uom.Code,
               }))}
+            placeholder="Select UOM"
+            showSearch
+            fieldProps={{
+              value: record.uomCode,
+              onChange: (value) => updateUOMCode(record.key, value),
+              style: { width: '100%' },
+            }}
           />
         );
       },
@@ -124,12 +125,8 @@ const UOMMappingPage: React.FC = () => {
         const selectedSellerUOMs = getSelectedSellerUOMs();
 
         return (
-          <Select
+          <ProFormSelect
             mode="multiple"
-            placeholder="Select Seller UOMs"
-            value={record.uomMappings}
-            onChange={(values) => updateMappings(record.key, values)}
-            style={{ width: '100%' }}
             options={sellerUOMList
               .filter(
                 (uom) => !selectedSellerUOMs.has(uom.ID) || record.uomMappings.includes(uom.ID),
@@ -138,6 +135,13 @@ const UOMMappingPage: React.FC = () => {
                 label: `${uom.DESC}`,
                 value: uom.ID,
               }))}
+            placeholder="Select Seller UOMs"
+            showSearch
+            fieldProps={{
+              value: record.uomMappings,
+              onChange: (values) => updateMappings(record.key, values),
+              style: { width: '100%' },
+            }}
           />
         );
       },

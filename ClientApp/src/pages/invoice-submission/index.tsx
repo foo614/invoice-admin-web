@@ -1,11 +1,9 @@
 import { ProDescriptions, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage } from '@umijs/max';
-import { Button, Drawer, message } from 'antd';
+import { Button, Drawer, message, QRCode } from 'antd';
 import React, { useRef, useState } from 'react';
 
-/**
- * Types for API response and records
- */
+// Types for API response and records
 interface InvoiceRecord {
   uuid: string;
   internalId: string;
@@ -36,6 +34,7 @@ interface ValidationStep {
 interface InvoiceDetails {
   uuid: string;
   submissionUid: string;
+  longId: string;
   internalId: string;
   typeName: string;
   typeVersionName: string;
@@ -56,12 +55,9 @@ interface InvoiceDetails {
   };
 }
 
-/**
- * Fetch recent invoices (list)
- */
+// Fetch recent invoices (list)
 const fetchRecentDocuments = async (params: { current: number; pageSize: number }) => {
   const { current, pageSize } = params;
-
   try {
     const response = await fetch(
       `https://localhost:5001/api/invoice/recent?pageNo=${current}&pageSize=${pageSize}`,
@@ -90,9 +86,7 @@ const fetchRecentDocuments = async (params: { current: number; pageSize: number 
   }
 };
 
-/**
- * Fetch document details by UUID
- */
+// Fetch document details by UUID
 const fetchDocumentDetails = async (uuid: string): Promise<InvoiceDetails | null> => {
   try {
     const response = await fetch(`https://localhost:5001/api/invoice/${uuid}/details`, {
@@ -237,7 +231,6 @@ const InvoiceSubmission: React.FC = () => {
                   locale: 'en-US',
                 },
               },
-              //   { title: 'Total Discount', dataIndex: 'totalDiscount', valueType: 'money' },
               {
                 title: 'Total Net Amount',
                 dataIndex: 'totalNetAmount',
@@ -261,6 +254,16 @@ const InvoiceSubmission: React.FC = () => {
                   <pre>
                     {JSON.stringify(documentDetails.validationResults.validationSteps, null, 2)}
                   </pre>
+                ),
+              },
+              {
+                title: 'QR Code',
+                hideInDescriptions: !documentDetails.longId,
+                render: () => (
+                  <QRCode
+                    value={`https://preprod.myinvois.hasil.gov.my/${documentDetails.uuid}/share/${documentDetails.longId}`}
+                    size={150}
+                  />
                 ),
               },
             ]}

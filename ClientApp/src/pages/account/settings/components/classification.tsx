@@ -1,8 +1,9 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Select, Table, message } from 'antd';
+import { ProFormSelect } from '@ant-design/pro-components';
+import { Button, Table, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import localClassificationCodes from '../../../../../mock/config/classification.json'; // Adjust path as needed
+import localClassificationCodes from '../../../../../mock/config/classification.json';
 
 // Define TypeScript types
 interface LhdnClassification {
@@ -78,7 +79,6 @@ const ClassificationMappingPage: React.FC = () => {
     );
   };
 
-  // Get selected Classification Codes to exclude from other rows
   const getSelectedClassificationCodes = () => {
     const selectedCodes = new Set<string>();
     rows.forEach((row) => {
@@ -87,7 +87,6 @@ const ClassificationMappingPage: React.FC = () => {
     return selectedCodes;
   };
 
-  // Get selected mappings to exclude from other rows
   const getSelectedMappings = () => {
     const selectedMappings = new Set<string>();
     rows.forEach((row) => row.mappings.forEach((mapping) => selectedMappings.add(mapping)));
@@ -103,11 +102,7 @@ const ClassificationMappingPage: React.FC = () => {
         const selectedClassificationCodes = getSelectedClassificationCodes();
 
         return (
-          <Select
-            style={{ width: '100%' }}
-            placeholder="Select Classification Code"
-            value={record.classificationCode}
-            onChange={(value) => updateClassificationCode(record.key, value)}
+          <ProFormSelect
             options={lhdnClassificationList
               .filter(
                 (classification) =>
@@ -118,6 +113,13 @@ const ClassificationMappingPage: React.FC = () => {
                 label: `${classification.Code} - ${classification.Description}`,
                 value: classification.Code,
               }))}
+            placeholder="Select Classification Code"
+            showSearch
+            fieldProps={{
+              value: record.classificationCode,
+              onChange: (value) => updateClassificationCode(record.key, value),
+              style: { width: '100%' },
+            }}
           />
         );
       },
@@ -130,12 +132,8 @@ const ClassificationMappingPage: React.FC = () => {
         const selectedMappings = getSelectedMappings();
 
         return (
-          <Select
+          <ProFormSelect
             mode="multiple"
-            placeholder="Select Local Classifications"
-            value={record.mappings}
-            onChange={(values) => updateMappings(record.key, values)}
-            style={{ width: '100%' }}
             options={localClassificationList
               .filter(
                 (localCode) =>
@@ -145,6 +143,13 @@ const ClassificationMappingPage: React.FC = () => {
                 label: `${localCode.NAME} - ${localCode.TEXTDESC || ''}`,
                 value: localCode.ID,
               }))}
+            placeholder="Select Local Classifications"
+            showSearch
+            fieldProps={{
+              value: record.mappings,
+              onChange: (values) => updateMappings(record.key, values),
+              style: { width: '100%' },
+            }}
           />
         );
       },
