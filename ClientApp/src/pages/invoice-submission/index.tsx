@@ -229,13 +229,30 @@ const InvoiceSubmission: React.FC = () => {
               { title: 'Receiver Name', dataIndex: 'receiverName' },
               { title: 'Date Received', dataIndex: 'dateTimeReceived', valueType: 'dateTime' },
               { title: 'Date Validated', dataIndex: 'dateTimeValidated', valueType: 'dateTime' },
-              { title: 'Total Excluding Tax', dataIndex: 'totalExcludingTax', valueType: 'money' },
+              {
+                title: 'Total Excluding Tax',
+                dataIndex: 'totalExcludingTax',
+                valueType: {
+                  type: 'money',
+                  locale: 'en-US',
+                },
+              },
               //   { title: 'Total Discount', dataIndex: 'totalDiscount', valueType: 'money' },
-              { title: 'Total Net Amount', dataIndex: 'totalNetAmount', valueType: 'money' },
+              {
+                title: 'Total Net Amount',
+                dataIndex: 'totalNetAmount',
+                valueType: {
+                  type: 'money',
+                  locale: 'en-US',
+                },
+              },
               {
                 title: 'Total Payable Amount',
                 dataIndex: 'totalPayableAmount',
-                valueType: 'money',
+                valueType: {
+                  type: 'money',
+                  locale: 'en-US',
+                },
               },
               { title: 'Status', dataIndex: 'status' },
               {
