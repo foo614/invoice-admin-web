@@ -31,7 +31,7 @@ export default [
   {
     path: '/e-invoice',
     name: 'list.invoice.mapping',
-    icon: 'table',
+    icon: 'fileSync',
     access: 'canAdmin',
     routes: [
       {
@@ -73,7 +73,7 @@ export default [
   {
     path: '/lhdn-submission-history',
     name: 'list.invoice.submission',
-    icon: 'table',
+    icon: 'fileDone',
     access: 'canAdmin',
     routes: [
       {
@@ -114,7 +114,7 @@ export default [
   },
   {
     name: 'account.settings',
-    icon: 'user',
+    icon: 'setting',
     path: '/account',
     component: './account/settings',
   },

@@ -2,7 +2,6 @@
 import { defineConfig } from '@umijs/max';
 import { join } from 'path';
 import defaultSettings from './defaultSettings';
-import proxy from './proxy';
 import routes from './routes';
 
 const { REACT_APP_ENV = 'dev' } = process.env;
@@ -57,14 +56,6 @@ export default defineConfig({
    */
   ignoreMomentLocale: true,
   /**
-   * @name 代理配置
-   * @description 可以让你的本地服务器代理到你的服务器上，这样你就可以访问服务器的数据了
-   * @see 要注意以下 代理只能在本地开发时使用，build 之后就无法使用了。
-   * @doc 代理介绍 https://umijs.org/docs/guides/proxy
-   * @doc 代理配置 https://umijs.org/docs/api/config#proxy
-   */
-  proxy: proxy[REACT_APP_ENV as keyof typeof proxy],
-  /**
    * @name 快速热更新配置
    * @description 一个不错的热更新组件，更新时可以保留 state
    */
@@ -85,7 +76,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: 'Ant Design Pro',
+  title: 'Nex Koala',
   layout: {
     locale: true,
     ...defaultSettings,
@@ -138,25 +129,6 @@ export default defineConfig({
   ],
   //================ pro 插件配置 =================
   presets: ['umi-presets-pro'],
-  /**
-   * @name openAPI 插件的配置
-   * @description 基于 openapi 的规范生成serve 和mock，能减少很多样板代码
-   * @doc https://pro.ant.design/zh-cn/docs/openapi/
-   */
-  openAPI: [
-    {
-      requestLibPath: "import { request } from '@umijs/max'",
-      // 或者使用在线的版本
-      // schemaPath: "https://gw.alipayobjects.com/os/antfincdn/M%24jrzTTYJN/oneapi.json"
-      schemaPath: join(__dirname, 'oneapi.json'),
-      mock: false,
-    },
-    {
-      requestLibPath: "import { request } from '@umijs/max'",
-      schemaPath: 'https://gw.alipayobjects.com/os/antfincdn/CA1dOm%2631B/openapi.json',
-      projectName: 'swagger',
-    },
-  ],
   /**
    * @name 是否开启 mako
    * @description 使用 mako 极速研发

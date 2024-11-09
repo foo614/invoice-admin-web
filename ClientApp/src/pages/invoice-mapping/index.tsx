@@ -7,11 +7,12 @@ import {
   ProFormGroup,
   ProFormList,
   ProFormText,
-  ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, message, Modal } from 'antd';
+import { Button, Drawer, message, Modal, Tooltip } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { invoiceTypesConfig } from './config/invoiceTypesConfig';
 
 /**
  * Handle add operation
@@ -64,13 +65,15 @@ const handleRemove = async (selectedRows: any[]) => {
   }
 };
 
-const InvoiceSubmission: React.FC = () => {
+const InvoiceSubmission: React.FC = (invoiceType: string) => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<any>();
   const [selectedRowsState, setSelectedRows] = useState<any[]>([]);
   const [tableData, setTableData] = useState<any[]>([]); // State for table data
+  const location = useLocation();
+  const lastPathSegment = location.pathname.split('/').filter(Boolean).pop();
 
   const actionRef = useRef<ActionType>();
 
@@ -346,7 +349,7 @@ const InvoiceSubmission: React.FC = () => {
   const handleLHDNSubmission = async (record: any) => {
     const mappedRecord = {
       Irn: dynamicIrn,
-      IssueDate: '2024-10-29',
+      IssueDate: '2024-11-05',
       // record.DocDtls.Dt ||
       IssueTime: record.DocDtls.Tm || randomIssueTime, // Assuming time is not provided
       InvoiceTypeCode: '01',
@@ -475,6 +478,304 @@ const InvoiceSubmission: React.FC = () => {
     });
   };
 
+  const renderField = (field: string, readOnly = false) => {
+    switch (field) {
+      case 'SellerDetails':
+        return (
+          <ProFormGroup title="Seller Details">
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Gstin']}
+              label="Seller GSTIN"
+              initialValue={currentRow?.SellerDtls?.Gstin}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'LglNm']}
+              label="Seller Legal Name"
+              initialValue={currentRow?.SellerDtls?.LglNm}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'TrdNm']}
+              label="Seller Trade Name"
+              initialValue={currentRow?.SellerDtls?.TrdNm}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Addr1']}
+              label="Seller Address Line 1"
+              initialValue={currentRow?.SellerDtls?.Addr1}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Addr2']}
+              label="Seller Address Line 2"
+              initialValue={currentRow?.SellerDtls?.Addr2}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Loc']}
+              label="Seller Location"
+              initialValue={currentRow?.SellerDtls?.Loc}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Pin']}
+              label="Seller PIN Code"
+              initialValue={currentRow?.SellerDtls?.Pin}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Stcd']}
+              label="Seller State Code"
+              initialValue={currentRow?.SellerDtls?.Stcd}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Ph']}
+              label="Seller Phone Number"
+              initialValue={currentRow?.SellerDtls?.Ph}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['SellerDtls', 'Em']}
+              label="Seller Email"
+              initialValue={currentRow?.SellerDtls?.Em}
+              fieldProps={{ readOnly }}
+            />
+          </ProFormGroup>
+        );
+
+      case 'BuyerDetails':
+        return (
+          <ProFormGroup title="Buyer Details">
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Gstin']}
+              label="Buyer GSTIN"
+              initialValue={currentRow?.BuyerDtls?.Gstin}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'LglNm']}
+              label="Buyer Legal Name"
+              initialValue={currentRow?.BuyerDtls?.LglNm}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'TrdNm']}
+              label="Buyer Trade Name"
+              initialValue={currentRow?.BuyerDtls?.TrdNm}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Addr1']}
+              label="Buyer Address Line 1"
+              initialValue={currentRow?.BuyerDtls?.Addr1}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Addr2']}
+              label="Buyer Address Line 2"
+              initialValue={currentRow?.BuyerDtls?.Addr2}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Loc']}
+              label="Buyer Location"
+              initialValue={currentRow?.BuyerDtls?.Loc}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Pin']}
+              label="Buyer PIN Code"
+              initialValue={currentRow?.BuyerDtls?.Pin}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Stcd']}
+              label="Buyer State Code"
+              initialValue={currentRow?.BuyerDtls?.Stcd}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Ph']}
+              label="Buyer Phone Number"
+              initialValue={currentRow?.BuyerDtls?.Ph}
+              fieldProps={{ readOnly }}
+            />
+            <ProFormText
+              width="md"
+              name={['BuyerDtls', 'Em']}
+              label="Buyer Email"
+              initialValue={currentRow?.BuyerDtls?.Em}
+              fieldProps={{ readOnly }}
+            />
+          </ProFormGroup>
+        );
+
+      case 'TotalInvoiceValue':
+        return (
+          <ProFormText
+            width="md"
+            name={['ValDtls', 'TotInvVal']}
+            label="Total Invoice Value"
+            initialValue={currentRow?.ValDtls?.TotInvVal}
+            fieldProps={{ readOnly }}
+          />
+        );
+
+      case 'ItemList':
+        return (
+          <ProFormList
+            name="ItemList"
+            label="Item List"
+            initialValue={currentRow?.ItemList || []}
+            readonly={true}
+            deleteIconProps={false}
+            copyIconProps={false}
+          >
+            <ProFormGroup>
+              <ProFormText
+                width="xs"
+                name="PrdDesc"
+                label="Product Name"
+                fieldProps={{
+                  readOnly,
+                  onRender: (dom) => (
+                    <Tooltip title={dom?.value}>
+                      <span>{dom?.value}</span>
+                    </Tooltip>
+                  ),
+                }}
+              />
+              <ProFormText width="xs" name="HsnCd" label="HSN Code" fieldProps={{ readOnly }} />
+              <ProFormText width="xs" name="Qty" label="Quantity" fieldProps={{ readOnly }} />
+              <ProFormText width="xs" name="Unit" label="Unit" fieldProps={{ readOnly }} />
+              <ProFormText
+                width="xs"
+                name="UnitPrice"
+                label="Unit Price"
+                fieldProps={{ readOnly }}
+              />
+              <ProFormText
+                width="xs"
+                name="TotAmt"
+                label="Total Amount"
+                fieldProps={{ readOnly }}
+              />
+            </ProFormGroup>
+          </ProFormList>
+        );
+
+      case 'MonetaryAmounts':
+        return (
+          <ProFormGroup title="Monetary Amounts">
+            <ProFormText
+              name="UnitPrice"
+              label="Unit Price"
+              fieldProps={{ readOnly }}
+              rules={[{ required: true, message: 'Unit Price is required' }]}
+            />
+            <ProFormText
+              name="Subtotal"
+              label="Subtotal"
+              fieldProps={{ readOnly }}
+              rules={[{ required: true, message: 'Subtotal is required' }]}
+            />
+            <ProFormText
+              name="TotalExcludingTax"
+              label="Total Excluding Tax"
+              fieldProps={{ readOnly }}
+              rules={[{ required: true, message: 'Total Excluding Tax is required' }]}
+            />
+            <ProFormText name="DiscountAmount" label="Discount Amount" fieldProps={{ readOnly }} />
+            <ProFormText
+              name="FeeChargeAmount"
+              label="Fee/Charge Amount"
+              fieldProps={{ readOnly }}
+            />
+          </ProFormGroup>
+        );
+
+      case 'TaxAmounts':
+        return (
+          <ProFormGroup title="Tax Amounts">
+            <ProFormText
+              name="TaxRate"
+              label="Tax Rate"
+              fieldProps={{ readOnly }}
+              rules={[{ required: true, message: 'Tax Rate is required' }]}
+            />
+            <ProFormText
+              name="TaxAmount"
+              label="Tax Amount"
+              fieldProps={{ readOnly }}
+              rules={[{ required: true, message: 'Tax Amount is required' }]}
+            />
+            <ProFormText
+              name="TotalTaxAmount"
+              label="Total Tax Amount"
+              fieldProps={{ readOnly }}
+              rules={[{ required: true, message: 'Total Tax Amount is required' }]}
+            />
+          </ProFormGroup>
+        );
+
+      case 'OriginalInvoiceReference':
+        return (
+          <ProFormGroup title="Original Invoice Reference">
+            <ProFormText
+              width="md"
+              name="OriginaleInvoiceReferenceNumber"
+              label="Original Invoice Reference Number"
+              initialValue={currentRow?.OriginaleInvoiceReferenceNumber}
+              fieldProps={{ readOnly }}
+            />
+            {/* <ProFormText
+              width="md"
+              name="OriginaleInvoiceUUID"
+              label="Original Invoice UUID"
+              initialValue={currentRow?.OriginaleInvoiceUUID}
+              fieldProps={{ readOnly }}
+            /> */}
+          </ProFormGroup>
+        );
+
+      case 'DigitalSignature':
+        return (
+          <ProFormText
+            width="md"
+            name="IssuerDigitalSignature"
+            label="Digital Signature"
+            initialValue={currentRow?.IssuerDigitalSignature}
+            fieldProps={{ readOnly }}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <PageContainer>
       <ProTable
@@ -519,8 +820,8 @@ const InvoiceSubmission: React.FC = () => {
         </FooterToolbar>
       )}
       <ModalForm
-        title={currentRow ? 'Edit Invoice' : 'New Invoice'}
-        width={'60%'}
+        width={1000}
+        title="Invoice Submission"
         open={createModalOpen || updateModalOpen}
         onOpenChange={(open) => {
           if (updateModalOpen) handleUpdateModalOpen(open);
@@ -532,100 +833,13 @@ const InvoiceSubmission: React.FC = () => {
             handleModalOpen(false);
             handleUpdateModalOpen(false);
             setCurrentRow(undefined);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
+            if (actionRef.current) actionRef.current.reload();
           }
         }}
-        initialValues={currentRow}
       >
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: 'Invoice ID is required',
-            },
-          ]}
-          width="xl"
-          name="Irn"
-          label="Invoice ID"
-        />
-        <ProFormTextArea width="xl" name="desc" label="Description" />
-        <ProFormGroup title="Self-Billed Details">
-          <ProFormText
-            width="md"
-            name={['SellerDtls', 'AdditionalAccountID']}
-            label="Additional Account ID"
-          />
-          <ProFormText width="md" name="billingReference" label="Billing Reference" />
-        </ProFormGroup>
-
-        <ProFormGroup title="Seller Details">
-          <ProFormText
-            rules={[
-              {
-                required: true,
-                message: 'Seller GSTIN is required',
-              },
-            ]}
-            width="md"
-            name={['SellerDtls', 'Gstin']}
-            label="Seller GSTIN"
-          />
-          <ProFormText width="md" name={['SellerDtls', 'LglNm']} label="Seller Legal Name" />
-          <ProFormText width="md" name={['SellerDtls', 'TrdNm']} label="Seller Trade Name" />
-          <ProFormText width="md" name={['SellerDtls', 'Addr1']} label="Seller Address Line 1" />
-          <ProFormText width="md" name={['SellerDtls', 'Addr2']} label="Seller Address Line 2" />
-          <ProFormText width="md" name={['SellerDtls', 'Loc']} label="Seller Location" />
-          <ProFormText width="md" name={['SellerDtls', 'Pin']} label="Seller PIN Code" />
-          <ProFormText width="md" name={['SellerDtls', 'Stcd']} label="Seller State Code" />
-          <ProFormText width="md" name={['SellerDtls', 'Ph']} label="Seller Phone Number" />
-          <ProFormText width="md" name={['SellerDtls', 'Em']} label="Seller Email" />
-        </ProFormGroup>
-
-        <ProFormGroup title="Dispatch Details">
-          <ProFormText width="md" name={['DispDtls', 'Gstin']} label="Dispatch GSTIN" />
-          <ProFormText width="md" name={['DispDtls', 'Addr1']} label="Dispatch Address Line 1" />
-          <ProFormText width="md" name={['DispDtls', 'Addr2']} label="Dispatch Address Line 2" />
-          <ProFormText width="md" name={['DispDtls', 'Loc']} label="Dispatch Location" />
-        </ProFormGroup>
-
-        <ProFormGroup title="Ship To Details">
-          <ProFormText width="md" name={['ShipDtls', 'Gstin']} label="Ship To GSTIN" />
-          <ProFormText width="md" name={['ShipDtls', 'Addr1']} label="Ship To Address Line 1" />
-          <ProFormText width="md" name={['ShipDtls', 'Addr2']} label="Ship To Address Line 2" />
-          <ProFormText width="md" name={['ShipDtls', 'Loc']} label="Ship To Location" />
-        </ProFormGroup>
-
-        <ProFormList
-          name="ItemList"
-          label={<b className="ant-pro-form-group-title">Item List</b>}
-          copyIconProps={false}
-          deleteIconProps={{
-            tooltipText: 'Delete this item',
-          }}
-        >
-          <ProFormGroup>
-            <ProFormText width="xs" name="PrdDesc" label="Product Name" />
-            <ProFormText width="xs" name="HsnCd" label="HSN Code" />
-            <ProFormText width="xs" name="Qty" label="Quantity" />
-            <ProFormText width="xs" name="Unit" label="Unit" />
-            <ProFormText width="xs" name="UnitPrice" label="Unit Price" />
-            <ProFormText width="xs" name="TotAmt" label="Total Amount" />
-          </ProFormGroup>
-        </ProFormList>
-
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: 'Total Invoice Value is required',
-            },
-          ]}
-          width="md"
-          name={['ValDtls', 'TotInvVal']}
-          label="Total Invoice Value"
-        />
+        {/* Render Fields Based on Invoice Type */}
+        {lastPathSegment &&
+          invoiceTypesConfig[lastPathSegment].fields.map((field) => renderField(field, true))}
       </ModalForm>
 
       <Drawer

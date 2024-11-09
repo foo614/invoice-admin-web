@@ -262,7 +262,7 @@ const InvoiceSubmission: React.FC = () => {
                 render: () => (
                   // get endpoint from config table
                   <QRCode
-                    value={`https://preprod.myinvois.hasil.gov.my/${documentDetails.uuid}/share/${documentDetails.longId}`}
+                    value={`${MY_INVOICE_BASE_URL}/${documentDetails.uuid}/share/${documentDetails.longId}`}
                     size={150}
                   />
                 ),

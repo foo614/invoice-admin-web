@@ -311,7 +311,7 @@ const BaseView: React.FC = () => {
                 label="State"
                 tooltip="State code based on Malaysian administrative divisions."
                 options={stateOptions.map((option) => ({
-                  label: `${option.Code} - ${option.State}`,
+                  label: `${option.State}`,
                   value: option.Code,
                 }))}
                 placeholder="Select or search state code"

@@ -140,7 +140,7 @@ const ClassificationMappingPage: React.FC = () => {
                   !selectedMappings.has(localCode.ID) || record.mappings.includes(localCode.ID),
               )
               .map((localCode) => ({
-                label: `${localCode.NAME} - ${localCode.TEXTDESC || ''}`,
+                label: `${localCode.NAME}`,
                 value: localCode.ID,
               }))}
             placeholder="Select Local Classifications"
