@@ -93,3 +93,60 @@ export async function removeRule(options?: { [key: string]: any }) {
     },
   });
 }
+
+export async function getPartners(
+  params: {
+    /** 当前的页码 */
+    current?: number;
+    /** 页面的容量 */
+    pageSize?: number;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<API.PartnerList>('/api/partners', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+export async function updatePartner(
+  id: string,
+  body: Partial<API.PartnerListItem>,
+  options?: { [key: string]: any },
+) {
+  return request<API.PartnerListItem>(`/api/partners/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function addPartner(body: API.PartnerListItem, options?: { [key: string]: any }) {
+  return request<API.PartnerListItem>('/api/partners', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+export async function removePartner(id: string, options?: { [key: string]: any }) {
+  return request<Record<string, any>>(`/api/partners/${id}`, {
+    method: 'DELETE',
+    ...(options || {}),
+  });
+}
+
+export async function getAuditLogs() {
+  return request('/api/audit-logs', {
+    method: 'GET',
+  });
+}

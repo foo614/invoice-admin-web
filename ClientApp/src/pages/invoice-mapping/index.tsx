@@ -10,6 +10,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Button, Drawer, message, Modal, Tooltip } from 'antd';
+import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { invoiceTypesConfig } from './config/invoiceTypesConfig';
@@ -348,10 +349,10 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
    */
   const handleLHDNSubmission = async (record: any) => {
     const mappedRecord = {
-      Irn: dynamicIrn,
-      IssueDate: '2024-11-05',
+      Irn: record.Irn,
+      IssueDate: dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
       // record.DocDtls.Dt ||
-      IssueTime: record.DocDtls.Tm || randomIssueTime, // Assuming time is not provided
+      IssueTime: record.DocDtls.Tm || randomIssueTime,
       InvoiceTypeCode: '01',
       // record.DocDtls.Typ ||
       CurrencyCode: 'MYR', // Assuming currency is MYR
@@ -398,7 +399,7 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
       CustomerEmail: 'buyer@email.com',
 
       // Invoice period details
-      StartDate: '2024-09-01',
+      StartDate: '2024-10-01',
       EndDate: '2024-10-10',
       InvoicePeriodDescription: 'Monthly',
 
@@ -435,38 +436,61 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
           });
 
           const result = await response.json();
-          console.log(result);
           if (response.ok) {
             hide();
-            message.success('Submitted successfully');
-            const updatedData = tableData.map((row) => {
-              if (row.Irn === record.Irn) {
-                return {
-                  ...row,
-                  uuid: result.acceptedDocuments[0].uuid, // Update the UUID
-                  status: 'submitted', // Update the status
-                };
-              }
-              return row;
-            });
+            const { acceptedDocuments, rejectedDocuments } = result;
+            if (acceptedDocuments.length > 0) {
+              message.success(`Successfully submitted ${acceptedDocuments.length} documents.`);
 
-            // Update the state
-            setTableData(updatedData);
-            return true;
-          } else {
-            hide();
-            // Check if the response contains validation errors
-            if (result.error?.details && result.error.details.length > 0) {
-              // Iterate through the details array and collect error messages
-              const errorMessages = result.error.details
-                .map((detail: any) => `${detail.message} (Code: ${detail.code})`)
-                .join('\n');
-              message.error(`Submission failed:\n${errorMessages}`);
+              // Update table data for accepted documents
+              const updatedData = tableData.map((row) => {
+                const acceptedDoc = acceptedDocuments.find(
+                  (doc) => doc.invoiceCodeNumber === row.Irn,
+                );
+                if (acceptedDoc) {
+                  return {
+                    ...row,
+                    uuid: acceptedDoc.uuid, // Update the UUID if present
+                    status: 'submitted', // Update the status
+                  };
+                }
+                return row;
+              });
+
+              setTableData(updatedData);
+              return true;
             } else {
-              // Fallback in case no details are provided
-              message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
+              hide();
+              const { rejectedDocuments } = result;
+
+              if (rejectedDocuments && rejectedDocuments.length > 0) {
+                // Format rejected document errors in multi-line
+                const errorMessages = rejectedDocuments
+                  .map((doc) => {
+                    const { error } = doc;
+                    return `
+                  Invoice Code: ${doc.invoiceCodeNumber}
+                  ${error.details
+                    .map(
+                      (detail) => `
+                    Error Code: ${detail.code}
+                    Message: ${detail.message}
+                    Target: ${detail.target}
+                    Property Path: ${detail.propertyPath || 'N/A'}
+                  `,
+                    )
+                    .join('\n\n')}
+                `;
+                  })
+                  .join('\n\n');
+
+                message.error(`Submission failed:\n${errorMessages}`, 10);
+              } else {
+                // Fallback in case no rejected document details are provided
+                message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
+              }
+              return false;
             }
-            return false;
           }
         } catch (error) {
           hide();

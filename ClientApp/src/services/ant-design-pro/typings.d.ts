@@ -98,4 +98,30 @@ declare namespace API {
     description?: string;
     type?: NoticeIconItemType;
   };
+
+  type PartnerListItem = {
+    id: string;
+    name: string;
+    email: string;
+    companyName: string;
+    status: 'active' | 'inactive';
+    submissionCount: number;
+    maxSubmissions: number;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type PartnerList = {
+    data: PartnerListItem[];
+    total: number;
+    success: boolean;
+  };
+
+  type AuditLogListItem = {
+    key: number;
+    actionType: string;
+    description: string;
+    createdBy: string;
+    createdAt: string;
+  };
 }
