@@ -1,4 +1,8 @@
-import { getPartners, removePartner, updatePartner } from '@/services/ant-design-pro/api';
+import {
+  getPartners,
+  removePartner,
+  updatePartner,
+} from '@/services/ant-design-pro/partnerService';
 import { FooterToolbar, PageContainer, ProTable } from '@ant-design/pro-components';
 import { useRequest } from '@umijs/max';
 import { Button, message, Switch } from 'antd';
@@ -37,6 +41,12 @@ const PartnerList = () => {
       title: 'Company Phone',
       dataIndex: ['companyInfo', 'phone'],
       key: 'phone',
+    },
+    {
+      title: 'License Key',
+      dataIndex: 'licenseKey',
+      key: 'licenseKey',
+      render: (licenseKey) => (licenseKey ? licenseKey : 'N/A'),
     },
     {
       title: 'Status',

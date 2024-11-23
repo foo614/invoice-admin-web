@@ -1,5 +1,5 @@
 import { AvatarDropdown, AvatarName, Footer, SelectLang } from '@/components';
-import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
+import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/authService';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from '@umijs/max';

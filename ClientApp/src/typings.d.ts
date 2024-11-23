@@ -19,3 +19,4 @@ declare module 'bizcharts-plugin-slider';
 
 declare const REACT_APP_ENV: 'test' | 'dev' | 'pre' | 'prod' | false;
 declare const MY_INVOICE_BASE_URL: string;
+declare const API_BASE_URL: string;

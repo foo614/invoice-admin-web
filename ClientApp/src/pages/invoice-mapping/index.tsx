@@ -9,10 +9,9 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, message, Modal, Tooltip } from 'antd';
+import { Button, Drawer, message, Modal, Select, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { invoiceTypesConfig } from './config/invoiceTypesConfig';
 
 /**
@@ -66,15 +65,13 @@ const handleRemove = async (selectedRows: any[]) => {
   }
 };
 
-const InvoiceSubmission: React.FC = (invoiceType: string) => {
+const InvoiceSubmission: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [currentRow, setCurrentRow] = useState<any>();
   const [selectedRowsState, setSelectedRows] = useState<any[]>([]);
-  const [tableData, setTableData] = useState<any[]>([]); // State for table data
-  const location = useLocation();
-  const lastPathSegment = location.pathname.split('/').filter(Boolean).pop();
+  const [tableData, setTableData] = useState<any[]>([]);
 
   const actionRef = useRef<ActionType>();
 
@@ -134,7 +131,7 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
               setCurrentRow(record);
             }}
           >
-            Edit Document
+            View Document
           </a>
         ),
         record.status === 'pending' && (
@@ -143,10 +140,10 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
             onClick={() => {
               // handleUpdateModalOpen(true);
               setCurrentRow(record);
-              handleLHDNSubmission(record);
+              handleLHDNSubmission(record, '01');
             }}
           >
-            Submit to LHDN
+            Submit
           </a>
         ),
       ],
@@ -353,7 +350,6 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
       IssueDate: dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
       // record.DocDtls.Dt ||
       IssueTime: record.DocDtls.Tm || randomIssueTime,
-      InvoiceTypeCode: '01',
       // record.DocDtls.Typ ||
       CurrencyCode: 'MYR', // Assuming currency is MYR
 
@@ -420,25 +416,54 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
         UnitPrice: item.UnitPrice,
       })),
     };
+
+    let invoiceType = '';
+
+    const invoiceTypeOptions = Object.entries(invoiceTypesConfig).map(([key, config]) => ({
+      value: key, // e.g., '01'
+      label: config.name, // e.g., 'Standard Invoice'
+    }));
+
     Modal.confirm({
       title: 'Confirm Submission',
-      content: 'Are you sure you want to submit this invoice to LHDN?',
+      content: (
+        <>
+          <p>Select the Invoice Type before submitting:</p>
+          <Select
+            placeholder="Select Invoice Type"
+            style={{ width: '100%' }}
+            options={invoiceTypeOptions}
+            onChange={(value) => (invoiceType = value)} // Update the state
+          />
+        </>
+      ),
       onOk: async () => {
+        if (!invoiceType) {
+          message.warning('Please select an invoice type before submitting.');
+          return Promise.reject(); // Prevent the modal from closing
+        }
+
         const hide = message.loading('Submitting...');
         try {
-          // Call the API to submit the document
+          const finalMappedRecord = {
+            ...mappedRecord,
+            InvoiceTypeCode: invoiceType, // Include selected invoice type
+          };
+
           const response = await fetch('https://localhost:5001/api/invoice/submit', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(mappedRecord),
+            body: JSON.stringify(finalMappedRecord),
           });
 
           const result = await response.json();
+          hide();
+
           if (response.ok) {
-            hide();
             const { acceptedDocuments, rejectedDocuments } = result;
+
             if (acceptedDocuments.length > 0) {
               message.success(`Successfully submitted ${acceptedDocuments.length} documents.`);
 
@@ -459,38 +484,34 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
 
               setTableData(updatedData);
               return true;
-            } else {
-              hide();
-              const { rejectedDocuments } = result;
-
-              if (rejectedDocuments && rejectedDocuments.length > 0) {
-                // Format rejected document errors in multi-line
-                const errorMessages = rejectedDocuments
-                  .map((doc) => {
-                    const { error } = doc;
-                    return `
-                  Invoice Code: ${doc.invoiceCodeNumber}
-                  ${error.details
-                    .map(
-                      (detail) => `
-                    Error Code: ${detail.code}
-                    Message: ${detail.message}
-                    Target: ${detail.target}
-                    Property Path: ${detail.propertyPath || 'N/A'}
-                  `,
-                    )
-                    .join('\n\n')}
-                `;
-                  })
-                  .join('\n\n');
-
-                message.error(`Submission failed:\n${errorMessages}`, 10);
-              } else {
-                // Fallback in case no rejected document details are provided
-                message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
-              }
-              return false;
             }
+
+            if (rejectedDocuments && rejectedDocuments.length > 0) {
+              const errorMessages = rejectedDocuments
+                .map((doc) => {
+                  const { error } = doc;
+                  return `
+                    Invoice Code: ${doc.invoiceCodeNumber}
+                    ${error.details
+                      .map(
+                        (detail) => `
+                      Error Code: ${detail.code}
+                      Message: ${detail.message}
+                      Target: ${detail.target}
+                      Property Path: ${detail.propertyPath || 'N/A'}
+                    `,
+                      )
+                      .join('\n\n')}
+                  `;
+                })
+                .join('\n\n');
+
+              message.error(`Submission failed:\n${errorMessages}`, 10);
+            } else {
+              message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
+            }
+
+            return false;
           }
         } catch (error) {
           hide();
@@ -862,8 +883,8 @@ const InvoiceSubmission: React.FC = (invoiceType: string) => {
         }}
       >
         {/* Render Fields Based on Invoice Type */}
-        {lastPathSegment &&
-          invoiceTypesConfig[lastPathSegment].fields.map((field) => renderField(field, true))}
+        {/* {lastPathSegment &&
+          invoiceTypesConfig[lastPathSegment].fields.map((field) => renderField(field, true))} */}
       </ModalForm>
 
       <Drawer

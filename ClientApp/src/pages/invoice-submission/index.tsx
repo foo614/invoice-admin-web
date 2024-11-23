@@ -56,11 +56,63 @@ interface InvoiceDetails {
 }
 
 // Fetch recent invoices (list)
-const fetchRecentDocuments = async (params: { current: number; pageSize: number }) => {
-  const { current, pageSize } = params;
+const fetchRecentDocuments = async (params: {
+  current: number;
+  pageSize: number;
+  issueDateFrom?: string;
+  issueDateTo?: string;
+  submissionDateFrom?: string;
+  submissionDateTo?: string;
+  direction?: string;
+  status?: string;
+  documentType?: string;
+  receiverIdType?: string;
+  receiverId?: string;
+  receiverTin?: string;
+  issuerTin?: string;
+  issuerIdType?: string;
+  issuerId?: string;
+}) => {
+  const {
+    current,
+    pageSize,
+    issueDateFrom,
+    issueDateTo,
+    submissionDateFrom,
+    submissionDateTo,
+    direction,
+    status,
+    documentType,
+    receiverIdType,
+    receiverId,
+    receiverTin,
+    issuerTin,
+    issuerIdType,
+    issuerId,
+  } = params;
+
+  // Build query string dynamically
+  const queryParams = new URLSearchParams({
+    pageNo: current.toString(),
+    pageSize: pageSize.toString(),
+    ...(issueDateFrom && { issueDateFrom }),
+    ...(issueDateTo && { issueDateTo }),
+    ...(submissionDateFrom && { submissionDateFrom }),
+    ...(submissionDateTo && { submissionDateTo }),
+    ...(direction && { direction }),
+    ...(status && { status }),
+    ...(documentType && { documentType }),
+    ...(receiverIdType && { receiverIdType }),
+    ...(receiverId && { receiverId }),
+    ...(receiverTin && { receiverTin }),
+    ...(issuerTin && { issuerTin }),
+    ...(issuerIdType && { issuerIdType }),
+    ...(issuerId && { issuerId }),
+  });
+
   try {
     const response = await fetch(
-      `https://localhost:5001/api/invoice/recent?pageNo=${current}&pageSize=${pageSize}`,
+      `https://localhost:5001/api/invoice/recent?${queryParams.toString()}`,
       {
         method: 'GET',
         headers: {
@@ -155,12 +207,12 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'Date Issued',
       dataIndex: 'dateTimeIssued',
-      valueType: 'dateTime',
+      valueType: 'date',
     },
     {
       title: 'Date Received',
       dataIndex: 'dateTimeReceived',
-      valueType: 'dateTime',
+      valueType: 'date',
     },
     {
       title: 'Total',
@@ -180,6 +232,26 @@ const InvoiceSubmission: React.FC = () => {
       title: 'Currency',
       dataIndex: 'documentCurrency',
     },
+    {
+      title: 'Issue Date From',
+      dataIndex: 'issueDateFrom',
+      valueType: 'date',
+    },
+    {
+      title: 'Issue Date To',
+      dataIndex: 'issueDateTo',
+      valueType: 'date',
+    },
+    {
+      title: 'Submission Date From',
+      dataIndex: 'submissionDateFrom',
+      valueType: 'date',
+    },
+    {
+      title: 'Submission Date To',
+      dataIndex: 'submissionDateTo',
+      valueType: 'date',
+    },
   ];
 
   return (
@@ -188,7 +260,28 @@ const InvoiceSubmission: React.FC = () => {
         headerTitle="Recent E-Invoice Transactions"
         actionRef={actionRef}
         rowKey="uuid"
-        request={async (params) => await fetchRecentDocuments(params)}
+        request={async (params) => {
+          // ProTable provides `params` with pagination info.
+          const queryParams = {
+            current: params.current,
+            pageSize: params.pageSize,
+            issueDateFrom: params.issueDateFrom,
+            issueDateTo: params.issueDateTo,
+            submissionDateFrom: params.submissionDateFrom,
+            submissionDateTo: params.submissionDateTo,
+            direction: params.direction,
+            status: params.status,
+            documentType: params.documentType,
+            receiverIdType: params.receiverIdType,
+            receiverId: params.receiverId,
+            receiverTin: params.receiverTin,
+            issuerTin: params.issuerTin,
+            issuerIdType: params.issuerIdType,
+            issuerId: params.issuerId,
+          };
+
+          return await fetchRecentDocuments(queryParams);
+        }}
         columns={columns}
         pagination={{
           pageSize: 10,
@@ -203,7 +296,7 @@ const InvoiceSubmission: React.FC = () => {
 
       <Drawer
         width={1200}
-        visible={drawerVisible}
+        open={drawerVisible}
         onClose={() => setDrawerVisible(false)}
         closable={false}
       >

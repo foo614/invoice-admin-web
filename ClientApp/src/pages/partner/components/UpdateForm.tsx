@@ -64,6 +64,15 @@ const UpdateForm = ({ visible, onClose, onFinish, initialValues }) => {
           { pattern: /^\+?\d{7,15}$/, message: 'Please enter a valid phone number' },
         ]}
       />
+      <ProFormText
+        name="licenseKey"
+        label="License Key"
+        placeholder="Enter license key"
+        rules={[
+          { required: true, message: 'Please enter the license key' },
+          { min: 8, message: 'License key must be at least 8 characters' },
+        ]}
+      />
       <ProFormSwitch
         name="status"
         label="Status"

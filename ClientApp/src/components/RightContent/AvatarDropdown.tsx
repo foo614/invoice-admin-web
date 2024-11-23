@@ -1,4 +1,4 @@
-import { outLogin } from '@/services/ant-design-pro/api';
+import { outLogin } from '@/services/ant-design-pro/authService';
 import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
 import type { MenuProps } from 'antd';

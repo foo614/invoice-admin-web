@@ -1,12 +1,6 @@
 import { Footer } from '@/components';
-import { login } from '@/services/ant-design-pro/api';
-import {
-  AlipayCircleOutlined,
-  LockOutlined,
-  TaobaoCircleOutlined,
-  UserOutlined,
-  WeiboCircleOutlined,
-} from '@ant-design/icons';
+import { login } from '@/services/ant-design-pro/authService';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormCheckbox, ProFormText } from '@ant-design/pro-components';
 import { FormattedMessage, Helmet, history, SelectLang, useIntl, useModel } from '@umijs/max';
 import { Alert, message, Tabs } from 'antd';
@@ -50,18 +44,6 @@ const useStyles = createStyles(({ token }) => {
     },
   };
 });
-
-const ActionIcons = () => {
-  const { styles } = useStyles();
-
-  return (
-    <>
-      <AlipayCircleOutlined key="AlipayCircleOutlined" className={styles.action} />
-      <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={styles.action} />
-      <WeiboCircleOutlined key="WeiboCircleOutlined" className={styles.action} />
-    </>
-  );
-};
 
 const Lang = () => {
   const { styles } = useStyles();
@@ -110,25 +92,26 @@ const Login: React.FC = () => {
   const handleSubmit = async (values: API.LoginParams) => {
     try {
       // 登录
-      const msg = await login({ ...values, type });
-      if (msg.status === 'ok') {
+      const response = await login({ ...values });
+      console.log(response.data);
+      if (response.data.succeeded) {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
-          defaultMessage: '登录成功！',
         });
+        localStorage.setItem('token', response.data.jwToken);
         message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
+        setInitialState((s) => ({
+          ...s,
+          currentUser: response.data,
+        }));
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
       }
-      console.log(msg);
-      // 如果失败去设置用户错误信息
-      setUserLoginState(msg);
+      setUserLoginState(response.data.message);
     } catch (error) {
       const defaultLoginFailureMessage = intl.formatMessage({
         id: 'pages.login.failure',
-        defaultMessage: '登录失败，请重试！',
       });
       console.log(error);
       message.error(defaultLoginFailureMessage);
@@ -195,24 +178,19 @@ const Login: React.FC = () => {
           {type === 'account' && (
             <>
               <ProFormText
-                name="username"
+                name="email"
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined />,
                 }}
                 placeholder={intl.formatMessage({
-                  id: 'pages.login.username.placeholder',
-                  defaultMessage: '用户名: admin or user',
+                  id: 'pages.login.email.placeholder',
                 })}
                 rules={[
                   {
                     required: true,
-                    message: (
-                      <FormattedMessage
-                        id="pages.login.username.required"
-                        defaultMessage="请输入用户名!"
-                      />
-                    ),
+                    type: 'email',
+                    message: <FormattedMessage id="pages.login.email.required" />,
                   },
                 ]}
               />
