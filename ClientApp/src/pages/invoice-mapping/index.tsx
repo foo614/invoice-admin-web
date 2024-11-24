@@ -516,7 +516,6 @@ const InvoiceSubmission: React.FC = () => {
         } catch (error) {
           hide();
           message.error('Submission failed, please try again!');
-          console.log(error);
           return false;
         }
       },

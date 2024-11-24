@@ -77,43 +77,31 @@ const Login: React.FC = () => {
   const { styles } = useStyles();
   const intl = useIntl();
 
-  const fetchUserInfo = async () => {
-    const userInfo = await initialState?.fetchUserInfo?.();
-    if (userInfo) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
-    }
-  };
-
   const handleSubmit = async (values: API.LoginParams) => {
     try {
       // 登录
       const response = await login({ ...values });
-      console.log(response.data);
       if (response.data.succeeded) {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
         });
-        localStorage.setItem('token', response.data.jwToken);
+        localStorage.setItem('currentUser', JSON.stringify(response.data.data));
         message.success(defaultLoginSuccessMessage);
-        setInitialState((s) => ({
-          ...s,
-          currentUser: response.data,
-        }));
+        flushSync(() => {
+          setInitialState((s) => ({
+            ...s,
+            currentUser: response.data.data,
+          }));
+        });
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
       }
-      setUserLoginState(response.data.message);
+      setUserLoginState(response.data.data);
     } catch (error) {
       const defaultLoginFailureMessage = intl.formatMessage({
         id: 'pages.login.failure',
       });
-      console.log(error);
       message.error(defaultLoginFailureMessage);
     }
   };

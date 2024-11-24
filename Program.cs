@@ -1,62 +1,85 @@
-using invoice_admin_web.Middleware;
-using Microsoft.Extensions.FileProviders;
-
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddControllers();
-builder.Services.AddCors(options =>
+// Register Services
+builder.Services.AddControllersWithViews(); // For MVC controllers
+builder.Services.AddSpaStaticFiles(config =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000") // React development server
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    config.RootPath = "wwwroot"; // Path to built SPA static files
 });
 
-// Register IHttpClientFactory
+builder.Services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+});
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHealthChecks();
+
 builder.Services.AddHttpClient();
 
+// Build the app
 var app = builder.Build();
 
-// Configure middleware
+// Middleware Configuration
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 else
 {
+    // Use PathBase if SubPath is specified
+    var subPath = builder.Configuration.GetSection("SubPath").Value;
+    if (!string.IsNullOrEmpty(subPath))
+    {
+        app.UsePathBase(subPath);
+    }
+
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
-// Serve React static files in production
 app.UseHttpsRedirection();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "ClientApp/dist")),
-    RequestPath = string.Empty
-});
+app.UseStaticFiles(); // Serve static files (for SPA)
 
+// Add Routing middleware
 app.UseRouting();
 
-// Apply the CORS policy
-app.UseCors("AllowReactApp");
-
+// Add Authentication and Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseHealthChecks("/health"); // Health check endpoint
 
-// Proxy React development server in development mode
-if (app.Environment.IsDevelopment())
+// Map API routes and controllers
+app.UseEndpoints(endpoints =>
 {
-    app.UseMiddleware<ProxyToReactDevelopmentServerMiddleware>("http://localhost:8000");
-}
+    // MVC Controller route
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Fallback to index.html for React routing in production
+    // Map API Controllers
+    endpoints.MapControllers();
+});
+
+// Fallback for SPA routes
 if (!app.Environment.IsDevelopment())
 {
+    app.UseSpaStaticFiles(); // Serve SPA static files in production
+}
+
+// SPA development server or static files in production
+if (app.Environment.IsDevelopment())
+{
+    app.UseSpa(spa =>
+    {
+        spa.Options.SourcePath = "ClientApp"; // Development SPA path
+        spa.UseProxyToSpaDevelopmentServer("http://localhost:8000"); // Proxy to React/Vue dev server
+    });
+}
+else
+{
+    // Fallback to index.html for SPA routes in production
     app.MapFallbackToFile("index.html");
 }
 
