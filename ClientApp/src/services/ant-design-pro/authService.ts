@@ -14,3 +14,14 @@ export async function outLogin(options?: { [key: string]: any }) {
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
   return httpClient.post('/api/Account/authenticate', body, { ...options });
 }
+
+export async function resetPassword(data: { password: string; code: string }) {
+  return httpClient.post('/api/account/reset-password', {
+    method: 'POST',
+    data,
+  });
+}
+
+export async function forgotPassword(body: { email: string }, options?: { [key: string]: any }) {
+  return httpClient.post('/api/account/forgot-password', body, { ...options });
+}

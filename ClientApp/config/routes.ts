@@ -6,7 +6,17 @@
       {
         name: 'login',
         path: '/user/login',
-        component: './User/Login',
+        component: './user/Login',
+      },
+      {
+        name: 'Reset Password',
+        path: '/user/resetPassword',
+        component: './user/ResetPassword',
+      },
+      {
+        name: 'Forgot Password',
+        path: '/user/forgotPassword',
+        component: './user/ForgotPassword',
       },
     ],
   },
