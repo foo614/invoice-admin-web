@@ -30,20 +30,21 @@
     path: '/e-invoice',
     name: 'invoice.mapping',
     icon: 'fileSync',
-    access: 'canAdmin',
+    access: 'canUser',
     component: './invoice-mapping',
   },
   {
     path: '/lhdn-submission-history',
     name: 'invoice.submission',
     icon: 'fileDone',
-    access: 'canAdmin',
+    access: 'canUser',
     component: './invoice-submission',
   },
   {
     path: '/partner',
     name: 'partner',
     icon: 'team',
+    access: 'canAdmin',
     component: './partner',
   },
   {

@@ -77,8 +77,8 @@ const InvoiceSubmission: React.FC = () => {
 
   const columns: ProColumns<any>[] = [
     {
-      title: 'Transaction ID',
-      dataIndex: 'Irn',
+      title: 'Invoice Number',
+      dataIndex: 'invnumber',
       render: (dom, entity) => {
         return (
           <a
@@ -97,55 +97,38 @@ const InvoiceSubmission: React.FC = () => {
       dataIndex: 'uuid',
     },
     {
-      title: 'Seller GSTIN',
-      dataIndex: ['SellerDtls', 'Gstin'],
+      title: 'Buyer Name',
+      dataIndex: 'bilname',
     },
     {
-      title: 'Buyer GSTIN',
-      dataIndex: ['BuyerDtls', 'Gstin'],
-    },
-    {
-      title: 'Total Invoice Value',
-      dataIndex: ['ValDtls', 'TotInvVal'],
+      title: 'Total Payable Amount',
+      dataIndex: 'invnetwtx',
       valueType: 'money',
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      valueEnum: {
-        submitted: { text: 'Submitted', status: 'Success' },
-        pending: { text: 'Pending', status: 'Processing' },
-        rejected: { text: 'Rejected', status: 'Error' },
-      },
     },
     {
       title: 'Actions',
       valueType: 'option',
       render: (_, record) => [
-        record.status === 'pending' && (
-          <a
-            key="edit"
-            style={{ marginRight: 10 }}
-            onClick={() => {
-              handleUpdateModalOpen(true);
-              setCurrentRow(record);
-            }}
-          >
-            View Document
-          </a>
-        ),
-        record.status === 'pending' && (
-          <a
-            key="config"
-            onClick={() => {
-              // handleUpdateModalOpen(true);
-              setCurrentRow(record);
-              handleLHDNSubmission(record, '01');
-            }}
-          >
-            Submit
-          </a>
-        ),
+        // <a
+        //   key="edit"
+        //   style={{ marginRight: 10 }}
+        //   onClick={() => {
+        //     handleUpdateModalOpen(true);
+        //     setCurrentRow(record);
+        //   }}
+        // >
+        //   View Document
+        // </a>,
+        <a
+          key="config"
+          onClick={() => {
+            // handleUpdateModalOpen(true);
+            setCurrentRow(record);
+            handleLHDNSubmission(record);
+          }}
+        >
+          Submit
+        </a>,
       ],
     },
   ];
@@ -154,7 +137,7 @@ const InvoiceSubmission: React.FC = () => {
   const descriptionColumns: ProDescriptionsItemProps<any>[] = [
     {
       title: 'Invoice ID',
-      dataIndex: 'Irn',
+      dataIndex: 'invnumber',
     },
     {
       title: 'Version',
@@ -298,7 +281,7 @@ const InvoiceSubmission: React.FC = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch('/api/eInvoiceTransactions', {
+      const response = await fetch('/api/v1/InvoiceApi/sales-invoices', {
         method: 'GET',
       });
       const data = await response.json();
@@ -327,7 +310,7 @@ const InvoiceSubmission: React.FC = () => {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   };
 
-  const dynamicIrn = `INV${generateRandomNumber(100000, 999999)}`;
+  const dynamicinvnumber = `INV${generateRandomNumber(100000, 999999)}`;
 
   // Generate random IssueDate within the current year
   const currentYear = new Date().getFullYear();
@@ -345,75 +328,84 @@ const InvoiceSubmission: React.FC = () => {
    * Handle LHDN submission
    */
   const handleLHDNSubmission = async (record: any) => {
+    let dueDate;
+    if (record.terms.endsWith('D')) {
+      // Extract the number of days
+      const daysToAdd = parseInt(record.terms.replace('D', ''), 10);
+      dueDate = dayjs(record.invdate).add(daysToAdd, 'day');
+    } else if (record.terms.endsWith('M')) {
+      // Extract the number of months
+      const monthsToAdd = parseInt(record.terms.replace('M', ''), 10);
+      dueDate = dayjs(record.invdate).add(monthsToAdd, 'month');
+    } else {
+      throw new Error('Invalid payment terms format. Must end with "D" or "M".');
+    }
+
     const mappedRecord = {
-      Irn: record.Irn,
-      IssueDate: dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
-      // record.DocDtls.Dt ||
-      IssueTime: record.DocDtls.Tm || randomIssueTime,
-      // record.DocDtls.Typ ||
-      CurrencyCode: 'MYR', // Assuming currency is MYR
+      Irn: record.invnumber,
+      IssueDate: dayjs(record.invdate).format('YYYY-MM-DD'),
+      IssueTime: '00:00:00',
+      CurrencyCode: record.insourcurr, // Assuming currency is MYR
 
       // Supplier details
-      SupplierName: record.SellerDtls.LglNm || 'Supplier Name',
-      SupplierCity: record.SellerDtls.Loc || 'Kuala Lumpur',
-      SupplierPostalCode: record.SellerDtls.Pin,
-      SupplierCountryCode: 'MYS', // Assuming Malaysia
-      SupplierEmail: record.SellerDtls.Em || 'supplier@email.com',
-      SupplierTelephone: record.SellerDtls.Ph || '+60-123456789',
+      SupplierName: 'Supplier Name',
+      SupplierCity: 'Kuala Lumpur',
+      SupplierPostalCode: '81300',
+      SupplierCountryCode: 'MYS',
+      SupplierEmail: 'supplier@email.com',
+      SupplierTelephone: '+60-123456789',
       SupplierTIN: 'IG26339098050',
-      // record.SellerDtls.Gstin, // Assuming GSTIN is used as TIN
-      SupplierBRN: record.SellerDtls.Brn || 'IG26339098050',
-      SupplierSST: record.SellerDtls.Sst || 'NA',
-      SupplierTTX: record.SellerDtls.Ttx || 'NA',
-      SupplierAddressLine1: record.SellerDtls.Addr1,
-      SupplierAddressLine2: record.SellerDtls.Addr2 || '',
-      SupplierAddressLine3: record.SellerDtls.Addr3 || '',
-      SupplierIndustryCode: record.SellerDtls.IndustryClassificationCode || '46510',
-      SupplierAdditionalAccountID:
-        record.SellerDtls.AdditionalAccountID || 'CPT-CCN-W-211111-KL-000002',
-      SupplierCountrySubentityCode: record.SellerDtls.Stcd,
+      SupplierBRN: '199701030091',
+      SupplierSST: 'NA',
+      SupplierTTX: 'NA',
+      SupplierAddressLine1: 'address 1',
+      SupplierAddressLine2: '',
+      SupplierAddressLine3: '',
+      SupplierIndustryCode: '46510',
+      SupplierAdditionalAccountID: 'CPT-CCN-W-211111-KL-000002',
+      SupplierCountrySubentityCode: '',
 
       // Buyer details
-      BuyerName: record.BuyerDtls.LglNm,
-      BuyerCity: record.BuyerDtls.Loc,
-      BuyerPostalCode: record.BuyerDtls.Pin,
-      BuyerCountryCode: 'MYS', // Assuming Malaysia
-      BuyerEmail: record.BuyerDtls.Em,
-      BuyerTelephone: record.BuyerDtls.Ph,
+      BuyerName: record.bilname,
+      BuyerCity: record.biladdR3,
+      BuyerPostalCode: record.billzip,
+      BuyerCountryCode: 'MYS',
+      BuyerEmail: record.bilemail,
+      BuyerTelephone: record.bilphone,
+
       CustomerTIN: 'IG26339098050',
-      // record.BuyerDtls.Gstin || 'Buyer TIN', // Assuming GSTIN is used as TIN
-      CustomerBRN: record.BuyerDtls.Brn || 'Recipient BRN',
-      CustomerAddressLine1: record.BuyerDtls.Addr1,
-      CustomerAddressLine2: record.BuyerDtls.Addr2 || '',
-      CustomerAddressLine3: record.BuyerDtls.Addr3 || '',
-      CustomerCountrySubentityCode: record.BuyerDtls.Stcd,
-      CustomerCity: 'Kuala Lumpur',
-      CustomerCountryCode: 'MYS',
-      CustomerPostalCode: '81300',
-      CustomerName: 'Buyer Name',
-      CustomerTelephone: '+60-123456789',
-      CustomerEmail: 'buyer@email.com',
+      // CustomerBRN: '',
+      // CustomerAddressLine1: record.biladdR1,
+      // CustomerAddressLine2: record.biladdR2 || '',
+      // CustomerAddressLine3: record.biladdR3 || '',
+      // CustomerCountrySubentityCode: '',
+      // CustomerCity: record.bilstate,
+      // CustomerCountryCode: 'MYS',
+      // CustomerPostalCode: record.bilzip,
+      // CustomerName: 'Buyer Name',
+      // CustomerTelephone: '+60-123456789',
+      // CustomerEmail: 'buyer@email.com',
 
       // Invoice period details
-      StartDate: '2024-10-01',
-      EndDate: '2024-10-10',
+      StartDate: dayjs(record.invdate).format('YYYY-MM-DD'),
+      EndDate: dayjs(dueDate).format('YYYY-MM-DD'),
       InvoicePeriodDescription: 'Monthly',
 
       // Additional document references
-      BillingReferenceID: record.BillingReferenceID || 'E12345678912',
-      AdditionalDocumentReferenceID: record.AdditionalDocumentReferenceID || 'IG26339098050',
+      //BillingReferenceID: record.BillingReferenceID || 'E12345678912',
+      //AdditionalDocumentReferenceID: record.AdditionalDocumentReferenceID || 'IG26339098050',
 
       // Total and item list
-      TaxableAmount: record.TaxableAmount,
-      TaxAmount: record.TaxAmount,
-      TotalAmount: record.ValDtls.TotInvVal,
-      ItemList: record.ItemList.map((item: any) => ({
-        Id: item.SlNo,
-        Qty: item.Qty,
-        Unit: item.Unit,
-        TotItemVal: item.TotItemVal,
-        Description: item.PrdDesc,
-        UnitPrice: item.UnitPrice,
+      TaxableAmount: record.invnetnotx.toString(),
+      TaxAmount: record.invitaxtot.toString(),
+      TotalAmount: record.invnetwtx.toString(),
+      ItemList: record.orderEntryDetails.map((item: any) => ({
+        Id: item.invuniq.toString(),
+        Qty: item.qtyshipped,
+        Unit: item.invunit, //TODO: need wait for the UOM mapping
+        TotItemVal: item.extinvmisc,
+        Description: item.desc,
+        UnitPrice: item.unitprice,
       })),
     };
 
@@ -450,7 +442,7 @@ const InvoiceSubmission: React.FC = () => {
             InvoiceTypeCode: invoiceType, // Include selected invoice type
           };
 
-          const response = await fetch('https://localhost:5001/api/invoice/submit', {
+          const response = await fetch('/api/v1/InvoiceApi/submit-invoice', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -470,7 +462,7 @@ const InvoiceSubmission: React.FC = () => {
               // Update table data for accepted documents
               const updatedData = tableData.map((row) => {
                 const acceptedDoc = acceptedDocuments.find(
-                  (doc) => doc.invoiceCodeNumber === row.Irn,
+                  (doc) => doc.invoiceCodeNumber === row.invnumber,
                 );
                 if (acceptedDoc) {
                   return {
@@ -825,7 +817,7 @@ const InvoiceSubmission: React.FC = () => {
       <ProTable
         headerTitle={`Document Mapping Table`}
         actionRef={actionRef}
-        rowKey="Irn"
+        rowKey="invnumber"
         search={{
           labelWidth: 120,
         }}
@@ -895,15 +887,15 @@ const InvoiceSubmission: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.Irn && (
+        {currentRow?.invnumber && (
           <ProDescriptions<any>
             column={2}
-            title={`Invoice Details: ${currentRow?.Irn}`}
+            title={`Invoice Details: ${currentRow?.invnumber}`}
             request={async () => ({
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.Irn,
+              id: currentRow?.invnumber,
             }}
             columns={descriptionColumns}
           />

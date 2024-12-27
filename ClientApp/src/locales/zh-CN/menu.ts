@@ -21,7 +21,6 @@ export default {
   'menu.form.step-form.confirm': '分步表单（确认转账信息）',
   'menu.form.step-form.result': '分步表单（完成）',
   'menu.form.advanced-form': '高级表单',
-  menu: '列表页',
   'menu.table-list': '查询表格',
   'menu.basic-list': '标准列表',
   'menu.card-list': '卡片列表',
@@ -65,4 +64,6 @@ export default {
   'menu.invoice.submission.self-billed-debit-note': '自开票借记单',
   'menu.partner': '伙伴',
   'menu.audit-log': '审计日志',
+  'menu.reset-password': '重置密码',
+  'menu.forgot-password': '忘记密码',
 };

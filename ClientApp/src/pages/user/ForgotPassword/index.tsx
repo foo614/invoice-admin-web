@@ -49,8 +49,7 @@ const ForgotPassword: React.FC = () => {
       <Helmet>
         <title>
           {intl.formatMessage({
-            id: 'menu.login.forgotPassword',
-            defaultMessage: 'Forgot Password',
+            id: 'menu.forgot-password',
           })}
           {Settings.title && ` - ${Settings.title}`}
         </title>
@@ -69,7 +68,7 @@ const ForgotPassword: React.FC = () => {
           logo={<img alt="logo" src="/logo.svg" />}
           title="Nex Koala e-Invoice"
           subTitle={intl.formatMessage({
-            id: 'pages.login.forgotPassword.subtitle',
+            id: 'pages.forgotPassword.subtitle',
           })}
           onFinish={async (values) => {
             await handleSubmit(values as { email: string });
@@ -83,7 +82,7 @@ const ForgotPassword: React.FC = () => {
                 style={{ width: '100%', height: '40px' }}
               >
                 {intl.formatMessage({
-                  id: 'pages.login.forgotPassword.sendResetLink',
+                  id: 'pages.forgotPassword.sendResetLink',
                 })}
               </Button>
             ),

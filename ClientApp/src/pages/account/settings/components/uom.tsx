@@ -1,61 +1,67 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { ProFormSelect } from '@ant-design/pro-components';
+import { useModel } from '@umijs/max';
 import { Button, Table, message } from 'antd';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
-import sellerUOMListData from '../../../../../mock/config/uom.json';
-
-// Define TypeScript types
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  addUomMapping,
+  getUomMappings,
+} from '../../../../services/ant-design-pro/uomMappingService';
+import { getUoms } from '../../../../services/ant-design-pro/uomService';
 interface LhdnUOM {
   Code: string;
   Name: string;
 }
 
 interface SellerUOM {
-  ID: string;
-  DESC: string;
-  TEXTDESC: string;
+  id: number;
+  code: string;
+  description: string;
 }
 
 interface RowData {
   key: string;
-  uomCode?: string;
-  uomMappings: string[]; // Array to store selected seller UOM IDs
+  lhdnUomCode?: string;
+  sellerUomIds: number[];
 }
 
 const UOMMappingPage: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
   const [lhdnUOMList, setLhdnUOMList] = useState<LhdnUOM[]>([]);
   const [sellerUOMList, setSellerUOMList] = useState<SellerUOM[]>([]);
   const [rows, setRows] = useState<RowData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const fetchUOMList = async () => {
-    try {
-      const response = await axios.get('https://localhost:5001/api/invoice/unittypes');
-      setLhdnUOMList(response.data);
-    } catch (error) {
-      message.error('Failed to fetch LHDN UOM list');
-    }
-  };
-
-  const fetchSellerUOMList = async () => {
-    try {
-      setSellerUOMList(sellerUOMListData);
-    } catch (error) {
-      message.error('Failed to fetch Seller UOM list');
-    }
-  };
+  // Simulated userId (replace with actual userId source)
+  const userId = '123456'; // Replace with actual userId from context or state
 
   useEffect(() => {
-    fetchUOMList();
-    fetchSellerUOMList();
-    setLoading(false);
-  }, []);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch LHDN UOM List
+        const lhdnResponse = await getUomMappings();
+        setLhdnUOMList(lhdnResponse?.data || []);
+        console.log(currentUser);
+        // Fetch Seller UOM List with userId
+        const sellerResponse = await getUoms({ userId: currentUser?.id });
+        setSellerUOMList(sellerResponse?.data || []);
+      } catch (error) {
+        message.error('Failed to fetch UOM data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [userId]);
 
   const addRow = () => {
     const newRow: RowData = {
       key: `row-${rows.length + 1}`,
-      uomMappings: [],
+      sellerUomIds: [],
     };
     setRows([...rows, newRow]);
   };
@@ -64,87 +70,101 @@ const UOMMappingPage: React.FC = () => {
     setRows((prevRows) => prevRows.filter((row) => row.key !== rowKey));
   };
 
-  const updateUOMCode = (rowKey: string, value: string) => {
+  const updateLhdnUomCode = (rowKey: string, value: string) => {
     setRows((prevRows) =>
-      prevRows.map((row) => (row.key === rowKey ? { ...row, uomCode: value } : row)),
+      prevRows.map((row) => (row.key === rowKey ? { ...row, lhdnUomCode: value } : row)),
     );
   };
 
-  const updateMappings = (rowKey: string, values: string[]) => {
+  const updateSellerUoms = (rowKey: string, values: number[]) => {
     setRows((prevRows) =>
-      prevRows.map((row) => (row.key === rowKey ? { ...row, uomMappings: values } : row)),
+      prevRows.map((row) => (row.key === rowKey ? { ...row, sellerUomIds: values } : row)),
     );
   };
 
-  const getSelectedLhdnUOMs = () => {
-    const selectedUOMs = new Set<string>();
+  const selectedLhdnUOMs = useMemo(() => {
+    const selected = new Set<string>();
     rows.forEach((row) => {
-      if (row.uomCode) selectedUOMs.add(row.uomCode);
+      if (row.lhdnUomCode) selected.add(row.lhdnUomCode);
     });
-    return selectedUOMs;
-  };
+    return selected;
+  }, [rows]);
 
-  const getSelectedSellerUOMs = () => {
-    const selectedUOMs = new Set<string>();
-    rows.forEach((row) => row.uomMappings.forEach((uom) => selectedUOMs.add(uom)));
-    return selectedUOMs;
+  const selectedSellerUOMs = useMemo(() => {
+    const selected = new Set<number>();
+    rows.forEach((row) => row.sellerUomIds.forEach((uom) => selected.add(uom)));
+    return selected;
+  }, [rows]);
+
+  const saveMappings = async () => {
+    if (rows.some((row) => !row.lhdnUomCode || row.sellerUomIds.length === 0)) {
+      message.error('Please complete all mappings before saving.');
+      return;
+    }
+
+    try {
+      const payload = rows.flatMap((row) =>
+        row.sellerUomIds.map((sellerUomId) => ({
+          lhdnUomCode: row.lhdnUomCode,
+          uomId: sellerUomId,
+        })),
+      );
+
+      await Promise.all(payload.map((mapping) => addUomMapping(mapping)));
+
+      message.success('Mappings saved successfully!');
+    } catch (error) {
+      message.error('Failed to save mappings.');
+    }
   };
 
   const columns = [
     {
       title: 'LHDN UOM',
-      dataIndex: 'uomCode',
-      key: 'uomCode',
-      render: (_: any, record: RowData) => {
-        const selectedLhdnUOMs = getSelectedLhdnUOMs();
-
-        return (
-          <ProFormSelect
-            options={lhdnUOMList
-              .filter((uom) => !selectedLhdnUOMs.has(uom.Code) || uom.Code === record.uomCode)
-              .map((uom) => ({
-                label: `${uom.Code} - ${uom.Name}`,
-                value: uom.Code,
-              }))}
-            placeholder="Select UOM"
-            showSearch
-            fieldProps={{
-              value: record.uomCode,
-              onChange: (value) => updateUOMCode(record.key, value),
-              style: { width: '100%' },
-            }}
-          />
-        );
-      },
+      dataIndex: 'lhdnUomCode',
+      key: 'lhdnUomCode',
+      render: (_: any, record: RowData) => (
+        <ProFormSelect
+          options={lhdnUOMList
+            .filter((uom) => !selectedLhdnUOMs.has(uom.Code) || uom.Code === record.lhdnUomCode)
+            .map((uom) => ({
+              label: `${uom.Code} - ${uom.Name}`,
+              value: uom.Code,
+            }))}
+          placeholder="Select LHDN UOM"
+          showSearch
+          fieldProps={{
+            value: record.lhdnUomCode,
+            onChange: (value) => updateLhdnUomCode(record.key, value),
+            style: { width: '100%' },
+          }}
+        />
+      ),
     },
     {
       title: 'Mapped Seller UOMs',
-      dataIndex: 'uomMappings',
-      key: 'uomMappings',
-      render: (_: any, record: RowData) => {
-        const selectedSellerUOMs = getSelectedSellerUOMs();
-
-        return (
-          <ProFormSelect
-            mode="multiple"
-            options={sellerUOMList
-              .filter(
-                (uom) => !selectedSellerUOMs.has(uom.ID) || record.uomMappings.includes(uom.ID),
-              )
-              .map((uom) => ({
-                label: `${uom.DESC}`,
-                value: uom.ID,
-              }))}
-            placeholder="Select Seller UOMs"
-            showSearch
-            fieldProps={{
-              value: record.uomMappings,
-              onChange: (values) => updateMappings(record.key, values),
-              style: { width: '100%' },
-            }}
-          />
-        );
-      },
+      dataIndex: 'sellerUomIds',
+      key: 'sellerUomIds',
+      render: (_: any, record: RowData) => (
+        <ProFormSelect
+          mode="multiple"
+          options={sellerUOMList
+            .filter(
+              (uom) => !selectedSellerUOMs.has(uom.id) || record.sellerUomIds.includes(uom.id),
+            )
+            .map((uom) => ({
+              label: `${uom.code} - ${uom.description}`,
+              value: uom.id,
+            }))}
+          placeholder="Select Seller UOMs"
+          showSearch
+          fieldProps={{
+            value: record.sellerUomIds,
+            onChange: (values) => updateSellerUoms(record.key, values),
+            style: { width: '100%' },
+          }}
+        />
+      ),
     },
     {
       title: 'Actions',
@@ -176,11 +196,7 @@ const UOMMappingPage: React.FC = () => {
         bordered
         rowKey="key"
       />
-      <Button
-        type="primary"
-        style={{ marginTop: '20px' }}
-        onClick={() => message.success('Mappings saved successfully!')}
-      >
+      <Button type="primary" style={{ marginTop: '20px' }} onClick={saveMappings}>
         Save Mappings
       </Button>
     </div>

@@ -1,72 +1,163 @@
-import { resetPassword } from '@/services/ant-design-pro/authService'; // API function to handle reset password
+import { resetPassword } from '@/services/ant-design-pro/authService';
 import { LockOutlined } from '@ant-design/icons';
-import { Button, Form, Input, message } from 'antd';
-import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { LoginForm, ProFormText } from '@ant-design/pro-components';
+import { FormattedMessage, Helmet, history, useIntl, useLocation } from '@umijs/max';
+import { Button, message } from 'antd';
+import { createStyles } from 'antd-style';
+import React, { useEffect, useState } from 'react';
+import Settings from '../../../../config/defaultSettings';
+
+const useStyles = createStyles(({ token }) => {
+  return {
+    container: {
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      overflow: 'auto',
+      backgroundImage:
+        "url('https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr')",
+      backgroundSize: '100% 100%',
+    },
+  };
+});
 
 const ResetPassword: React.FC = () => {
+  const { styles } = useStyles();
+  const intl = useIntl();
   const [loading, setLoading] = useState(false);
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const [code, setCode] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const codeParam = query.get('code');
+    const emailParam = query.get('email');
+    if (codeParam && emailParam) {
+      setCode(codeParam);
+      setEmail(emailParam);
+    } else {
+      message.error('Invalid or missing reset code and email.');
+      history.push('/user/login');
+    }
+  }, [location]);
 
   const handleSubmit = async (values: { password: string; confirmPassword: string }) => {
-    const code = searchParams.get('code');
-    if (!code) {
-      message.error('Invalid or missing reset code.');
+    if (!code || !email) {
+      message.error('Missing reset code or email.');
       return;
     }
-
-    if (values.password !== values.confirmPassword) {
-      message.error('Passwords do not match.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const response = await resetPassword({ password: values.password, code });
-      if (response.success) {
-        message.success('Password reset successfully. You can now log in.');
+      if (values.password !== values.confirmPassword) {
+        message.error('Passwords do not match.');
+        setLoading(false);
+        return;
+      }
+      const response = await resetPassword({
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        email,
+        token: code,
+      });
+      if (response.status === 200) {
+        message.success('Password reset successfully. Please log in.');
+        history.push('/user/login');
       } else {
-        message.error(response.message || 'Failed to reset password.');
+        message.error('Failed to reset password.');
       }
     } catch (error) {
-      message.error('An error occurred while resetting your password.');
+      message.error('An error occurred while processing your request.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 400,
-        margin: '50px auto',
-        padding: '20px',
-        border: '1px solid #f0f0f0',
-        borderRadius: 8,
-      }}
-    >
-      <h2 style={{ textAlign: 'center' }}>Reset Password</h2>
-      <Form layout="vertical" onFinish={handleSubmit}>
-        <Form.Item
-          name="password"
-          label="New Password"
-          rules={[{ required: true, message: 'Please input your new password!' }]}
+    <div className={styles.container}>
+      <Helmet>
+        <title>
+          {intl.formatMessage({
+            id: 'menu.reset-password',
+          })}
+          {Settings.title && ` - ${Settings.title}`}
+        </title>
+      </Helmet>
+      <div
+        style={{
+          flex: '1',
+          padding: '32px 0',
+        }}
+      >
+        <LoginForm
+          contentStyle={{
+            minWidth: 280,
+            maxWidth: '75vw',
+          }}
+          logo={<img alt="logo" src="/logo.svg" />}
+          title="Nex Koala e-Invoice"
+          subTitle={intl.formatMessage({
+            id: 'pages.resetPassword.subtitle',
+            defaultMessage: 'Enter your new password below',
+          })}
+          onFinish={async (values) => {
+            await handleSubmit(values as { password: string; confirmPassword: string });
+          }}
+          submitter={{
+            render: (_, dom) => (
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                style={{ width: '100%', height: '40px' }}
+              >
+                {intl.formatMessage({
+                  id: 'pages.resetPassword.submit',
+                })}
+              </Button>
+            ),
+          }}
         >
-          <Input.Password prefix={<LockOutlined />} placeholder="New Password" />
-        </Form.Item>
-        <Form.Item
-          name="confirmPassword"
-          label="Confirm Password"
-          rules={[{ required: true, message: 'Please confirm your new password!' }]}
-        >
-          <Input.Password prefix={<LockOutlined />} placeholder="Confirm Password" />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block>
-            Reset Password
-          </Button>
-        </Form.Item>
-      </Form>
+          <ProFormText.Password
+            name="password"
+            fieldProps={{
+              size: 'large',
+              prefix: <LockOutlined />,
+            }}
+            placeholder={intl.formatMessage({
+              id: 'pages.resetPassword.password.placeholder',
+            })}
+            rules={[
+              {
+                required: true,
+                message: <FormattedMessage id="pages.resetPassword.password.required" />,
+              },
+            ]}
+          />
+          <ProFormText.Password
+            name="confirmPassword"
+            fieldProps={{
+              size: 'large',
+              prefix: <LockOutlined />,
+            }}
+            placeholder={intl.formatMessage({
+              id: 'pages.resetPassword.confirmPassword.placeholder',
+              defaultMessage: 'Confirm Password',
+            })}
+            rules={[
+              {
+                required: true,
+                message: (
+                  <FormattedMessage
+                    id="pages.resetPassword.confirmPassword.required"
+                    defaultMessage="Please confirm your password!"
+                  />
+                ),
+              },
+            ]}
+          />
+        </LoginForm>
+      </div>
     </div>
   );
 };
