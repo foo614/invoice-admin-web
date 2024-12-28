@@ -305,25 +305,6 @@ const InvoiceSubmission: React.FC = () => {
     loadData();
   }, []);
 
-  // Helper function to generate a random dynamic number
-  const generateRandomNumber = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-
-  const dynamicinvnumber = `INV${generateRandomNumber(100000, 999999)}`;
-
-  // Generate random IssueDate within the current year
-  const currentYear = new Date().getFullYear();
-  const randomMonth = generateRandomNumber(1, 12);
-  const randomDay = generateRandomNumber(1, 28); // To avoid handling month-specific day limits
-  const randomIssueDate = `${currentYear}-${String(randomMonth).padStart(2, '0')}-${String(randomDay).padStart(2, '0')}`;
-
-  // Generate random IssueTime in the format HH:mm:ssZ
-  const randomHour = generateRandomNumber(0, 23);
-  const randomMinute = generateRandomNumber(0, 59);
-  const randomSecond = generateRandomNumber(0, 59);
-  const randomIssueTime = `${String(randomHour).padStart(2, '0')}:${String(randomMinute).padStart(2, '0')}:${String(randomSecond).padStart(2, '0')}Z`;
-
   /**
    * Handle LHDN submission
    */
@@ -332,19 +313,19 @@ const InvoiceSubmission: React.FC = () => {
     if (record.terms.endsWith('D')) {
       // Extract the number of days
       const daysToAdd = parseInt(record.terms.replace('D', ''), 10);
-      dueDate = dayjs(record.invdate).add(daysToAdd, 'day');
+      dueDate = dayjs(record.invdate, 'YYYYMMDD').add(daysToAdd, 'day');
     } else if (record.terms.endsWith('M')) {
       // Extract the number of months
       const monthsToAdd = parseInt(record.terms.replace('M', ''), 10);
-      dueDate = dayjs(record.invdate).add(monthsToAdd, 'month');
+      dueDate = dayjs(record.invdate, 'YYYYMMDD').add(monthsToAdd, 'month');
     } else {
       throw new Error('Invalid payment terms format. Must end with "D" or "M".');
     }
 
     const mappedRecord = {
       Irn: record.invnumber,
-      IssueDate: dayjs(record.invdate).format('YYYY-MM-DD'),
-      IssueTime: '00:00:00',
+      IssueDate: dayjs(record.invdate, 'YYYYMMDD').format('YYYY-MM-DD'),
+      // IssueTime: '00:00:00Z',
       CurrencyCode: record.insourcurr, // Assuming currency is MYR
 
       // Supplier details
@@ -353,9 +334,9 @@ const InvoiceSubmission: React.FC = () => {
       SupplierPostalCode: '81300',
       SupplierCountryCode: 'MYS',
       SupplierEmail: 'supplier@email.com',
-      SupplierTelephone: '+60-123456789',
+      SupplierTelephone: '+60123456789',
       SupplierTIN: 'IG26339098050',
-      SupplierBRN: '199701030091',
+      SupplierBRN: '960614015177',
       SupplierSST: 'NA',
       SupplierTTX: 'NA',
       SupplierAddressLine1: 'address 1',
@@ -363,37 +344,25 @@ const InvoiceSubmission: React.FC = () => {
       SupplierAddressLine3: '',
       SupplierIndustryCode: '46510',
       SupplierAdditionalAccountID: 'CPT-CCN-W-211111-KL-000002',
-      SupplierCountrySubentityCode: '',
+      SupplierCountrySubentityCode: '14',
 
-      // Buyer details
-      BuyerName: record.bilname,
-      BuyerCity: record.biladdR3,
-      BuyerPostalCode: record.billzip,
-      BuyerCountryCode: 'MYS',
-      BuyerEmail: record.bilemail,
-      BuyerTelephone: record.bilphone,
-
-      CustomerTIN: 'IG26339098050',
-      // CustomerBRN: '',
-      // CustomerAddressLine1: record.biladdR1,
-      // CustomerAddressLine2: record.biladdR2 || '',
-      // CustomerAddressLine3: record.biladdR3 || '',
-      // CustomerCountrySubentityCode: '',
-      // CustomerCity: record.bilstate,
-      // CustomerCountryCode: 'MYS',
-      // CustomerPostalCode: record.bilzip,
-      // CustomerName: 'Buyer Name',
-      // CustomerTelephone: '+60-123456789',
-      // CustomerEmail: 'buyer@email.com',
+      CustomerTIN: record.customerTIN,
+      CustomerBRN: record.customerBRN,
+      CustomerAddressLine1: record.biladdR1,
+      CustomerAddressLine2: record.biladdR2 || '',
+      CustomerAddressLine3: record.biladdR3 || '',
+      CustomerCountrySubentityCode: '00',
+      CustomerCity: record.bilstate || 'Kuala Lumpur',
+      CustomerCountryCode: 'MYS',
+      CustomerPostalCode: record.bilzip,
+      CustomerName: record.bilname,
+      CustomerTelephone: record.bilphone || '+60123456789',
+      CustomerEmail: record.bilemail,
 
       // Invoice period details
-      StartDate: dayjs(record.invdate).format('YYYY-MM-DD'),
+      StartDate: dayjs(record.invdate, 'YYYYMMDD').format('YYYY-MM-DD'),
       EndDate: dayjs(dueDate).format('YYYY-MM-DD'),
       InvoicePeriodDescription: 'Monthly',
-
-      // Additional document references
-      //BillingReferenceID: record.BillingReferenceID || 'E12345678912',
-      //AdditionalDocumentReferenceID: record.AdditionalDocumentReferenceID || 'IG26339098050',
 
       // Total and item list
       TaxableAmount: record.invnetnotx.toString(),
@@ -454,7 +423,7 @@ const InvoiceSubmission: React.FC = () => {
           hide();
 
           if (response.ok) {
-            const { acceptedDocuments, rejectedDocuments } = result;
+            const { acceptedDocuments, rejectedDocuments } = JSON.parse(result.data);
 
             if (acceptedDocuments.length > 0) {
               message.success(`Successfully submitted ${acceptedDocuments.length} documents.`);
