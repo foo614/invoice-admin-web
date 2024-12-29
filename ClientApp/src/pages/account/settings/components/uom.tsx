@@ -125,12 +125,18 @@ const UOMMappingPage: React.FC = () => {
       key: 'lhdnUomCode',
       render: (_: any, record: RowData) => (
         <ProFormSelect
-          options={lhdnUOMList
-            .filter((uom) => !selectedLhdnUOMs.has(uom.Code) || uom.Code === record.lhdnUomCode)
-            .map((uom) => ({
-              label: `${uom.Code} - ${uom.Name}`,
-              value: uom.Code,
-            }))}
+          options={
+            Array.isArray(lhdnUOMList)
+              ? lhdnUOMList
+                  .filter(
+                    (uom) => !selectedLhdnUOMs.has(uom.Code) || uom.Code === record.lhdnUomCode,
+                  )
+                  .map((uom) => ({
+                    label: `${uom.Code} - ${uom.Name}`,
+                    value: uom.Code,
+                  }))
+              : []
+          }
           placeholder="Select LHDN UOM"
           showSearch
           fieldProps={{
@@ -148,14 +154,19 @@ const UOMMappingPage: React.FC = () => {
       render: (_: any, record: RowData) => (
         <ProFormSelect
           mode="multiple"
-          options={sellerUOMList
-            .filter(
-              (uom) => !selectedSellerUOMs.has(uom.id) || record.sellerUomIds.includes(uom.id),
-            )
-            .map((uom) => ({
-              label: `${uom.code} - ${uom.description}`,
-              value: uom.id,
-            }))}
+          options={
+            Array.isArray(sellerUOMList)
+              ? sellerUOMList
+                  .filter(
+                    (uom) =>
+                      !selectedSellerUOMs.has(uom.id) || record.sellerUomIds.includes(uom.id),
+                  )
+                  .map((uom) => ({
+                    label: `${uom.code} - ${uom.description}`,
+                    value: uom.id,
+                  }))
+              : []
+          }
           placeholder="Select Seller UOMs"
           showSearch
           fieldProps={{

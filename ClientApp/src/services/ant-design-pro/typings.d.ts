@@ -107,7 +107,10 @@ declare namespace API {
     name: string;
     email: string;
     companyName: string;
-    status: 'active' | 'inactive';
+    address1: string;
+    address2?: string;
+    address3?: string;
+    status: boolean; //'active' | 'inactive';
     submissionCount: number;
     maxSubmissions: number;
     createdAt?: string;
@@ -126,5 +129,26 @@ declare namespace API {
     description: string;
     createdBy: string;
     createdAt: string;
+  };
+
+  type ProfileItem = {
+    id: string;
+    name: string;
+    tin: string;
+    schemeID: string;
+    registrationNumber: string;
+    sstRegistrationNumber: string;
+    tourismTaxRegistrationNumber: string;
+    email: string;
+    phone: string;
+    msicCode: string;
+    businessActivityDescription: string;
+    address1: string;
+    address2?: string;
+    address3?: string;
+    postalCode: string;
+    city: string;
+    state: string;
+    countryCode: string;
   };
 }
