@@ -15,16 +15,18 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Drawer, message, Modal, Select, Space } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import React, { useEffect, useRef, useState } from 'react';
 
-// Define types for data
+dayjs.extend(customParseFormat);
+
 interface InvoiceData {
   invnumber: string;
   uuid?: string;
   bilname: string;
+  vdname?: string;
   invnetwtx: number;
   customerTIN: string;
-  customerBRN?: string;
   biladdR1: string;
   bilstate?: string;
   bilzip: string;
@@ -32,8 +34,10 @@ interface InvoiceData {
   invnetnotx: number;
   insourcurr: string;
   invdate: string;
-  orderEntryDetails: OrderEntryDetail[];
   terms: string;
+  reference?: string;
+  orderEntryDetails?: OrderEntryDetail[];
+  purchaseInvoiceDetails?: PurchaseInvoiceDetail[];
 }
 
 interface OrderEntryDetail {
@@ -43,6 +47,16 @@ interface OrderEntryDetail {
   extinvmisc: number;
   desc: string;
   unitprice: number;
+}
+
+interface PurchaseInvoiceDetail {
+  invhseq: number;
+  itemdesc: string;
+  unitcost: number;
+  extended: number;
+  rqreceived: number;
+  taxratE1: number;
+  discpct: number;
 }
 
 interface TableData {
@@ -62,7 +76,7 @@ const InvoiceSubmission: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<InvoiceData[]>([]);
   const [tableData, setTableData] = useState<TableData>({ data: [], success: false, total: 0 });
   const [invoiceType, setInvoiceType] = useState<InvoiceType[]>([]);
-  const [selectedInvoiceType, setSelectedInvoiceType] = useState<string>('01'); // Default type
+  const [selectedInvoiceType, setSelectedInvoiceType] = useState<string>('01');
   const actionRef = useRef<ActionType>();
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -82,13 +96,27 @@ const InvoiceSubmission: React.FC = () => {
       ),
     },
     { title: 'e-Invoice Code', dataIndex: 'uuid' },
-    { title: 'Buyer Name', dataIndex: 'bilname' },
-    { title: 'Total Payable Amount', dataIndex: 'invnetwtx', valueType: 'money' },
+    {
+      title: selectedInvoiceType === '11' ? 'Supplier Name' : 'Buyer Name',
+      dataIndex: selectedInvoiceType === '11' ? 'vdname' : 'bilname',
+    },
+    {
+      title: 'Currency',
+      dataIndex: selectedInvoiceType === '11' ? 'currency' : 'insourcurr',
+    },
+    {
+      title: 'Total Payable Amount',
+      dataIndex: selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx',
+      render: (_, record) => {
+        const amount = record[selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx'];
+        return `${amount?.toFixed(2)}`.replace(/,/g, '');
+      },
+    },
     {
       title: 'Actions',
       valueType: 'option',
       render: (_, record) => [
-        <a key="submit" onClick={() => handleLHDNSubmission(record)}>
+        <a key="submit" onClick={() => handleInvoiceSubmission(record)}>
           Submit
         </a>,
       ],
@@ -113,20 +141,23 @@ const InvoiceSubmission: React.FC = () => {
     const fetchFunction = fetchMap[type];
     if (!fetchFunction) {
       message.warning('Invalid invoice type selected.');
+      setLoading(false);
       return;
     }
 
     try {
       const response = await fetchFunction({ page, pageSize });
+      console.log('API Response:', response.data); // Debugging log
       setTableData({
         data: response.data?.data || [],
         success: true,
         total: response.data?.totalItems || 0,
       });
-      setLoading(false);
-    } catch {
+    } catch (error) {
+      console.error('Fetch Error:', error);
       message.error('Failed to fetch data for the selected invoice type.');
       setTableData({ data: [], success: false, total: 0 });
+    } finally {
       setLoading(false);
     }
   };
@@ -135,7 +166,11 @@ const InvoiceSubmission: React.FC = () => {
     const loadInitialData = async () => {
       try {
         const invoiceTypeOptions = await getInvoiceTypes();
-        setInvoiceType(invoiceTypeOptions.data.data || []);
+        setInvoiceType(
+          invoiceTypeOptions.data.data.filter(
+            (type) => !type.description.toLowerCase().includes('refund'), // Exclude refund
+          ),
+        );
         await fetchDataBasedOnInvoiceType(selectedInvoiceType);
       } catch {
         message.error('Failed to load initial data.');
@@ -160,101 +195,115 @@ const InvoiceSubmission: React.FC = () => {
     throw new Error('Invalid payment terms format. Must end with "D" or "M".');
   };
 
-  const mapInvoiceRecord = (record: InvoiceData, dueDate: Dayjs) => ({
-    Irn: record.invnumber + dayjs().format('YYYYMMDDHHmmss'),
-    IssueDate: dayjs(record.invdate, 'YYYYMMDD').format('YYYY-MM-DD'),
-    CurrencyCode: record.insourcurr || 'MYR',
+  const renderProDescriptions = (record: InvoiceData) => {
+    const isSalesOrSelfBilled = selectedInvoiceType === '01' || selectedInvoiceType === '02';
+    const isPurchaseInvoice = selectedInvoiceType === '11';
 
-    // Supplier details
-    SupplierName: 'Supplier Name',
-    SupplierCity: 'Kuala Lumpur',
-    SupplierPostalCode: '81300',
-    SupplierCountryCode: 'MYS',
-    SupplierEmail: 'supplier@email.com',
-    SupplierTelephone: '+60123456789',
-    SupplierTIN: 'IG26339098050',
-    SupplierBRN: '960614015177',
-    SupplierSST: 'NA',
-    SupplierTTX: 'NA',
-    SupplierAddressLine1: 'address 1',
-    SupplierAddressLine2: '',
-    SupplierAddressLine3: '',
-    SupplierIndustryCode: '46510',
-    SupplierAdditionalAccountID: 'CPT-CCN-W-211111-KL-000002',
-    SupplierCountrySubentityCode: '14',
+    return (
+      <ProDescriptions<InvoiceData>
+        column={2}
+        title={`Invoice Details: ${record.invnumber}`}
+        dataSource={record}
+        columns={[
+          { title: 'Invoice Number', dataIndex: 'invnumber' },
+          { title: 'Name', dataIndex: selectedInvoiceType === '11' ? 'vdname' : 'bilname' },
+          {
+            title: 'Total Amount',
+            dataIndex: selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx',
+            valueType: 'money',
+          },
+          { title: 'Currency', dataIndex: 'insourcurr' },
+          {
+            title: 'Invoice Date',
+            dataIndex: 'invdate',
+            render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
+          },
+          { title: 'Terms', dataIndex: 'terms' },
+          { title: 'Reference', dataIndex: 'reference' },
+          { title: 'Customer TIN', dataIndex: 'customerTIN' },
+          {
+            title: 'Shipping Address',
+            dataIndex: 'shpaddR1',
+            render: (_, record) => (
+              <>
+                {record.shpaddR1}
+                <br />
+                {record.shpaddR2 && (
+                  <>
+                    {record.shpaddR2}
+                    <br />
+                  </>
+                )}
+                {record.shpaddR3}
+              </>
+            ),
+          },
+          ...(record.orderEntryDetails && selectedInvoiceType === '01'
+            ? [
+                {
+                  title: 'Order Entry Details',
+                  dataIndex: 'orderEntryDetails',
+                  render: (_, record) =>
+                    record.orderEntryDetails?.map((item, index) => (
+                      <div key={index}>
+                        <strong>Item {index + 1}:</strong>
+                        <div>Description: {item.desc}</div>
+                        <div>Quantity: {item.qtyshipped}</div>
+                        <div>Unit: {item.invunit}</div>
+                        <div>Unit Price: {item.unitprice}</div>
+                        <div>Total: {item.extinvmisc}</div>
+                      </div>
+                    )),
+                },
+              ]
+            : []),
+          ...(record.purchaseInvoiceDetails && selectedInvoiceType === '11'
+            ? [
+                {
+                  title: 'Purchase Invoice Details',
+                  dataIndex: 'purchaseInvoiceDetails',
+                  render: (_, record) =>
+                    record.purchaseInvoiceDetails?.map((item, index) => (
+                      <div key={index}>
+                        <strong>Item {index + 1}:</strong>
+                        <div>Description: {item.itemdesc}</div>
+                        <div>Unit Cost: {item.unitcost}</div>
+                        <div>Extended: {item.extended}</div>
+                        <div>Received Quantity: {item.rqreceived}</div>
+                        <div>Tax Rate: {item.taxratE1}</div>
+                        <div>Discount: {item.discpct}</div>
+                      </div>
+                    )),
+                },
+              ]
+            : []),
+        ]}
+      />
+    );
+  };
 
-    CustomerTIN: record.customerTIN,
-    CustomerBRN: record.customerBRN,
-    CustomerName: record.bilname,
-    CustomerTelephone: record.bilphone || '+60123456789',
-    CustomerEmail: record.bilemail,
-    CustomerAddressLine1: record.biladdR1,
-    CustomerAddressLine2: record.biladdR2 || '',
-    CustomerAddressLine3: record.biladdR3 || '',
-    CustomerCountrySubentityCode: '00',
-    CustomerCity: record.bilstate || 'Kuala Lumpur',
-    CustomerPostalCode: record.bilzip,
-    CustomerCountryCode: 'MYS',
-
-    InvoiceTypeCode: selectedInvoiceType,
-
-    TaxableAmount: record.invnetnotx.toString(),
-    TaxAmount: record.invitaxtot.toString(),
-    TotalAmount: record.invnetwtx.toString(),
-    StartDate: dayjs(record.invdate, 'YYYYMMDD').format('YYYY-MM-DD'),
-    EndDate: dayjs(dueDate).format('YYYY-MM-DD'),
-    InvoicePeriodDescription: 'Monthly',
-    ItemList: record.orderEntryDetails.map((item) => ({
-      Id: item.invuniq.toString(),
-      Qty: item.qtyshipped,
-      Unit: item.invunit,
-      TotItemVal: item.extinvmisc,
-      Description: item.desc,
-      UnitPrice: item.unitprice,
-    })),
-  });
-
-  const handleLHDNSubmission = async (record: InvoiceData): Promise<void> => {
+  const handleInvoiceSubmission = async (record: InvoiceData) => {
     const dueDate = calculateDueDate(record);
-    const mappedRecord = mapInvoiceRecord(record, dueDate);
+    const payload = {
+      ...record,
+      dueDate: dueDate.format('YYYY-MM-DD'),
+    };
 
     Modal.confirm({
       title: 'Confirm Submission',
-      // content: (
-      //   <Select
-      //     placeholder="Select Invoice Type"
-      //     style={{ width: '100%' }}
-      //     options={invoiceType.map((data) => ({ value: data.code, label: data.description }))}
-      //     onChange={(value) => setSelectedInvoiceType(value)}
-      //   />
-      // ),
       onOk: async () => {
         try {
-          const response = await submitInvoice(mappedRecord);
-
-          if (!response.status) throw new Error('Submission failed.');
-          updateTableDataAfterSubmission(JSON.parse(response.data.data));
+          const response = await submitInvoice(payload);
+          if (response.status) {
+            message.success('Invoice submitted successfully.');
+          } else {
+            throw new Error('Submission failed');
+          }
         } catch {
-          message.error('Submission failed, please try again.');
+          message.error('Failed to submit the invoice.');
         }
       },
     });
-  };
-
-  const updateTableDataAfterSubmission = (response: any): void => {
-    if (response.acceptedDocuments?.length) {
-      message.success(`Successfully submitted ${response.acceptedDocuments.length} documents.`);
-      setTableData((prev) => ({
-        ...prev,
-        data: prev.data.map((row) =>
-          response.acceptedDocuments.some((doc: any) => doc.invoiceCodeNumber === row.invnumber)
-            ? { ...row, status: 'submitted', uuid: response.acceptedDocuments[0].uuid }
-            : row,
-        ),
-      }));
-    } else {
-      message.error('No documents were accepted.');
-    }
   };
 
   return (
@@ -306,14 +355,7 @@ const InvoiceSubmission: React.FC = () => {
         </FooterToolbar>
       )}
       <Drawer width={800} open={showDetail} onClose={() => setShowDetail(false)} closable={false}>
-        {currentRow && (
-          <ProDescriptions<InvoiceData>
-            column={2}
-            title={`Invoice Details: ${currentRow.invnumber}`}
-            request={async () => ({ data: currentRow })}
-            columns={columns}
-          />
-        )}
+        {currentRow && renderProDescriptions(currentRow)}
       </Drawer>
     </PageContainer>
   );
