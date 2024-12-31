@@ -22,41 +22,42 @@ dayjs.extend(customParseFormat);
 
 interface InvoiceData {
   invnumber: string;
-  uuid?: string;
-  bilname: string;
-  vdname?: string;
-  invnetwtx: number;
-  customerTIN: string;
-  biladdR1: string;
-  bilstate?: string;
-  bilzip: string;
-  invitaxtot: number;
-  invnetnotx: number;
+  invdate: number;
   insourcurr: string;
-  invdate: string;
-  terms: string;
-  reference?: string;
+  invnetwtx: number;
+  invitaxtot: number;
+  bilname?: string; // Buyer/Supplier Name
+  biladdR1?: string; // Buyer/Supplier Address
+  biladdR2?: string; // Buyer/Supplier Address
+  biladdR3?: string; // Buyer/Supplier Address
+  biladdR4?: string; // Buyer/Supplier Address
+  bilstate?: string;
+  bilzip?: string;
+  bilcountry?: string;
+  vdname?: string; // Vendor/Supplier Name
+  vdaddresS1?: string; // Vendor Address
+  vdaddresS2?: string; // Vendor Address
+  vdaddresS3?: string; // Vendor Address
+  vdaddresS4?: string; // Vendor Address
+  scamount?: number; // Total Payable (for purchase)
   orderEntryDetails?: OrderEntryDetail[];
   purchaseInvoiceDetails?: PurchaseInvoiceDetail[];
 }
 
 interface OrderEntryDetail {
-  invuniq: string;
+  desc: string;
+  unitprice: number;
   qtyshipped: number;
   invunit: string;
   extinvmisc: number;
-  desc: string;
-  unitprice: number;
 }
 
 interface PurchaseInvoiceDetail {
-  invhseq: number;
   itemdesc: string;
   unitcost: number;
-  extended: number;
   rqreceived: number;
-  taxratE1: number;
-  discpct: number;
+  rcpunit: string;
+  extended: number;
 }
 
 interface TableData {
@@ -99,6 +100,11 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: selectedInvoiceType === '11' ? 'Supplier Name' : 'Buyer Name',
       dataIndex: selectedInvoiceType === '11' ? 'vdname' : 'bilname',
+    },
+    {
+      title: 'Invoice Date',
+      dataIndex: selectedInvoiceType === '01' ? 'invdate' : 'date',
+      render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
     },
     {
       title: 'Currency',
@@ -196,88 +202,94 @@ const InvoiceSubmission: React.FC = () => {
   };
 
   const renderProDescriptions = (record: InvoiceData) => {
-    const isSalesOrSelfBilled = selectedInvoiceType === '01' || selectedInvoiceType === '02';
+    const isSalesInvoice = selectedInvoiceType === '01';
     const isPurchaseInvoice = selectedInvoiceType === '11';
+    const isSelfBilledInvoice = selectedInvoiceType === '02';
 
+    // Common columns for all invoice types
+    const commonColumns: ProColumns<InvoiceData>[] = [
+      { title: 'Invoice Number', dataIndex: 'invnumber' },
+      {
+        title: isPurchaseInvoice ? 'Supplier Name' : 'Buyer Name',
+        dataIndex: isPurchaseInvoice ? 'vdname' : 'bilname',
+      },
+      {
+        title: 'Total Amount',
+        dataIndex: selectedInvoiceType === '01' ? 'invnetwtx' : 'scamount',
+        render: (_, record) => {
+          const amount = record[selectedInvoiceType === '01' ? 'invnetwtx' : 'scamount'];
+          return `${amount?.toFixed(2)}`.replace(/,/g, '');
+        },
+      },
+      { title: 'Currency', dataIndex: selectedInvoiceType === '01' ? 'insourcurr' : 'currency' },
+      {
+        title: 'Invoice Date',
+        dataIndex: selectedInvoiceType === '01' ? 'invdate' : 'date',
+        render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
+      },
+      { title: 'Terms', dataIndex: 'terms' },
+      { title: 'Customer TIN', dataIndex: 'customerTIN' },
+      {
+        title: 'Address',
+        render: (_, data) =>
+          selectedInvoiceType === '01'
+            ? `${data.biladdR1 || ''} ${data.biladdR2 || ''} ${data.biladdR3 || ''} ${data.biladdR4 || ''}  ${data.bilstate || ''} ${data.bilzip || ''}, ${
+                data.bilcountry || ''
+              }`
+            : `${data.vdaddresS1 || ''} ${data.vdaddresS2 || ''} ${data.vdaddresS3 || ''} ${data.vdaddresS4 || ''}`,
+      },
+    ];
+
+    // Additional columns for Sales and Self-Billed Invoices
+    const salesColumns: ProColumns<InvoiceData>[] = [
+      {
+        title: 'Order Entry Details',
+        dataIndex: 'orderEntryDetails',
+        render: (_, record) =>
+          record.orderEntryDetails?.map((item, index) => (
+            <div key={index}>
+              <strong>Item {index + 1}:</strong>
+              <div>Description: {item.desc}</div>
+              <div>Quantity: {item.qtyshipped}</div>
+              <div>Unit: {item.invunit}</div>
+              <div>Unit Price: {item.unitprice?.toFixed(2)}</div>
+              <div>Total: {item.extinvmisc?.toFixed(2)}</div>
+            </div>
+          )),
+      },
+    ];
+
+    // Additional columns for Purchase Invoices
+    const purchaseColumns: ProColumns<InvoiceData>[] = [
+      {
+        title: 'Purchase Invoice Details',
+        dataIndex: 'purchaseInvoiceDetails',
+        render: (_, record) =>
+          record.purchaseInvoiceDetails?.map((item, index) => (
+            <div key={index}>
+              <strong>Item {index + 1}:</strong>
+              <div>Description: {item.itemdesc}</div>
+              <div>Unit Cost: {item.unitcost?.toFixed(2)}</div>
+              <div>Extended: {item.extended?.toFixed(2)}</div>
+              <div>Received Quantity: {item.rqreceived}</div>
+              <div>Tax Rate: {item.taxratE1?.toFixed(2)}</div>
+              <div>Discount: {item.discpct?.toFixed(2)}</div>
+            </div>
+          )),
+      },
+    ];
+
+    const selectedColumns = [
+      ...commonColumns,
+      ...(isSalesInvoice || isSelfBilledInvoice ? salesColumns : []),
+      ...(isPurchaseInvoice ? purchaseColumns : []),
+    ];
     return (
       <ProDescriptions<InvoiceData>
         column={2}
         title={`Invoice Details: ${record.invnumber}`}
         dataSource={record}
-        columns={[
-          { title: 'Invoice Number', dataIndex: 'invnumber' },
-          { title: 'Name', dataIndex: selectedInvoiceType === '11' ? 'vdname' : 'bilname' },
-          {
-            title: 'Total Amount',
-            dataIndex: selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx',
-            valueType: 'money',
-          },
-          { title: 'Currency', dataIndex: 'insourcurr' },
-          {
-            title: 'Invoice Date',
-            dataIndex: 'invdate',
-            render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
-          },
-          { title: 'Terms', dataIndex: 'terms' },
-          { title: 'Reference', dataIndex: 'reference' },
-          { title: 'Customer TIN', dataIndex: 'customerTIN' },
-          {
-            title: 'Shipping Address',
-            dataIndex: 'shpaddR1',
-            render: (_, record) => (
-              <>
-                {record.shpaddR1}
-                <br />
-                {record.shpaddR2 && (
-                  <>
-                    {record.shpaddR2}
-                    <br />
-                  </>
-                )}
-                {record.shpaddR3}
-              </>
-            ),
-          },
-          ...(record.orderEntryDetails && selectedInvoiceType === '01'
-            ? [
-                {
-                  title: 'Order Entry Details',
-                  dataIndex: 'orderEntryDetails',
-                  render: (_, record) =>
-                    record.orderEntryDetails?.map((item, index) => (
-                      <div key={index}>
-                        <strong>Item {index + 1}:</strong>
-                        <div>Description: {item.desc}</div>
-                        <div>Quantity: {item.qtyshipped}</div>
-                        <div>Unit: {item.invunit}</div>
-                        <div>Unit Price: {item.unitprice}</div>
-                        <div>Total: {item.extinvmisc}</div>
-                      </div>
-                    )),
-                },
-              ]
-            : []),
-          ...(record.purchaseInvoiceDetails && selectedInvoiceType === '11'
-            ? [
-                {
-                  title: 'Purchase Invoice Details',
-                  dataIndex: 'purchaseInvoiceDetails',
-                  render: (_, record) =>
-                    record.purchaseInvoiceDetails?.map((item, index) => (
-                      <div key={index}>
-                        <strong>Item {index + 1}:</strong>
-                        <div>Description: {item.itemdesc}</div>
-                        <div>Unit Cost: {item.unitcost}</div>
-                        <div>Extended: {item.extended}</div>
-                        <div>Received Quantity: {item.rqreceived}</div>
-                        <div>Tax Rate: {item.taxratE1}</div>
-                        <div>Discount: {item.discpct}</div>
-                      </div>
-                    )),
-                },
-              ]
-            : []),
-        ]}
+        columns={selectedColumns}
       />
     );
   };

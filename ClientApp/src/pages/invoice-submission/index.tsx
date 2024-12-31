@@ -1,3 +1,4 @@
+import { getRecentInvoices } from '@/services/ant-design-pro/invoiceService';
 import { ProDescriptions, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage } from '@umijs/max';
 import { Button, Drawer, message, QRCode } from 'antd';
@@ -72,6 +73,7 @@ const fetchRecentDocuments = async (params: {
   issuerTin?: string;
   issuerIdType?: string;
   issuerId?: string;
+  uuid?: string;
 }) => {
   const {
     current,
@@ -89,6 +91,7 @@ const fetchRecentDocuments = async (params: {
     issuerTin,
     issuerIdType,
     issuerId,
+    uuid,
   } = params;
 
   // Build query string dynamically
@@ -108,24 +111,16 @@ const fetchRecentDocuments = async (params: {
     ...(issuerTin && { issuerTin }),
     ...(issuerIdType && { issuerIdType }),
     ...(issuerId && { issuerId }),
+    ...(uuid && { uuid }),
   });
 
   try {
-    const response = await fetch(
-      `https://localhost:5001/api/invoice/recent?${queryParams.toString()}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+    const response = await getRecentInvoices(queryParams);
 
-    const result = await response.json();
-    if (response.ok) {
+    if (response.data.succeeded) {
       return {
-        data: result.result,
-        total: result.metadata.totalCount,
+        data: response.data.data.result,
+        total: response.data.data.metadata.totalCount,
         success: true,
       };
     } else {
@@ -170,6 +165,7 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'UUID',
       dataIndex: 'uuid',
+      hideInSearch: true,
       render: (dom: any, entity: any) => (
         <a
           onClick={async () => {
@@ -186,36 +182,46 @@ const InvoiceSubmission: React.FC = () => {
     },
     {
       title: 'Internal ID',
+      hideInSearch: true,
       dataIndex: 'internalId',
     },
     {
       title: 'Supplier TIN',
+      hideInSearch: true,
       dataIndex: 'supplierTIN',
     },
     {
       title: 'Supplier Name',
+      hideInSearch: true,
       dataIndex: 'supplierName',
     },
     {
       title: 'Receiver TIN',
+      hideInSearch: true,
       dataIndex: 'receiverTIN',
     },
     {
       title: 'Receiver Name',
+      hideInSearch: true,
       dataIndex: 'receiverName',
     },
     {
       title: 'Date Issued',
       dataIndex: 'dateTimeIssued',
+      hideInSearch: true,
       valueType: 'date',
+      hideInTable: true,
     },
     {
       title: 'Date Received',
       dataIndex: 'dateTimeReceived',
+      hideInSearch: true,
       valueType: 'date',
+      hideInTable: true,
     },
     {
       title: 'Total',
+      hideInSearch: true,
       dataIndex: 'total',
       valueType: 'money',
     },
@@ -231,26 +237,39 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'Currency',
       dataIndex: 'documentCurrency',
+      hideInSearch: true,
     },
     {
       title: 'Issue Date From',
       dataIndex: 'issueDateFrom',
+      hideInSearch: true,
       valueType: 'date',
+      hideInTable: true,
     },
     {
       title: 'Issue Date To',
       dataIndex: 'issueDateTo',
+      hideInSearch: true,
       valueType: 'date',
+      hideInTable: true,
     },
     {
       title: 'Submission Date From',
       dataIndex: 'submissionDateFrom',
       valueType: 'date',
+      formItemProps: {
+        // label width
+        labelCol: { span: 12 },
+      },
     },
     {
       title: 'Submission Date To',
       dataIndex: 'submissionDateTo',
       valueType: 'date',
+      formItemProps: {
+        // label width
+        labelCol: { span: 12 },
+      },
     },
   ];
 

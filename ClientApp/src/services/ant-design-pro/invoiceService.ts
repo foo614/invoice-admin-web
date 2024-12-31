@@ -48,28 +48,36 @@ export async function submitInvoice(body: any, options?: { [key: string]: any })
 
 // Create Invoice
 export async function createInvoice(body: any, options?: { [key: string]: any }) {
-  return httpClient.post('/api/v1/InvoiceApi/create-invoice', body, {
+  return httpClient.post('/v1/InvoiceApi/create-invoice', body, {
     ...options,
   });
 }
 
 // Get Currency Codes
 export async function getCurrencyCodes(options?: { [key: string]: any }) {
-  return httpClient.get('/api/v1/InvoiceApi/currency-codes', {
+  return httpClient.get('/v1/InvoiceApi/currency-codes', {
     ...options,
   });
 }
 
 // Get Unit Types
 export async function getUnitTypes(options?: { [key: string]: any }) {
-  return httpClient.get('/api/v1/InvoiceApi/unit-types', {
+  return httpClient.get('/v1/InvoiceApi/unit-types', {
     ...options,
   });
 }
 
 // Get Classification Codes
 export async function getClassificationCodes(options?: { [key: string]: any }) {
-  return httpClient.get('/api/v1/InvoiceApi/classification-codes', {
+  return httpClient.get('/v1/InvoiceApi/classification-codes', {
+    ...options,
+  });
+}
+
+// Get Recent Invoices
+export async function getRecentInvoices(params: any, options?: { [key: string]: any }) {
+  return httpClient.get('/v1/InvoiceApi/recent', {
+    params,
     ...options,
   });
 }
