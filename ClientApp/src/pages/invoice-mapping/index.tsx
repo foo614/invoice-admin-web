@@ -1,874 +1,373 @@
-import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import {
+  getCreditDebitNotes,
+  getInvoiceTypes,
+  getPurchaseCreditDebitNotes,
+  getPurchaseInvoices,
+  getSalesInvoices,
+  submitInvoice,
+} from '@/services/ant-design-pro/invoiceService';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   FooterToolbar,
-  ModalForm,
   PageContainer,
   ProDescriptions,
-  ProFormGroup,
-  ProFormList,
-  ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Drawer, message, Modal, Select, Tooltip } from 'antd';
-import dayjs from 'dayjs';
+import { Button, Drawer, message, Modal, Select, Space } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import React, { useEffect, useRef, useState } from 'react';
-import { invoiceTypesConfig } from './config/invoiceTypesConfig';
 
-/**
- * Handle add operation
- */
-const handleAdd = async (fields: any) => {
-  const hide = message.loading('Adding...');
-  try {
-    hide();
-    message.success('Added successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Adding failed, please try again!');
-    return false;
-  }
-};
+dayjs.extend(customParseFormat);
 
-/**
- * Handle update operation
- */
-const handleUpdate = async (fields: any) => {
-  const hide = message.loading('Updating...');
-  try {
-    // Mock update operation
-    hide();
-    message.success('Updated successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Update failed, please try again!');
-    return false;
-  }
-};
+interface InvoiceData {
+  invnumber: string;
+  invdate: number;
+  insourcurr: string;
+  invnetwtx: number;
+  invitaxtot: number;
+  bilname?: string; // Buyer/Supplier Name
+  biladdR1?: string; // Buyer/Supplier Address
+  biladdR2?: string; // Buyer/Supplier Address
+  biladdR3?: string; // Buyer/Supplier Address
+  biladdR4?: string; // Buyer/Supplier Address
+  bilstate?: string;
+  bilzip?: string;
+  bilcountry?: string;
+  vdname?: string; // Vendor/Supplier Name
+  vdaddresS1?: string; // Vendor Address
+  vdaddresS2?: string; // Vendor Address
+  vdaddresS3?: string; // Vendor Address
+  vdaddresS4?: string; // Vendor Address
+  scamount?: number; // Total Payable (for purchase)
+  orderEntryDetails?: OrderEntryDetail[];
+  purchaseInvoiceDetails?: PurchaseInvoiceDetail[];
+}
 
-/**
- * Handle remove operation
- */
-const handleRemove = async (selectedRows: any[]) => {
-  const hide = message.loading('Deleting...');
-  if (!selectedRows) return true;
-  try {
-    // Mock remove operation
-    hide();
-    message.success('Deleted successfully');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Delete failed, please try again!');
-    return false;
-  }
-};
+interface OrderEntryDetail {
+  desc: string;
+  unitprice: number;
+  qtyshipped: number;
+  invunit: string;
+  extinvmisc: number;
+}
+
+interface PurchaseInvoiceDetail {
+  itemdesc: string;
+  unitcost: number;
+  rqreceived: number;
+  rcpunit: string;
+  extended: number;
+}
+
+interface TableData {
+  data: InvoiceData[];
+  success: boolean;
+  total: number;
+}
+
+interface InvoiceType {
+  code: string;
+  description: string;
+}
 
 const InvoiceSubmission: React.FC = () => {
-  const [createModalOpen, handleModalOpen] = useState<boolean>(false);
-  const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
   const [showDetail, setShowDetail] = useState<boolean>(false);
-  const [currentRow, setCurrentRow] = useState<any>();
-  const [selectedRowsState, setSelectedRows] = useState<any[]>([]);
-  const [tableData, setTableData] = useState<any[]>([]);
-
+  const [currentRow, setCurrentRow] = useState<InvoiceData | undefined>();
+  const [selectedRowsState, setSelectedRows] = useState<InvoiceData[]>([]);
+  const [tableData, setTableData] = useState<TableData>({ data: [], success: false, total: 0 });
+  const [invoiceType, setInvoiceType] = useState<InvoiceType[]>([]);
+  const [selectedInvoiceType, setSelectedInvoiceType] = useState<string>('01');
   const actionRef = useRef<ActionType>();
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const columns: ProColumns<any>[] = [
+  const columns: ProColumns<InvoiceData>[] = [
     {
       title: 'Invoice Number',
       dataIndex: 'invnumber',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      render: (dom, entity) => (
+        <a
+          onClick={() => {
+            setCurrentRow(entity);
+            setShowDetail(true);
+          }}
+        >
+          {dom}
+        </a>
+      ),
+    },
+    { title: 'e-Invoice Code', dataIndex: 'uuid' },
+    {
+      title: selectedInvoiceType === '11' ? 'Supplier Name' : 'Buyer Name',
+      dataIndex: selectedInvoiceType === '11' ? 'vdname' : 'bilname',
     },
     {
-      title: 'e-Invoice Code',
-      dataIndex: 'uuid',
+      title: 'Invoice Date',
+      dataIndex: selectedInvoiceType === '01' ? 'invdate' : 'date',
+      render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
     },
     {
-      title: 'Buyer Name',
-      dataIndex: 'bilname',
+      title: 'Currency',
+      dataIndex: selectedInvoiceType === '11' ? 'currency' : 'insourcurr',
     },
     {
       title: 'Total Payable Amount',
-      dataIndex: 'invnetwtx',
-      valueType: 'money',
+      dataIndex: selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx',
+      render: (_, record) => {
+        const amount = record[selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx'];
+        return `${amount?.toFixed(2)}`.replace(/,/g, '');
+      },
     },
     {
       title: 'Actions',
       valueType: 'option',
       render: (_, record) => [
-        // <a
-        //   key="edit"
-        //   style={{ marginRight: 10 }}
-        //   onClick={() => {
-        //     handleUpdateModalOpen(true);
-        //     setCurrentRow(record);
-        //   }}
-        // >
-        //   View Document
-        // </a>,
-        <a
-          key="config"
-          onClick={() => {
-            // handleUpdateModalOpen(true);
-            setCurrentRow(record);
-            handleLHDNSubmission(record);
-          }}
-        >
+        <a key="submit" onClick={() => handleInvoiceSubmission(record)}>
           Submit
         </a>,
       ],
     },
   ];
 
-  // Define the columns for the details shown in the drawer separately
-  const descriptionColumns: ProDescriptionsItemProps<any>[] = [
-    {
-      title: 'Invoice ID',
-      dataIndex: 'invnumber',
-    },
-    {
-      title: 'Version',
-      dataIndex: 'Version',
-    },
-    {
-      title: 'Transaction Tax Scheme',
-      dataIndex: ['TranDtls', 'TaxSch'],
-    },
-    {
-      title: 'Transaction Category',
-      dataIndex: ['TranDtls', 'SupTyp'],
-    },
-    {
-      title: 'Reverse Charge',
-      dataIndex: ['TranDtls', 'RegRev'],
-    },
-    {
-      title: 'E-Commerce GSTIN',
-      dataIndex: ['TranDtls', 'EcmGstin'],
-    },
-    {
-      title: 'IGST on Intra',
-      dataIndex: ['TranDtls', 'IgstOnIntra'],
-    },
-    {
-      title: 'Document Type',
-      dataIndex: ['DocDtls', 'Typ'],
-    },
-    {
-      title: 'Document Number',
-      dataIndex: ['DocDtls', 'No'],
-    },
-    {
-      title: 'Document Date',
-      dataIndex: ['DocDtls', 'Dt'],
-    },
-    {
-      title: 'Seller GSTIN',
-      dataIndex: ['SellerDtls', 'Gstin'],
-    },
-    {
-      title: 'Seller Legal Name',
-      dataIndex: ['SellerDtls', 'LglNm'],
-    },
-    {
-      title: 'Seller Trade Name',
-      dataIndex: ['SellerDtls', 'TrdNm'],
-    },
-    {
-      title: 'Seller Address Line 1',
-      dataIndex: ['SellerDtls', 'Addr1'],
-    },
-    {
-      title: 'Seller Address Line 2',
-      dataIndex: ['SellerDtls', 'Addr2'],
-    },
-    {
-      title: 'Seller Location',
-      dataIndex: ['SellerDtls', 'Loc'],
-    },
-    {
-      title: 'Seller PIN Code',
-      dataIndex: ['SellerDtls', 'Pin'],
-    },
-    {
-      title: 'Seller State Code',
-      dataIndex: ['SellerDtls', 'Stcd'],
-    },
-    {
-      title: 'Seller Phone Number',
-      dataIndex: ['SellerDtls', 'Ph'],
-    },
-    {
-      title: 'Seller Email',
-      dataIndex: ['SellerDtls', 'Em'],
-    },
-    {
-      title: 'Dispatch GSTIN',
-      dataIndex: ['DispDtls', 'Gstin'],
-    },
-    {
-      title: 'Dispatch Address Line 1',
-      dataIndex: ['DispDtls', 'Addr1'],
-    },
-    {
-      title: 'Dispatch Address Line 2',
-      dataIndex: ['DispDtls', 'Addr2'],
-    },
-    {
-      title: 'Dispatch Location',
-      dataIndex: ['DispDtls', 'Loc'],
-    },
-    {
-      title: 'Ship To GSTIN',
-      dataIndex: ['ShipDtls', 'Gstin'],
-    },
-    {
-      title: 'Ship To Address Line 1',
-      dataIndex: ['ShipDtls', 'Addr1'],
-    },
-    {
-      title: 'Ship To Address Line 2',
-      dataIndex: ['ShipDtls', 'Addr2'],
-    },
-    {
-      title: 'Ship To Location',
-      dataIndex: ['ShipDtls', 'Loc'],
-    },
-    {
-      title: 'Item List',
-      dataIndex: 'ItemList',
-      order: -1,
-      render: (_, record) => {
-        return (
-          <div>
-            {record.ItemList?.map((item: any, index: number) => (
-              <div key={index} style={{ marginBottom: '8px' }}>
-                <strong>Item {index + 1}:</strong>
-                <div>Product Name: {item?.PrdDesc}</div>
-                <div>HSN Code: {item?.HsnCd}</div>
-                <div>Quantity: {item?.Qty}</div>
-                <div>Unit: {item?.Unit}</div>
-                <div>Price: {item?.UnitPrice}</div>
-                <div>Total: {item?.TotAmt}</div>
-              </div>
-            ))}
-          </div>
-        );
-      },
-    },
-    {
-      title: 'Total Invoice Value',
-      dataIndex: ['ValDtls', 'TotInvVal'],
-    },
-    {
-      title: 'Submitted Date',
-      dataIndex: 'submittedDate',
-    },
-  ];
+  const fetchDataBasedOnInvoiceType = async (
+    type: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<void> => {
+    setLoading(true);
+    const fetchMap: { [key: string]: Function } = {
+      '01': getSalesInvoices,
+      '02': getCreditDebitNotes,
+      '03': getCreditDebitNotes,
+      '11': getPurchaseInvoices,
+      '12': getPurchaseCreditDebitNotes,
+      '13': getPurchaseCreditDebitNotes,
+    };
 
-  const fetchTransactions = async () => {
+    const fetchFunction = fetchMap[type];
+    if (!fetchFunction) {
+      message.warning('Invalid invoice type selected.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch('/api/v1/InvoiceApi/sales-invoices', {
-        method: 'GET',
+      const response = await fetchFunction({ page, pageSize });
+      console.log('API Response:', response.data); // Debugging log
+      setTableData({
+        data: response.data?.data || [],
+        success: true,
+        total: response.data?.totalItems || 0,
       });
-      const data = await response.json();
-      setTableData(data.data); // Set the table data in state
-      return {
-        data: data.data,
-        success: data.success,
-        total: data.total,
-      };
     } catch (error) {
-      message.error('Failed to fetch e-invoice transactions.');
-      return { data: [], success: false, total: 0 };
+      console.error('Fetch Error:', error);
+      message.error('Failed to fetch data for the selected invoice type.');
+      setTableData({ data: [], success: false, total: 0 });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      const result = await fetchTransactions();
-      setTableData(result.data); // Set the fetched data in the table
+    const loadInitialData = async () => {
+      try {
+        const invoiceTypeOptions = await getInvoiceTypes();
+        setInvoiceType(
+          invoiceTypeOptions.data.data.filter(
+            (type) => !type.description.toLowerCase().includes('refund'), // Exclude refund
+          ),
+        );
+        await fetchDataBasedOnInvoiceType(selectedInvoiceType);
+      } catch {
+        message.error('Failed to load initial data.');
+      }
     };
-    loadData();
-  }, []);
+    loadInitialData();
+  }, [selectedInvoiceType]);
 
-  /**
-   * Handle LHDN submission
-   */
-  const handleLHDNSubmission = async (record: any) => {
-    let dueDate;
+  const calculateDueDate = (record: InvoiceData): Dayjs => {
     if (record.terms.endsWith('D')) {
-      // Extract the number of days
-      const daysToAdd = parseInt(record.terms.replace('D', ''), 10);
-      dueDate = dayjs(record.invdate, 'YYYYMMDD').add(daysToAdd, 'day');
-    } else if (record.terms.endsWith('M')) {
-      // Extract the number of months
-      const monthsToAdd = parseInt(record.terms.replace('M', ''), 10);
-      dueDate = dayjs(record.invdate, 'YYYYMMDD').add(monthsToAdd, 'month');
-    } else {
-      throw new Error('Invalid payment terms format. Must end with "D" or "M".');
+      return dayjs(record.invdate, 'YYYYMMDD').add(
+        parseInt(record.terms.replace('D', ''), 10),
+        'day',
+      );
     }
+    if (record.terms.endsWith('M')) {
+      return dayjs(record.invdate, 'YYYYMMDD').add(
+        parseInt(record.terms.replace('M', ''), 10),
+        'month',
+      );
+    }
+    throw new Error('Invalid payment terms format. Must end with "D" or "M".');
+  };
 
-    const mappedRecord = {
-      Irn: record.invnumber,
-      IssueDate: dayjs(record.invdate, 'YYYYMMDD').format('YYYY-MM-DD'),
-      // IssueTime: '00:00:00Z',
-      CurrencyCode: record.insourcurr, // Assuming currency is MYR
+  const renderProDescriptions = (record: InvoiceData) => {
+    const isSalesInvoice = selectedInvoiceType === '01';
+    const isPurchaseInvoice = selectedInvoiceType === '11';
+    const isSelfBilledInvoice = selectedInvoiceType === '02';
 
-      // Supplier details
-      SupplierName: 'Supplier Name',
-      SupplierCity: 'Kuala Lumpur',
-      SupplierPostalCode: '81300',
-      SupplierCountryCode: 'MYS',
-      SupplierEmail: 'supplier@email.com',
-      SupplierTelephone: '+60123456789',
-      SupplierTIN: 'IG26339098050',
-      SupplierBRN: '960614015177',
-      SupplierSST: 'NA',
-      SupplierTTX: 'NA',
-      SupplierAddressLine1: 'address 1',
-      SupplierAddressLine2: '',
-      SupplierAddressLine3: '',
-      SupplierIndustryCode: '46510',
-      SupplierAdditionalAccountID: 'CPT-CCN-W-211111-KL-000002',
-      SupplierCountrySubentityCode: '14',
+    // Common columns for all invoice types
+    const commonColumns: ProColumns<InvoiceData>[] = [
+      { title: 'Invoice Number', dataIndex: 'invnumber' },
+      {
+        title: isPurchaseInvoice ? 'Supplier Name' : 'Buyer Name',
+        dataIndex: isPurchaseInvoice ? 'vdname' : 'bilname',
+      },
+      {
+        title: 'Total Amount',
+        dataIndex: selectedInvoiceType === '01' ? 'invnetwtx' : 'scamount',
+        render: (_, record) => {
+          const amount = record[selectedInvoiceType === '01' ? 'invnetwtx' : 'scamount'];
+          return `${amount?.toFixed(2)}`.replace(/,/g, '');
+        },
+      },
+      { title: 'Currency', dataIndex: selectedInvoiceType === '01' ? 'insourcurr' : 'currency' },
+      {
+        title: 'Invoice Date',
+        dataIndex: selectedInvoiceType === '01' ? 'invdate' : 'date',
+        render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
+      },
+      { title: 'Terms', dataIndex: 'terms' },
+      { title: 'Customer TIN', dataIndex: 'customerTIN' },
+      {
+        title: 'Address',
+        render: (_, data) =>
+          selectedInvoiceType === '01'
+            ? `${data.biladdR1 || ''} ${data.biladdR2 || ''} ${data.biladdR3 || ''} ${data.biladdR4 || ''}  ${data.bilstate || ''} ${data.bilzip || ''}, ${
+                data.bilcountry || ''
+              }`
+            : `${data.vdaddresS1 || ''} ${data.vdaddresS2 || ''} ${data.vdaddresS3 || ''} ${data.vdaddresS4 || ''}`,
+      },
+    ];
 
-      CustomerTIN: record.customerTIN,
-      CustomerBRN: record.customerBRN,
-      CustomerAddressLine1: record.biladdR1,
-      CustomerAddressLine2: record.biladdR2 || '',
-      CustomerAddressLine3: record.biladdR3 || '',
-      CustomerCountrySubentityCode: '00',
-      CustomerCity: record.bilstate || 'Kuala Lumpur',
-      CustomerCountryCode: 'MYS',
-      CustomerPostalCode: record.bilzip,
-      CustomerName: record.bilname,
-      CustomerTelephone: record.bilphone || '+60123456789',
-      CustomerEmail: record.bilemail,
+    // Additional columns for Sales and Self-Billed Invoices
+    const salesColumns: ProColumns<InvoiceData>[] = [
+      {
+        title: 'Order Entry Details',
+        dataIndex: 'orderEntryDetails',
+        render: (_, record) =>
+          record.orderEntryDetails?.map((item, index) => (
+            <div key={index}>
+              <strong>Item {index + 1}:</strong>
+              <div>Description: {item.desc}</div>
+              <div>Quantity: {item.qtyshipped}</div>
+              <div>Unit: {item.invunit}</div>
+              <div>Unit Price: {item.unitprice?.toFixed(2)}</div>
+              <div>Total: {item.extinvmisc?.toFixed(2)}</div>
+            </div>
+          )),
+      },
+    ];
 
-      // Invoice period details
-      StartDate: dayjs(record.invdate, 'YYYYMMDD').format('YYYY-MM-DD'),
-      EndDate: dayjs(dueDate).format('YYYY-MM-DD'),
-      InvoicePeriodDescription: 'Monthly',
+    // Additional columns for Purchase Invoices
+    const purchaseColumns: ProColumns<InvoiceData>[] = [
+      {
+        title: 'Purchase Invoice Details',
+        dataIndex: 'purchaseInvoiceDetails',
+        render: (_, record) =>
+          record.purchaseInvoiceDetails?.map((item, index) => (
+            <div key={index}>
+              <strong>Item {index + 1}:</strong>
+              <div>Description: {item.itemdesc}</div>
+              <div>Unit Cost: {item.unitcost?.toFixed(2)}</div>
+              <div>Extended: {item.extended?.toFixed(2)}</div>
+              <div>Received Quantity: {item.rqreceived}</div>
+              <div>Tax Rate: {item.taxratE1?.toFixed(2)}</div>
+              <div>Discount: {item.discpct?.toFixed(2)}</div>
+            </div>
+          )),
+      },
+    ];
 
-      // Total and item list
-      TaxableAmount: record.invnetnotx.toString(),
-      TaxAmount: record.invitaxtot.toString(),
-      TotalAmount: record.invnetwtx.toString(),
-      ItemList: record.orderEntryDetails.map((item: any) => ({
-        Id: item.invuniq.toString(),
-        Qty: item.qtyshipped,
-        Unit: item.invunit, //TODO: need wait for the UOM mapping
-        TotItemVal: item.extinvmisc,
-        Description: item.desc,
-        UnitPrice: item.unitprice,
-      })),
+    const selectedColumns = [
+      ...commonColumns,
+      ...(isSalesInvoice || isSelfBilledInvoice ? salesColumns : []),
+      ...(isPurchaseInvoice ? purchaseColumns : []),
+    ];
+    return (
+      <ProDescriptions<InvoiceData>
+        column={2}
+        title={`Invoice Details: ${record.invnumber}`}
+        dataSource={record}
+        columns={selectedColumns}
+      />
+    );
+  };
+
+  const handleInvoiceSubmission = async (record: InvoiceData) => {
+    const dueDate = calculateDueDate(record);
+    const payload = {
+      ...record,
+      dueDate: dueDate.format('YYYY-MM-DD'),
     };
-
-    let invoiceType = '';
-
-    const invoiceTypeOptions = Object.entries(invoiceTypesConfig).map(([key, config]) => ({
-      value: key, // e.g., '01'
-      label: config.name, // e.g., 'Standard Invoice'
-    }));
 
     Modal.confirm({
       title: 'Confirm Submission',
-      content: (
-        <>
-          <p>Select the Invoice Type before submitting:</p>
-          <Select
-            placeholder="Select Invoice Type"
-            style={{ width: '100%' }}
-            options={invoiceTypeOptions}
-            onChange={(value) => (invoiceType = value)} // Update the state
-          />
-        </>
-      ),
       onOk: async () => {
-        if (!invoiceType) {
-          message.warning('Please select an invoice type before submitting.');
-          return Promise.reject(); // Prevent the modal from closing
-        }
-
-        const hide = message.loading('Submitting...');
         try {
-          const finalMappedRecord = {
-            ...mappedRecord,
-            InvoiceTypeCode: invoiceType, // Include selected invoice type
-          };
-
-          const response = await fetch('/api/v1/InvoiceApi/submit-invoice', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(finalMappedRecord),
-          });
-
-          const result = await response.json();
-          hide();
-
-          if (response.ok) {
-            const { acceptedDocuments, rejectedDocuments } = JSON.parse(result.data);
-
-            if (acceptedDocuments.length > 0) {
-              message.success(`Successfully submitted ${acceptedDocuments.length} documents.`);
-
-              // Update table data for accepted documents
-              const updatedData = tableData.map((row) => {
-                const acceptedDoc = acceptedDocuments.find(
-                  (doc) => doc.invoiceCodeNumber === row.invnumber,
-                );
-                if (acceptedDoc) {
-                  return {
-                    ...row,
-                    uuid: acceptedDoc.uuid, // Update the UUID if present
-                    status: 'submitted', // Update the status
-                  };
-                }
-                return row;
-              });
-
-              setTableData(updatedData);
-              return true;
-            }
-
-            if (rejectedDocuments && rejectedDocuments.length > 0) {
-              const errorMessages = rejectedDocuments
-                .map((doc) => {
-                  const { error } = doc;
-                  return `
-                    Invoice Code: ${doc.invoiceCodeNumber}
-                    ${error.details
-                      .map(
-                        (detail) => `
-                      Error Code: ${detail.code}
-                      Message: ${detail.message}
-                      Target: ${detail.target}
-                      Property Path: ${detail.propertyPath || 'N/A'}
-                    `,
-                      )
-                      .join('\n\n')}
-                  `;
-                })
-                .join('\n\n');
-
-              message.error(`Submission failed:\n${errorMessages}`, 10);
-            } else {
-              message.error(`Submission failed: ${result.error?.message || 'Unknown error'}`);
-            }
-
-            return false;
+          const response = await submitInvoice(payload);
+          if (response.status) {
+            message.success('Invoice submitted successfully.');
+          } else {
+            throw new Error('Submission failed');
           }
-        } catch (error) {
-          hide();
-          message.error('Submission failed, please try again!');
-          return false;
+        } catch {
+          message.error('Failed to submit the invoice.');
         }
       },
     });
   };
 
-  const renderField = (field: string, readOnly = false) => {
-    switch (field) {
-      case 'SellerDetails':
-        return (
-          <ProFormGroup title="Seller Details">
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Gstin']}
-              label="Seller GSTIN"
-              initialValue={currentRow?.SellerDtls?.Gstin}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'LglNm']}
-              label="Seller Legal Name"
-              initialValue={currentRow?.SellerDtls?.LglNm}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'TrdNm']}
-              label="Seller Trade Name"
-              initialValue={currentRow?.SellerDtls?.TrdNm}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Addr1']}
-              label="Seller Address Line 1"
-              initialValue={currentRow?.SellerDtls?.Addr1}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Addr2']}
-              label="Seller Address Line 2"
-              initialValue={currentRow?.SellerDtls?.Addr2}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Loc']}
-              label="Seller Location"
-              initialValue={currentRow?.SellerDtls?.Loc}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Pin']}
-              label="Seller PIN Code"
-              initialValue={currentRow?.SellerDtls?.Pin}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Stcd']}
-              label="Seller State Code"
-              initialValue={currentRow?.SellerDtls?.Stcd}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Ph']}
-              label="Seller Phone Number"
-              initialValue={currentRow?.SellerDtls?.Ph}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['SellerDtls', 'Em']}
-              label="Seller Email"
-              initialValue={currentRow?.SellerDtls?.Em}
-              fieldProps={{ readOnly }}
-            />
-          </ProFormGroup>
-        );
-
-      case 'BuyerDetails':
-        return (
-          <ProFormGroup title="Buyer Details">
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Gstin']}
-              label="Buyer GSTIN"
-              initialValue={currentRow?.BuyerDtls?.Gstin}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'LglNm']}
-              label="Buyer Legal Name"
-              initialValue={currentRow?.BuyerDtls?.LglNm}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'TrdNm']}
-              label="Buyer Trade Name"
-              initialValue={currentRow?.BuyerDtls?.TrdNm}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Addr1']}
-              label="Buyer Address Line 1"
-              initialValue={currentRow?.BuyerDtls?.Addr1}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Addr2']}
-              label="Buyer Address Line 2"
-              initialValue={currentRow?.BuyerDtls?.Addr2}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Loc']}
-              label="Buyer Location"
-              initialValue={currentRow?.BuyerDtls?.Loc}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Pin']}
-              label="Buyer PIN Code"
-              initialValue={currentRow?.BuyerDtls?.Pin}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Stcd']}
-              label="Buyer State Code"
-              initialValue={currentRow?.BuyerDtls?.Stcd}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Ph']}
-              label="Buyer Phone Number"
-              initialValue={currentRow?.BuyerDtls?.Ph}
-              fieldProps={{ readOnly }}
-            />
-            <ProFormText
-              width="md"
-              name={['BuyerDtls', 'Em']}
-              label="Buyer Email"
-              initialValue={currentRow?.BuyerDtls?.Em}
-              fieldProps={{ readOnly }}
-            />
-          </ProFormGroup>
-        );
-
-      case 'TotalInvoiceValue':
-        return (
-          <ProFormText
-            width="md"
-            name={['ValDtls', 'TotInvVal']}
-            label="Total Invoice Value"
-            initialValue={currentRow?.ValDtls?.TotInvVal}
-            fieldProps={{ readOnly }}
-          />
-        );
-
-      case 'ItemList':
-        return (
-          <ProFormList
-            name="ItemList"
-            label="Item List"
-            initialValue={currentRow?.ItemList || []}
-            readonly={true}
-            deleteIconProps={false}
-            copyIconProps={false}
-          >
-            <ProFormGroup>
-              <ProFormText
-                width="xs"
-                name="PrdDesc"
-                label="Product Name"
-                fieldProps={{
-                  readOnly,
-                  onRender: (dom) => (
-                    <Tooltip title={dom?.value}>
-                      <span>{dom?.value}</span>
-                    </Tooltip>
-                  ),
-                }}
-              />
-              <ProFormText width="xs" name="HsnCd" label="HSN Code" fieldProps={{ readOnly }} />
-              <ProFormText width="xs" name="Qty" label="Quantity" fieldProps={{ readOnly }} />
-              <ProFormText width="xs" name="Unit" label="Unit" fieldProps={{ readOnly }} />
-              <ProFormText
-                width="xs"
-                name="UnitPrice"
-                label="Unit Price"
-                fieldProps={{ readOnly }}
-              />
-              <ProFormText
-                width="xs"
-                name="TotAmt"
-                label="Total Amount"
-                fieldProps={{ readOnly }}
-              />
-            </ProFormGroup>
-          </ProFormList>
-        );
-
-      case 'MonetaryAmounts':
-        return (
-          <ProFormGroup title="Monetary Amounts">
-            <ProFormText
-              name="UnitPrice"
-              label="Unit Price"
-              fieldProps={{ readOnly }}
-              rules={[{ required: true, message: 'Unit Price is required' }]}
-            />
-            <ProFormText
-              name="Subtotal"
-              label="Subtotal"
-              fieldProps={{ readOnly }}
-              rules={[{ required: true, message: 'Subtotal is required' }]}
-            />
-            <ProFormText
-              name="TotalExcludingTax"
-              label="Total Excluding Tax"
-              fieldProps={{ readOnly }}
-              rules={[{ required: true, message: 'Total Excluding Tax is required' }]}
-            />
-            <ProFormText name="DiscountAmount" label="Discount Amount" fieldProps={{ readOnly }} />
-            <ProFormText
-              name="FeeChargeAmount"
-              label="Fee/Charge Amount"
-              fieldProps={{ readOnly }}
-            />
-          </ProFormGroup>
-        );
-
-      case 'TaxAmounts':
-        return (
-          <ProFormGroup title="Tax Amounts">
-            <ProFormText
-              name="TaxRate"
-              label="Tax Rate"
-              fieldProps={{ readOnly }}
-              rules={[{ required: true, message: 'Tax Rate is required' }]}
-            />
-            <ProFormText
-              name="TaxAmount"
-              label="Tax Amount"
-              fieldProps={{ readOnly }}
-              rules={[{ required: true, message: 'Tax Amount is required' }]}
-            />
-            <ProFormText
-              name="TotalTaxAmount"
-              label="Total Tax Amount"
-              fieldProps={{ readOnly }}
-              rules={[{ required: true, message: 'Total Tax Amount is required' }]}
-            />
-          </ProFormGroup>
-        );
-
-      case 'OriginalInvoiceReference':
-        return (
-          <ProFormGroup title="Original Invoice Reference">
-            <ProFormText
-              width="md"
-              name="OriginaleInvoiceReferenceNumber"
-              label="Original Invoice Reference Number"
-              initialValue={currentRow?.OriginaleInvoiceReferenceNumber}
-              fieldProps={{ readOnly }}
-            />
-            {/* <ProFormText
-              width="md"
-              name="OriginaleInvoiceUUID"
-              label="Original Invoice UUID"
-              initialValue={currentRow?.OriginaleInvoiceUUID}
-              fieldProps={{ readOnly }}
-            /> */}
-          </ProFormGroup>
-        );
-
-      case 'DigitalSignature':
-        return (
-          <ProFormText
-            width="md"
-            name="IssuerDigitalSignature"
-            label="Digital Signature"
-            initialValue={currentRow?.IssuerDigitalSignature}
-            fieldProps={{ readOnly }}
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <PageContainer>
-      <ProTable
-        headerTitle={`Document Mapping Table`}
+      <ProTable<InvoiceData>
         actionRef={actionRef}
         rowKey="invnumber"
-        search={{
-          labelWidth: 120,
+        search={{ labelWidth: 'auto' }}
+        dataSource={tableData.data}
+        pagination={{
+          total: tableData.total,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          onChange: (page, pageSize) =>
+            fetchDataBasedOnInvoiceType(selectedInvoiceType, page, pageSize),
         }}
-        // request={fetchTransactions}
-        dataSource={tableData}
+        loading={loading}
         columns={columns}
         rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
+          onChange: (_, selectedRows) => setSelectedRows(selectedRows),
         }}
+        headerTitle={
+          <Space>
+            <span>Document Mapping Table</span>
+            <Select<string>
+              value={selectedInvoiceType}
+              onChange={(value) => setSelectedInvoiceType(value)}
+              style={{ width: 180 }}
+              options={invoiceType
+                .filter((data) => !data.description.toLowerCase().includes('refund')) // Exclude refund types
+                .map((data) => ({
+                  value: data.code,
+                  label: data.description,
+                }))}
+            />
+          </Space>
+        }
       />
       {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              Selected <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a> items
-              &nbsp;&nbsp;
-              <span>
-                Total Invoice Value:{' '}
-                {selectedRowsState.reduce((pre, item) => pre + item?.ValDtls?.TotInvVal!, 0)}
-              </span>
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-              setSelectedRows([]);
-              actionRef.current?.reloadAndRest?.();
-            }}
-            disabled={selectedRowsState.find((x) => x.status !== 'pending')}
-          >
-            Batch submission
-          </Button>
+        <FooterToolbar>
+          <div>
+            Selected <strong>{selectedRowsState.length}</strong> items &nbsp;&nbsp;
+            <span>
+              Total Invoice Value:{' '}
+              {selectedRowsState.reduce((sum, item) => sum + item.invnetwtx, 0)}
+            </span>
+          </div>
+          <Button onClick={() => setSelectedRows([])}>Batch submission</Button>
         </FooterToolbar>
       )}
-      <ModalForm
-        width={1000}
-        title="Invoice Submission"
-        open={createModalOpen || updateModalOpen}
-        onOpenChange={(open) => {
-          if (updateModalOpen) handleUpdateModalOpen(open);
-          else handleModalOpen(open);
-        }}
-        onFinish={async (value) => {
-          const success = currentRow ? await handleUpdate(value) : await handleAdd(value);
-          if (success) {
-            handleModalOpen(false);
-            handleUpdateModalOpen(false);
-            setCurrentRow(undefined);
-            if (actionRef.current) actionRef.current.reload();
-          }
-        }}
-      >
-        {/* Render Fields Based on Invoice Type */}
-        {/* {lastPathSegment &&
-          invoiceTypesConfig[lastPathSegment].fields.map((field) => renderField(field, true))} */}
-      </ModalForm>
-
-      <Drawer
-        width={800}
-        open={showDetail}
-        onClose={() => {
-          setCurrentRow(undefined);
-          setShowDetail(false);
-        }}
-        closable={false}
-      >
-        {currentRow?.invnumber && (
-          <ProDescriptions<any>
-            column={2}
-            title={`Invoice Details: ${currentRow?.invnumber}`}
-            request={async () => ({
-              data: currentRow || {},
-            })}
-            params={{
-              id: currentRow?.invnumber,
-            }}
-            columns={descriptionColumns}
-          />
-        )}
+      <Drawer width={800} open={showDetail} onClose={() => setShowDetail(false)} closable={false}>
+        {currentRow && renderProDescriptions(currentRow)}
       </Drawer>
     </PageContainer>
   );
