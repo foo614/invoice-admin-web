@@ -17,6 +17,50 @@ const PartnerList = () => {
   const [partnerList, setPartnerList] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Handle status toggle change
+  const handleStatusChange = async (record: API.PartnerListItem, isActive: boolean) => {
+    await updatePartner(record.id, { ...record, status: isActive });
+    message.success(`Partner status updated to ${isActive ? 'Active' : 'Inactive'}`);
+    actionRef.current?.reload();
+  };
+
+  const handleEdit = (record: API.PartnerListItem) => {
+    setEditingPartner(record);
+    setFormVisible(true);
+  };
+
+  const handleAdd = () => {
+    setEditingPartner(null); // Clear editing partner to switch to add mode
+    setFormVisible(true);
+  };
+
+  // Handle delete
+  const handleDelete = (id: string) => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this partner?',
+      content: 'This action cannot be undone.',
+      onOk: async () => {
+        try {
+          await removePartner(id);
+          message.success('Partner deleted');
+          actionRef.current?.reload();
+        } catch (error) {
+          message.error('Failed to delete partner');
+        }
+      },
+    });
+  };
+
+  const handleFinish = async (values: API.PartnerListItem) => {
+    if (editingPartner) {
+      await updatePartner(editingPartner.id, { ...editingPartner, ...values });
+    } else {
+      await addPartner(values);
+    }
+    setFormVisible(false);
+    actionRef.current?.reload();
+  };
+
   // Define columns for the partner list
   const columns = [
     {
@@ -92,7 +136,11 @@ const PartnerList = () => {
         <a key="edit" onClick={() => handleEdit(record)}>
           Edit
         </a>,
-        <a key="delete" style={{ marginLeft: 8 }} onClick={() => handleDelete(record.id)}>
+        <a
+          key="delete"
+          style={{ marginLeft: 8, color: 'red' }}
+          onClick={() => handleDelete(record.id)}
+        >
           Delete
         </a>,
       ],
@@ -137,50 +185,6 @@ const PartnerList = () => {
     }
   };
 
-  // Handle status toggle change
-  const handleStatusChange = async (record: API.PartnerListItem, isActive: boolean) => {
-    await updatePartner(record.id, { ...record, status: isActive });
-    message.success(`Partner status updated to ${isActive ? 'Active' : 'Inactive'}`);
-    actionRef.current?.reload();
-  };
-
-  const handleEdit = (record: API.PartnerListItem) => {
-    setEditingPartner(record);
-    setFormVisible(true);
-  };
-
-  const handleAdd = () => {
-    setEditingPartner(null); // Clear editing partner to switch to add mode
-    setFormVisible(true);
-  };
-
-  // Handle delete
-  const handleDelete = (id: string) => {
-    Modal.confirm({
-      title: 'Are you sure you want to delete this partner?',
-      content: 'This action cannot be undone.',
-      onOk: async () => {
-        try {
-          await removePartner(id);
-          message.success('Partner deleted');
-          actionRef.current?.reload();
-        } catch (error) {
-          message.error('Failed to delete partner');
-        }
-      },
-    });
-  };
-
-  const handleFinish = async (values: API.PartnerListItem) => {
-    if (editingPartner) {
-      await updatePartner(editingPartner.id, { ...editingPartner, ...values });
-    } else {
-      await addPartner(values);
-    }
-    setFormVisible(false);
-    actionRef.current?.reload();
-  };
-
   return (
     <PageContainer>
       <ProTable
@@ -204,6 +208,7 @@ const PartnerList = () => {
           })
         }
         rowSelection={{
+          selectedRowKeys: selectedRowsState.map((row) => row.id),
           onChange: (_, selectedRows) => setSelectedRowsState(selectedRows),
         }}
         search={{
@@ -243,6 +248,7 @@ const PartnerList = () => {
 
       {/* Add/Edit Form Modal */}
       <UpdateForm
+        key={editingPartner ? editingPartner.id : 'add'}
         visible={formVisible}
         onClose={() => setFormVisible(false)}
         onFinish={handleFinish}
