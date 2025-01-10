@@ -2,12 +2,19 @@ import { GridContent } from '@ant-design/pro-components';
 import { Menu } from 'antd';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import BaseView from './components/base';
-import ClassificationMappingPage from './components/classification';
+import ClassificationMappingPage from './components/classificationMapping';
 import NotificationView from './components/notification';
 import UOMMappingPage from './components/uomMapping';
 import useStyles from './style.style';
 import UomList from './components/uomList';
-type SettingsStateKeys = 'base' | 'uom' | 'uomMapping' | 'classificationMapping' | 'notification';
+import ClassificationList from './components/classificationList';
+type SettingsStateKeys =
+  | 'base'
+  | 'uom'
+  | 'uomMapping'
+  | 'classification'
+  | 'classificationMapping'
+  | 'notification';
 type SettingsState = {
   mode: 'inline' | 'horizontal';
   selectKey: SettingsStateKeys;
@@ -18,7 +25,8 @@ const Settings: React.FC = () => {
     base: 'Seller Profile',
     uom: 'UOM',
     uomMapping: 'UOM Mapping',
-    classificationMapping: 'Classification Codes',
+    classification: 'Classification Codes',
+    classificationMapping: 'Classification Mapping',
     // notification: '新消息通知',
   };
   const [initConfig, setInitConfig] = useState<SettingsState>({
@@ -66,6 +74,8 @@ const Settings: React.FC = () => {
         return <UomList />;
       case 'uomMapping':
         return <UOMMappingPage />;
+      case 'classification':
+        return <ClassificationList />;
       case 'classificationMapping':
         return <ClassificationMappingPage />;
       case 'notification':
