@@ -58,6 +58,7 @@ const PartnerList = () => {
       await addPartner(values);
     }
     setFormVisible(false);
+    setEditingPartner(null);
     actionRef.current?.reload();
   };
 
