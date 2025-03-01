@@ -21,6 +21,7 @@ declare namespace API {
     // };
     // address?: string;
     // phone?: string;
+    id: string;
     userName: string;
     email: string;
     roles: string[];

@@ -81,3 +81,17 @@ export async function getRecentInvoices(params: any, options?: { [key: string]: 
     ...options,
   });
 }
+
+// Get Invoice Document Details
+export async function getDocumentDetails(uuid: string, options?: { [key: string]: any }) {
+  return httpClient.get(`/v1/InvoiceApi/${uuid}/details`, {
+    ...options,
+  });
+}
+
+// Generate invoice
+export async function generateInvoice(uuid: string, options?: { [key: string]: any }) {
+  return httpClient.get(`/invoice/${uuid}/generate-invoice`, {
+    ...options,
+  });
+}

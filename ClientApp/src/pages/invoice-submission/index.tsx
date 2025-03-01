@@ -1,8 +1,13 @@
-import { getRecentInvoices } from '@/services/ant-design-pro/invoiceService';
+import {
+  generateInvoice,
+  getDocumentDetails,
+  getRecentInvoices,
+} from '@/services/ant-design-pro/invoiceService';
 import { ProDescriptions, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage } from '@umijs/max';
 import { Button, Drawer, message, QRCode } from 'antd';
 import React, { useRef, useState } from 'react';
+import dayjs from 'dayjs';
 
 // Types for API response and records
 interface InvoiceRecord {
@@ -136,15 +141,10 @@ const fetchRecentDocuments = async (params: {
 // Fetch document details by UUID
 const fetchDocumentDetails = async (uuid: string): Promise<InvoiceDetails | null> => {
   try {
-    const response = await fetch(`https://localhost:5001/api/invoice/${uuid}/details`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await getDocumentDetails(uuid);
 
-    if (response.ok) {
-      const result = await response.json();
+    if (response.data.succeeded) {
+      const result = await response.data.data;
       return result;
     } else {
       message.error('Failed to fetch document details.');
@@ -153,6 +153,27 @@ const fetchDocumentDetails = async (uuid: string): Promise<InvoiceDetails | null
   } catch (error) {
     message.error('Error fetching document details.');
     return null;
+  }
+};
+
+const generatePdfInvoice = async (uuid: string) => {
+  try {
+    const response = await generateInvoice(uuid, {
+      responseType: 'blob',
+    });
+
+    const url = window.URL.createObjectURL(response.data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice_${uuid}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    message.success('Invoice generate successfully.');
+  } catch (error) {
+    message.error('Failed to generate invoice.');
   }
 };
 
@@ -258,8 +279,16 @@ const InvoiceSubmission: React.FC = () => {
       dataIndex: 'submissionDateFrom',
       valueType: 'date',
       formItemProps: {
-        // label width
         labelCol: { span: 12 },
+      },
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
+      transform: (value: any) => {
+        if (value) {
+          return dayjs(value).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]');
+        }
+        return value;
       },
     },
     {
@@ -270,6 +299,27 @@ const InvoiceSubmission: React.FC = () => {
         // label width
         labelCol: { span: 12 },
       },
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
+      transform: (value: any) => {
+        if (value) {
+          return dayjs(value).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]');
+        }
+        return value;
+      },
+    },
+    {
+      title: 'Actions',
+      valueType: 'option',
+      render: (_: any, record: any) =>
+        [
+          record.status === 'Valid' && (
+            <a key="submit" onClick={() => generatePdfInvoice(record.uuid)}>
+              PDF
+            </a>
+          ),
+        ].filter(Boolean),
     },
   ];
 

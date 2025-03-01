@@ -120,5 +120,32 @@ namespace invoice_admin_web.Controllers
                 return StatusCode(500, $"Error forwarding DELETE request: {ex.Message}");
             }
         }
+
+        // generate invoice
+        [HttpGet("invoice/{uuid}/generate-invoice")]
+        public async Task<IActionResult> GenerateInvoice(string uuid)
+        {
+            var targetUrl = $"{_baseUrl}/v1/InvoiceApi/{uuid}/generate-invoice";
+
+            try
+            {
+                var response = await _httpClient.GetAsync(targetUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                }
+
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"') ?? $"invoice_{uuid}.pdf";
+
+                return File(fileBytes, "application/pdf", fileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error generating invoice: {ex.Message}");
+            }
+        }
+
     }
 }
