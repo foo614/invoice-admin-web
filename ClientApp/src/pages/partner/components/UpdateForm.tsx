@@ -32,7 +32,7 @@ const UpdateForm = ({ visible, onClose, onFinish, initialValues }) => {
         ]}
       />
       <ProFormText
-        name={['companyInfo', 'companyName']}
+        name="companyName"
         label="Company Name"
         placeholder="Enter company name"
         rules={[
@@ -41,13 +41,26 @@ const UpdateForm = ({ visible, onClose, onFinish, initialValues }) => {
         ]}
       />
       <ProFormText
-        name={['companyInfo', 'address']}
+        name="address1"
         label="Company Address"
-        placeholder="Enter company address"
-        rules={[{ required: true, message: 'Please enter the company address' }]}
+        placeholder="Enter company address line 1"
+        rules={[{ required: true, message: 'Please enter the company address line 1' }]}
       />
+
       <ProFormText
-        name={['companyInfo', 'email']}
+        name="address2"
+        label="Company Address"
+        placeholder="Enter company address line 2"
+      />
+
+      <ProFormText
+        name="address3"
+        label="Company Address"
+        placeholder="Enter company address line 3"
+      />
+
+      <ProFormText
+        name="email"
         label="Company Email"
         placeholder="Enter company email"
         rules={[
@@ -56,7 +69,7 @@ const UpdateForm = ({ visible, onClose, onFinish, initialValues }) => {
         ]}
       />
       <ProFormText
-        name={['companyInfo', 'phone']}
+        name="phone"
         label="Company Phone"
         placeholder="Enter company phone"
         rules={[

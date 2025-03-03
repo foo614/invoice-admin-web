@@ -2,11 +2,19 @@ import { GridContent } from '@ant-design/pro-components';
 import { Menu } from 'antd';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import BaseView from './components/base';
-import ClassificationMappingPage from './components/classification';
+import ClassificationMappingPage from './components/classificationMapping';
 import NotificationView from './components/notification';
-import UOMMappingPage from './components/uom';
+import UOMMappingPage from './components/uomMapping';
 import useStyles from './style.style';
-type SettingsStateKeys = 'base' | 'security' | 'binding' | 'notification';
+import UomList from './components/uomList';
+import ClassificationList from './components/classificationList';
+type SettingsStateKeys =
+  | 'base'
+  | 'uom'
+  | 'uomMapping'
+  | 'classification'
+  | 'classificationMapping'
+  | 'notification';
 type SettingsState = {
   mode: 'inline' | 'horizontal';
   selectKey: SettingsStateKeys;
@@ -15,8 +23,10 @@ const Settings: React.FC = () => {
   const { styles } = useStyles();
   const menuMap: Record<string, React.ReactNode> = {
     base: 'Seller Profile',
-    security: 'UOM',
-    binding: 'Classification Codes',
+    uom: 'UOM',
+    uomMapping: 'UOM Mapping',
+    classification: 'Classification Codes',
+    classificationMapping: 'Classification Mapping',
     // notification: '新消息通知',
   };
   const [initConfig, setInitConfig] = useState<SettingsState>({
@@ -60,9 +70,13 @@ const Settings: React.FC = () => {
     switch (selectKey) {
       case 'base':
         return <BaseView />;
-      case 'security':
+      case 'uom':
+        return <UomList />;
+      case 'uomMapping':
         return <UOMMappingPage />;
-      case 'binding':
+      case 'classification':
+        return <ClassificationList />;
+      case 'classificationMapping':
         return <ClassificationMappingPage />;
       case 'notification':
         return <NotificationView />;

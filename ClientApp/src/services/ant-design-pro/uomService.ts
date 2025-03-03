@@ -6,7 +6,7 @@ const API_VERSION = '/v1';
 /** Get UOM List */
 export async function getUoms(
   params: {
-    current?: number;
+    pageNumber?: number;
     pageSize?: number;
     userId?: string;
   },
@@ -25,7 +25,7 @@ export async function getUomById(id: string, options?: { [key: string]: any }) {
 
 /** Add a new UOM */
 export async function addUom(
-  body: { code: string; description: string },
+  body: { code: string; description: string; userId: string },
   options?: { [key: string]: any },
 ) {
   return httpClient.post(`${API_VERSION}/uoms`, body, { ...options });
