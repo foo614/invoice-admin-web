@@ -6,6 +6,7 @@ import { Button, message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import Settings from '../../../../config/defaultSettings';
+import NexKoalaLogo from '../../../../public/logo.svg';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -65,7 +66,7 @@ const ForgotPassword: React.FC = () => {
             minWidth: 280,
             maxWidth: '75vw',
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
+          logo={<img alt="logo" src={NexKoalaLogo} />}
           title="Nex Koala e-Invoice"
           subTitle={intl.formatMessage({
             id: 'pages.forgotPassword.subtitle',
