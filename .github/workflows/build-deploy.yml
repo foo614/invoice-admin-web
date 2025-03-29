@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: /nex-koala/web
+        working-directory: ${{ github.workspace }}  # Root of your repo
 
     steps:
     - name: Checkout code
@@ -21,32 +21,32 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    - name: Setup Node.js
+    - name: Setup Node.js for React
       uses: actions/setup-node@v4
       with:
         node-version: 16.x
         cache: 'npm'
+        cache-dependency-path: 'ClientApp/package-lock.json'  # Relative path
 
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Install React dependencies
+      run: npm ci
+      working-directory: ./ClientApp  # From repo root
 
-    - name: Build .NET
-      run: dotnet build -c Release --no-restore
+    - name: Build React assets
+      run: npm run build
+      working-directory: ./ClientApp
 
-    - name: Build React
+    - name: Build .NET project
       run: |
-        npm install
-        npm run build
-      working-directory: /nex-koala/web/ClientApp
-
-    - name: Publish
-      run: dotnet publish -c Release -o ./publish
+        dotnet restore
+        dotnet build -c Release
+        dotnet publish -c Release -o ./publish
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
-        path: /nex-koala/web/publish
+        path: ./publish
 
   deploy:
     needs: [build]
