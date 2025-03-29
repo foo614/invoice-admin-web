@@ -5,12 +5,18 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20.x'
+  APP_DIR: '/nex-koala/web'
+  CLIENT_DIR: 'ClientApp'
+  
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ github.workspace }}  # Root of your repo
+        shell: bash
 
     steps:
     - name: Checkout code
@@ -19,15 +25,21 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Setup Node.js for React
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: 'ClientApp/package-lock.json'
+        cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
 
+    - name: Restore .NET dependencies
+      run: dotnet restore
+
+    - name: Build .NET project
+      run: dotnet build -c Release --no-restore
+      
     - name: Install React dependencies
       run: |
         if [ -f package-lock.json ]; then
@@ -35,53 +47,81 @@ jobs:
         else
           npm install
         fi
-      working-directory: ClientApp
+      working-directory: ${{ env.CLIENT_DIR }}
       
     - name: Build React assets
       run: npm run build
-      working-directory: ./ClientApp
+      working-directory: ${{ env.CLIENT_DIR }}
 
-    - name: Build .NET project
-      run: |
-        dotnet restore
-        dotnet build -c Release
-        dotnet publish -c Release -o ./publish
+    - name: Publish application
+      run: dotnet publish -c Release -o ./publish
+
+    - name: Verify Publish Output
+      run: ls -la publish/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
         path: ./publish
+        retention-days: 1
 
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
     steps:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
 
-    - name: Deploy to server
+    - name: Test SSH Connection
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          echo "SSH connection successful!"
+          ls -ld ${{ env.APP_DIR }}
+
+    - name: Prepare Server Directory
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          # Create if missing, ignore if exists
+          mkdir -p /nex-koala/web
+          
+          # Clean contents WITHOUT deleting directory
+          find /nex-koala/web -mindepth 1 -delete
+          
+          # Verify ownership
+          chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /nex-koala/web
+
+    - name: Deploy Application Files
       uses: appleboy/scp-action@v0.1.6
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "/*"
-        target: "/nex-koala/web/publish"
-      
-    - name: Restart service
+        source: 'publish/*'
+        target: ${{ env.APP_DIR }}
+        strip_components: 1
+        overwrite: true
+        rm: true
+
+    - name: Restart Application Service
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT }}
         script: |
-          sudo systemctl stop invoice-web.service
-          sudo cp -r /nex-koala/web/publish/* /nex-koala/web/
-          sudo rm -rf /nex-koala/web/publish
-          sudo systemctl start invoice-web.service
+          sudo systemctl restart invoice-web.service
           sudo systemctl status invoice-web.service
