@@ -21,7 +21,6 @@ export default {
   'menu.form.step-form.confirm': 'Step Form(confirm transfer information)',
   'menu.form.step-form.result': 'Step Form(finished)',
   'menu.form.advanced-form': 'Advanced Form',
-  menu: 'List',
   'menu.table-list': 'Search Table',
   'menu.basic-list': 'Basic List',
   'menu.card-list': 'Card List',
@@ -65,4 +64,6 @@ export default {
   'menu.invoice.submission.self-billed-debit-note': 'Self-billed Debit Note',
   'menu.partner': 'Partner',
   'menu.audit-log': 'Audit Log',
+  'menu.reset-password': 'Reset Password',
+  'menu.forgot-password': 'Forgot Password',
 };

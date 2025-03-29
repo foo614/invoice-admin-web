@@ -1,7 +1,13 @@
+import {
+  generateInvoice,
+  getDocumentDetails,
+  getRecentInvoices,
+} from '@/services/ant-design-pro/invoiceService';
 import { ProDescriptions, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage } from '@umijs/max';
 import { Button, Drawer, message, QRCode } from 'antd';
 import React, { useRef, useState } from 'react';
+import dayjs from 'dayjs';
 
 // Types for API response and records
 interface InvoiceRecord {
@@ -56,24 +62,70 @@ interface InvoiceDetails {
 }
 
 // Fetch recent invoices (list)
-const fetchRecentDocuments = async (params: { current: number; pageSize: number }) => {
-  const { current, pageSize } = params;
-  try {
-    const response = await fetch(
-      `https://localhost:5001/api/invoice/recent?pageNo=${current}&pageSize=${pageSize}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+const fetchRecentDocuments = async (params: {
+  current: number;
+  pageSize: number;
+  issueDateFrom?: string;
+  issueDateTo?: string;
+  submissionDateFrom?: string;
+  submissionDateTo?: string;
+  direction?: string;
+  status?: string;
+  documentType?: string;
+  receiverIdType?: string;
+  receiverId?: string;
+  receiverTin?: string;
+  issuerTin?: string;
+  issuerIdType?: string;
+  issuerId?: string;
+  uuid?: string;
+}) => {
+  const {
+    current,
+    pageSize,
+    issueDateFrom,
+    issueDateTo,
+    submissionDateFrom,
+    submissionDateTo,
+    direction,
+    status,
+    documentType,
+    receiverIdType,
+    receiverId,
+    receiverTin,
+    issuerTin,
+    issuerIdType,
+    issuerId,
+    uuid,
+  } = params;
 
-    const result = await response.json();
-    if (response.ok) {
+  // Build query string dynamically
+  const queryParams = new URLSearchParams({
+    pageNo: current.toString(),
+    pageSize: pageSize.toString(),
+    ...(issueDateFrom && { issueDateFrom }),
+    ...(issueDateTo && { issueDateTo }),
+    ...(submissionDateFrom && { submissionDateFrom }),
+    ...(submissionDateTo && { submissionDateTo }),
+    ...(direction && { direction }),
+    ...(status && { status }),
+    ...(documentType && { documentType }),
+    ...(receiverIdType && { receiverIdType }),
+    ...(receiverId && { receiverId }),
+    ...(receiverTin && { receiverTin }),
+    ...(issuerTin && { issuerTin }),
+    ...(issuerIdType && { issuerIdType }),
+    ...(issuerId && { issuerId }),
+    ...(uuid && { uuid }),
+  });
+
+  try {
+    const response = await getRecentInvoices(queryParams);
+
+    if (response.data.succeeded) {
       return {
-        data: result.result,
-        total: result.metadata.totalCount,
+        data: response.data.data.result,
+        total: response.data.data.metadata.totalCount,
         success: true,
       };
     } else {
@@ -89,15 +141,10 @@ const fetchRecentDocuments = async (params: { current: number; pageSize: number 
 // Fetch document details by UUID
 const fetchDocumentDetails = async (uuid: string): Promise<InvoiceDetails | null> => {
   try {
-    const response = await fetch(`https://localhost:5001/api/invoice/${uuid}/details`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await getDocumentDetails(uuid);
 
-    if (response.ok) {
-      const result = await response.json();
+    if (response.data.succeeded) {
+      const result = await response.data.data;
       return result;
     } else {
       message.error('Failed to fetch document details.');
@@ -106,6 +153,27 @@ const fetchDocumentDetails = async (uuid: string): Promise<InvoiceDetails | null
   } catch (error) {
     message.error('Error fetching document details.');
     return null;
+  }
+};
+
+const generatePdfInvoice = async (uuid: string) => {
+  try {
+    const response = await generateInvoice(uuid, {
+      responseType: 'blob',
+    });
+
+    const url = window.URL.createObjectURL(response.data);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice_${uuid}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    message.success('Invoice generate successfully.');
+  } catch (error) {
+    message.error('Failed to generate invoice.');
   }
 };
 
@@ -118,6 +186,7 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'UUID',
       dataIndex: 'uuid',
+      hideInSearch: true,
       render: (dom: any, entity: any) => (
         <a
           onClick={async () => {
@@ -134,36 +203,46 @@ const InvoiceSubmission: React.FC = () => {
     },
     {
       title: 'Internal ID',
+      hideInSearch: true,
       dataIndex: 'internalId',
     },
     {
       title: 'Supplier TIN',
+      hideInSearch: true,
       dataIndex: 'supplierTIN',
     },
     {
       title: 'Supplier Name',
+      hideInSearch: true,
       dataIndex: 'supplierName',
     },
     {
       title: 'Receiver TIN',
+      hideInSearch: true,
       dataIndex: 'receiverTIN',
     },
     {
       title: 'Receiver Name',
+      hideInSearch: true,
       dataIndex: 'receiverName',
     },
     {
       title: 'Date Issued',
       dataIndex: 'dateTimeIssued',
-      valueType: 'dateTime',
+      hideInSearch: true,
+      valueType: 'date',
+      hideInTable: true,
     },
     {
       title: 'Date Received',
       dataIndex: 'dateTimeReceived',
-      valueType: 'dateTime',
+      hideInSearch: true,
+      valueType: 'date',
+      hideInTable: true,
     },
     {
       title: 'Total',
+      hideInSearch: true,
       dataIndex: 'total',
       valueType: 'money',
     },
@@ -179,6 +258,68 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'Currency',
       dataIndex: 'documentCurrency',
+      hideInSearch: true,
+    },
+    {
+      title: 'Issue Date From',
+      dataIndex: 'issueDateFrom',
+      hideInSearch: true,
+      valueType: 'date',
+      hideInTable: true,
+    },
+    {
+      title: 'Issue Date To',
+      dataIndex: 'issueDateTo',
+      hideInSearch: true,
+      valueType: 'date',
+      hideInTable: true,
+    },
+    {
+      title: 'Submission Date From',
+      dataIndex: 'submissionDateFrom',
+      valueType: 'date',
+      formItemProps: {
+        labelCol: { span: 12 },
+      },
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
+      transform: (value: any) => {
+        if (value) {
+          return dayjs(value).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]');
+        }
+        return value;
+      },
+    },
+    {
+      title: 'Submission Date To',
+      dataIndex: 'submissionDateTo',
+      valueType: 'date',
+      formItemProps: {
+        // label width
+        labelCol: { span: 12 },
+      },
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
+      transform: (value: any) => {
+        if (value) {
+          return dayjs(value).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]');
+        }
+        return value;
+      },
+    },
+    {
+      title: 'Actions',
+      valueType: 'option',
+      render: (_: any, record: any) =>
+        [
+          record.status === 'Valid' && (
+            <a key="submit" onClick={() => generatePdfInvoice(record.uuid)}>
+              PDF
+            </a>
+          ),
+        ].filter(Boolean),
     },
   ];
 
@@ -188,7 +329,28 @@ const InvoiceSubmission: React.FC = () => {
         headerTitle="Recent E-Invoice Transactions"
         actionRef={actionRef}
         rowKey="uuid"
-        request={async (params) => await fetchRecentDocuments(params)}
+        request={async (params) => {
+          // ProTable provides `params` with pagination info.
+          const queryParams = {
+            current: params.current,
+            pageSize: params.pageSize,
+            issueDateFrom: params.issueDateFrom,
+            issueDateTo: params.issueDateTo,
+            submissionDateFrom: params.submissionDateFrom,
+            submissionDateTo: params.submissionDateTo,
+            direction: params.direction,
+            status: params.status,
+            documentType: params.documentType,
+            receiverIdType: params.receiverIdType,
+            receiverId: params.receiverId,
+            receiverTin: params.receiverTin,
+            issuerTin: params.issuerTin,
+            issuerIdType: params.issuerIdType,
+            issuerId: params.issuerId,
+          };
+
+          return await fetchRecentDocuments(queryParams);
+        }}
         columns={columns}
         pagination={{
           pageSize: 10,
@@ -203,7 +365,7 @@ const InvoiceSubmission: React.FC = () => {
 
       <Drawer
         width={1200}
-        visible={drawerVisible}
+        open={drawerVisible}
         onClose={() => setDrawerVisible(false)}
         closable={false}
       >

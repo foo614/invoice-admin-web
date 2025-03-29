@@ -3,24 +3,30 @@
 
 declare namespace API {
   type CurrentUser = {
-    name?: string;
-    avatar?: string;
-    userid?: string;
-    email?: string;
-    signature?: string;
-    title?: string;
-    group?: string;
-    tags?: { key?: string; label?: string }[];
-    notifyCount?: number;
-    unreadCount?: number;
-    country?: string;
-    access?: string;
-    geographic?: {
-      province?: { label?: string; key?: string };
-      city?: { label?: string; key?: string };
-    };
-    address?: string;
-    phone?: string;
+    // name?: string;
+    // avatar?: string;
+    // userid?: string;
+    // email?: string;
+    // signature?: string;
+    // title?: string;
+    // group?: string;
+    // tags?: { key?: string; label?: string }[];
+    // notifyCount?: number;
+    // unreadCount?: number;
+    // country?: string;
+    // access?: string;
+    // geographic?: {
+    //   province?: { label?: string; key?: string };
+    //   city?: { label?: string; key?: string };
+    // };
+    // address?: string;
+    // phone?: string;
+    id: string;
+    userName: string;
+    email: string;
+    roles: string[];
+    isVerified: boolean;
+    jwtToken: string;
   };
 
   type LoginResult = {
@@ -62,10 +68,8 @@ declare namespace API {
   };
 
   type LoginParams = {
-    username?: string;
+    email?: string;
     password?: string;
-    autoLogin?: boolean;
-    type?: string;
   };
 
   type ErrorResponse = {
@@ -104,7 +108,10 @@ declare namespace API {
     name: string;
     email: string;
     companyName: string;
-    status: 'active' | 'inactive';
+    address1: string;
+    address2?: string;
+    address3?: string;
+    status: boolean; //'active' | 'inactive';
     submissionCount: number;
     maxSubmissions: number;
     createdAt?: string;
@@ -123,5 +130,26 @@ declare namespace API {
     description: string;
     createdBy: string;
     createdAt: string;
+  };
+
+  type ProfileItem = {
+    id: string;
+    name: string;
+    tin: string;
+    schemeID: string;
+    registrationNumber: string;
+    sstRegistrationNumber: string;
+    tourismTaxRegistrationNumber: string;
+    email: string;
+    phone: string;
+    msicCode: string;
+    businessActivityDescription: string;
+    address1: string;
+    address2?: string;
+    address3?: string;
+    postalCode: string;
+    city: string;
+    state: string;
+    countryCode: string;
   };
 }

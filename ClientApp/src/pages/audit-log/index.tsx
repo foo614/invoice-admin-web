@@ -1,5 +1,6 @@
-import { getAuditLogs } from '@/services/ant-design-pro/api';
+import { getAuditLogs } from '@/services/ant-design-pro/auditService';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
+import React from 'react';
 import { useRef } from 'react';
 
 const AuditLogList = () => {

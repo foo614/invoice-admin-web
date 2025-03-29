@@ -1,10 +1,10 @@
 import { ProForm, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
-import { message } from 'antd';
+import { useModel } from '@umijs/max';
+import { Button, Form, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { queryCurrent } from '../service';
 import useStyles from './index.style';
+import { getUserProfile, updateUserProfile } from '@/services/ant-design-pro/profileService';
 
 interface MSICOption {
   Code: string;
@@ -19,14 +19,17 @@ interface StateOption {
 const BaseView: React.FC = () => {
   const { styles } = useStyles();
 
-  const { data: currentUser, loading } = useRequest(() => {
-    return queryCurrent();
-  });
-
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
   const [msicOptions, setMsicOptions] = useState<MSICOption[]>([]);
   const [msicLoading, setMsicLoading] = useState(false);
   const [stateOptions, setStateOptions] = useState<StateOption[]>([]);
   const [stateLoading, setStateLoading] = useState(false);
+  const [profileData, setProfileData] = useState<API.ProfileItem>();
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  const [form] = Form.useForm();
 
   const fetchMsicOptions = async () => {
     setMsicLoading(true);
@@ -52,41 +55,91 @@ const BaseView: React.FC = () => {
     }
   };
 
+  const fetchUserProfile = async () => {
+    setProfileLoading(true);
+    try {
+      const response = await getUserProfile({ email: currentUser!.email });
+      setProfileData(response.data.data);
+    } catch (error) {
+      message.error('Failed to fetch state options');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchMsicOptions();
     fetchStateOptions();
+    fetchUserProfile();
   }, []);
 
-  const handleFinish = async () => {
-    message.success('Successfully updated basic information');
+  const handleFinish = async (values: any) => {
+    try {
+      const response = await updateUserProfile(profileData!.id, values);
+
+      if (response.data && response.data.succeeded) {
+        message.success('Successfully updated basic information');
+        setIsEditMode(false);
+        fetchUserProfile();
+      } else {
+        message.error('Failed to update profile');
+      }
+    } catch {
+      message.error('An error occurred while updating the profile. Please try again.');
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditMode(false);
+    form.resetFields();
   };
 
   return (
     <div className={styles.baseView}>
-      {loading ? null : (
+      {stateLoading && profileLoading ? null : (
         <>
           <div className={styles.left}>
             <ProForm
+              form={form}
               layout="vertical"
               onFinish={handleFinish}
               submitter={{
-                searchConfig: {
-                  submitText: 'Update Information',
-                },
-                render: (_, dom) => dom[1],
+                render: (_, dom) => (
+                  <>
+                    {isEditMode ? (
+                      <>
+                        <Button
+                          type="default"
+                          onClick={handleCancel}
+                          style={{ marginRight: '8px' }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                          Submit
+                        </Button>
+                      </>
+                    ) : (
+                      <Button type="primary" onClick={() => setIsEditMode(true)}>
+                        Update Information
+                      </Button>
+                    )}
+                  </>
+                ),
               }}
               initialValues={{
-                ...currentUser,
-                ContactNumber: currentUser?.ContactNumber,
+                ...profileData,
+                countryCode: profileData?.countryCode ?? 'MYS',
               }}
               hideRequiredMark
             >
               {/* Seller Name */}
               <ProFormText
                 width="md"
-                name="Name"
+                name="name"
                 label="Seller Name"
                 tooltip="Full legal name of the supplier."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -98,9 +151,10 @@ const BaseView: React.FC = () => {
               {/* TIN */}
               <ProFormText
                 width="md"
-                name="TIN"
+                name="tin"
                 label="Tax Identification Number (TIN)"
                 tooltip="Supplier's Taxpayer Identification Number assigned by LHDNM. Should be exactly 14 characters."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -116,9 +170,10 @@ const BaseView: React.FC = () => {
               {/* Scheme ID */}
               <ProFormSelect
                 width="sm"
-                name="RegistrationNumber.schemeID"
+                name="schemeID"
                 label="Scheme ID"
                 tooltip="Choose the appropriate scheme ID: BRN, NRIC, PASSPORT, or ARMY."
+                disabled={!isEditMode}
                 options={[
                   { label: 'BRN', value: 'BRN' },
                   { label: 'NRIC', value: 'NRIC' },
@@ -134,9 +189,10 @@ const BaseView: React.FC = () => {
               />
               <ProFormText
                 width="md"
-                name="RegistrationNumber.value"
+                name="registrationNumber"
                 label="Registration Number"
                 tooltip="Provide the registration number based on the selected scheme ID."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -144,7 +200,7 @@ const BaseView: React.FC = () => {
                   },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      const schemeID = getFieldValue(['RegistrationNumber', 'schemeID']);
+                      const schemeID = getFieldValue('schemeID');
                       if (schemeID === 'BRN' && value.length <= 20) {
                         return Promise.resolve();
                       } else if (
@@ -168,9 +224,10 @@ const BaseView: React.FC = () => {
               {/* SST Registration Number */}
               <ProFormText
                 width="md"
-                name="SSTRegistrationNumber"
+                name="sstRegistrationNumber"
                 label="SST Registration Number"
                 tooltip="Sales and Service Tax registration number. Enter 'NA' if not applicable."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -186,9 +243,10 @@ const BaseView: React.FC = () => {
               {/* Tourism Tax Registration Number */}
               <ProFormText
                 width="md"
-                name="TourismTaxRegistrationNumber"
+                name="tourismTaxRegistrationNumber"
                 label="Tourism Tax Registration Number"
                 tooltip="Enter the tourism tax registration number if applicable, or 'NA' if not."
+                disabled={!isEditMode}
                 rules={[
                   {
                     pattern: /^\d{3}-\d{4}-\d{8}|\bNA\b/,
@@ -200,9 +258,10 @@ const BaseView: React.FC = () => {
               {/* Email */}
               <ProFormText
                 width="md"
-                name="Email"
+                name="email"
                 label="Email"
                 tooltip="Supplier's email address."
+                disabled
                 rules={[
                   {
                     type: 'email',
@@ -214,9 +273,10 @@ const BaseView: React.FC = () => {
               {/* Contact Number */}
               <ProFormText
                 width="md"
-                name="ContactNumber"
+                name="phone"
                 label="Contact Number"
                 tooltip="Supplier's telephone number in E.164 format (e.g., +60123456789)."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -232,7 +292,7 @@ const BaseView: React.FC = () => {
               {/* MSIC Code with dropdown and search */}
               <ProFormSelect
                 width="md"
-                name="MSICCode"
+                name="msicCode"
                 label="MSIC Code"
                 tooltip="5-digit Malaysia Standard Industrial Classification code."
                 options={msicOptions.map((option) => ({
@@ -242,6 +302,7 @@ const BaseView: React.FC = () => {
                 placeholder="Select or search MSIC code"
                 loading={msicLoading}
                 showSearch
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -252,9 +313,10 @@ const BaseView: React.FC = () => {
 
               {/* Business Activity Description */}
               <ProFormTextArea
-                name="BusinessActivityDescription"
+                name="businessActivityDescription"
                 label="Business Activity Description"
                 tooltip="Description of the supplier's business activities."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -267,23 +329,35 @@ const BaseView: React.FC = () => {
               {/* Address Group */}
               <ProFormText
                 width="md"
-                name="Address.AddressLine0"
-                label="Address Line 0"
+                name="address1"
+                label="Address Line 1"
                 tooltip="Primary address line, such as street address or lot number."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
-                    message: 'Please enter address line 0!',
+                    message: 'Please enter address line 1!',
                   },
                 ]}
               />
-              <ProFormText width="md" name="Address.AddressLine1" label="Address Line 1" />
-              <ProFormText width="md" name="Address.AddressLine2" label="Address Line 2" />
               <ProFormText
                 width="md"
-                name="Address.PostalZone"
+                name="address2"
+                disabled={!isEditMode}
+                label="Address Line 2"
+              />
+              <ProFormText
+                width="md"
+                name="address3"
+                disabled={!isEditMode}
+                label="Address Line 3"
+              />
+              <ProFormText
+                width="md"
+                name="postalCode"
                 label="Postal Code"
                 tooltip="5-digit postal code for the address."
+                disabled={!isEditMode}
                 rules={[
                   {
                     pattern: /^\d{5}$/,
@@ -293,9 +367,10 @@ const BaseView: React.FC = () => {
               />
               <ProFormText
                 width="md"
-                name="Address.CityName"
+                name="city"
                 label="City"
                 tooltip="City where the business is located."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -307,7 +382,7 @@ const BaseView: React.FC = () => {
               {/* State Code with dropdown and search */}
               <ProFormSelect
                 width="md"
-                name="Address.State"
+                name="state"
                 label="State"
                 tooltip="State code based on Malaysian administrative divisions."
                 options={stateOptions.map((option) => ({
@@ -317,6 +392,7 @@ const BaseView: React.FC = () => {
                 placeholder="Select or search state code"
                 loading={stateLoading}
                 showSearch
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -328,11 +404,10 @@ const BaseView: React.FC = () => {
               {/* Country */}
               <ProFormText
                 width="md"
-                name="Address.Country"
+                name="countryCode"
                 label="Country"
-                initialValue="MYS"
-                disabled
                 tooltip="Country code in ISO 3166-1 alpha-3 format."
+                disabled={!isEditMode}
                 rules={[
                   {
                     required: true,
@@ -344,6 +419,8 @@ const BaseView: React.FC = () => {
                   },
                 ]}
               />
+
+              <ProFormText name="id" hidden />
             </ProForm>
           </div>
         </>

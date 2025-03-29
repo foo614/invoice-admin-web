@@ -1,6 +1,6 @@
 export const invoiceTypesConfig = {
   '01': {
-    name: 'Standard Invoice',
+    name: 'Sales Invoices',
     fields: [
       'SellerDetails',
       'BuyerDetails',
@@ -33,11 +33,11 @@ export const invoiceTypesConfig = {
     ],
   },
   '11': {
-    name: 'Self-Billed Invoice',
+    name: 'Purchase Invoice (Self Billing)',
     fields: ['BuyerDetails', 'SellerDetails', 'ItemList', 'TotalInvoiceValue', 'DigitalSignature'],
   },
   '12': {
-    name: 'Self-Billed Credit Note',
+    name: 'Credit Note (Self Billing)',
     fields: [
       'OriginalInvoiceReference',
       'BuyerDetails',
@@ -48,7 +48,7 @@ export const invoiceTypesConfig = {
     ],
   },
   '13': {
-    name: 'Self-Billed Debit Note',
+    name: 'Debit Note (Self Billing)',
     fields: [
       'OriginalInvoiceReference',
       'BuyerDetails',

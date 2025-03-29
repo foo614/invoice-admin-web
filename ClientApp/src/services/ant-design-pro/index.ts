@@ -1,10 +1,13 @@
-// @ts-ignore
-/* eslint-disable */
-// API 更新时间：
-// API 唯一标识：
-import * as api from './api';
-import * as login from './login';
+import * as audit from './auditService';
+import * as auth from './authService';
+import * as partner from './partnerService';
+import * as rule from './ruleService';
+import * as user from './userService';
+
 export default {
-  api,
-  login,
+  audit,
+  partner,
+  rule,
+  user,
+  auth,
 };

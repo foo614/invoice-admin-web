@@ -7,6 +7,7 @@ import { defineConfig } from 'umi';
  */
 export default defineConfig({
   define: {
-    MY_INVOICE_BASE_URL: 'https://myinvois.hasil.gov.my', // API address
+    MY_INVOICE_BASE_URL: 'https://preprod.myinvois.hasil.gov.my',
+    API_BASE_URL: 'https://localhost:5001/api',
   },
 });
