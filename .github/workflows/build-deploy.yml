@@ -3,8 +3,6 @@ name: Build and Deploy
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -15,46 +13,46 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.x
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 16.x
         cache: 'npm'
 
-    - name: Restore .NET dependencies
+    - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build .NET project
+    - name: Build .NET
       run: dotnet build -c Release --no-restore
 
-    - name: Build React assets
+    - name: Build React
       run: |
         npm install
         npm run build
-      working-directory: /nex-koala/web/ClientApp  # Update path if different
+      working-directory: /nex-koala/web/ClientApp
 
-    - name: Publish application
+    - name: Publish
       run: dotnet publish -c Release -o ./publish
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
         path: /nex-koala/web/publish
-        
+
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
     - name: Download artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
 
