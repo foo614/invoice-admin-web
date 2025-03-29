@@ -83,6 +83,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
         script: |
           echo "SSH connection successful!"
           ls -ld ${{ env.APP_DIR }}
