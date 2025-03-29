@@ -63,9 +63,15 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
-        path: ./publish
+        path: publish
         retention-days: 1
-
+        
+    - name: Verify Downloaded Files
+      run: |
+        echo "Contents of publish directory:"
+        ls -la publish/
+        [ "$(ls -A publish)" ] || { echo "Error: Empty artifact!"; exit 1; }
+      
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
@@ -112,7 +118,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: 'publish/*'
+        source: "publish/**/*"
         target: ${{ env.APP_DIR }}
         strip_components: 1
         overwrite: true
