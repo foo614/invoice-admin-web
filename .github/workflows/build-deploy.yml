@@ -28,6 +28,10 @@ jobs:
         cache: 'npm'
         cache-dependency-path: 'ClientApp/package-lock.json'
 
+    - name: Install React dependencies
+      run: npm ci
+      working-directory: ./ClientApp  # From repo root
+      
     - name: Build React assets
       run: npm run build
       working-directory: ./ClientApp
