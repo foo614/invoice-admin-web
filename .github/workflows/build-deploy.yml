@@ -39,7 +39,10 @@ jobs:
       run: |
         dotnet restore
         dotnet build -c Release
-        dotnet publish -c Release
+        # Clean previous publish directory
+        rm -rf ./publish
+        # Publish directly to publish directory
+        dotnet publish -c Release -o ./publish
 
     - name: Cache Node Modules
       uses: actions/cache@v3
@@ -48,21 +51,27 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
-          
+
     - name: Build React
       run: |
         npm ci
         npm run build
-        mv dist/ ../wwwroot/
+        # Move React build to publish directory
+        mv dist/ ../publish/wwwroot/
       working-directory: ${{ env.CLIENT_DIR }}
+
+    - name: Verify Artifact Contents
+      run: |
+        ls -la publish/
+        [ -f publish/invoice-admin-web.dll ] || exit 1
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
-        path: ./
+        path: ./publish
         retention-days: 1
-        
+
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
@@ -73,8 +82,8 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
-        path: ./
-        
+        path: publish
+
     - name: Prepare Server Directory
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -83,14 +92,9 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          # Create if missing, ignore if exists
-          mkdir -p /nex-koala/web
-          
-          # Clean contents WITHOUT deleting directory
-          find /nex-koala/web -mindepth 1 -delete
-          
-          # Verify ownership
-          chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /nex-koala/web
+          sudo mkdir -p ${{ env.APP_DIR }}
+          sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} ${{ env.APP_DIR }}
+          sudo rm -rf ${{ env.APP_DIR }}/*
 
     - name: Deploy Application Files
       uses: appleboy/scp-action@v0.1.6
@@ -99,11 +103,9 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "*"
+        source: "publish/*"  # Deploy from publish directory
         target: ${{ env.APP_DIR }}
-        recursive: true
         overwrite: true
-        strip_components: 0
 
     - name: Restart Application Service
       uses: appleboy/ssh-action@v1.0.3
