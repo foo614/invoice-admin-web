@@ -39,23 +39,30 @@ jobs:
       run: |
         dotnet restore
         dotnet build -c Release
-        dotnet publish -c Release
-      
+        dotnet publish -c Release -o ./publish
+
+    - name: Cache Node Modules
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.CLIENT_DIR }}/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+          
     - name: Build React
       run: |
         npm ci
-        npm run build
-        mv dist/ ../${{ env.WWWROOT_DIR }}
+        npm run build -- --output-path ../${{ env.WWWROOT_DIR }}
       working-directory: ${{ env.CLIENT_DIR }}
 
-    - name: Verify Publish Output
-      run: ls -la /
+    - name: Verify Publish Contents
+      run: ls -la publish/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
-        path: publish
+        path: ./publish
         retention-days: 1
         
   deploy:
@@ -68,7 +75,14 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
+        path: publish 
 
+    - name: Verify Downloaded Files
+      run: |
+        echo "Contents of publish directory:"
+        ls -R publish/
+        [ "$(ls -A publish)" ] || exit 1
+        
     - name: Prepare Server Directory
       uses: appleboy/ssh-action@v1.0.3
       with:
