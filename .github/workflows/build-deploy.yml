@@ -9,6 +9,7 @@ env:
   DOTNET_VERSION: '8.0.x'
   NODE_VERSION: '20.x'
   APP_DIR: '/nex-koala/web'
+  WWWROOT_DIR: 'wwwroot'
   CLIENT_DIR: 'ClientApp'
   
 jobs:
@@ -34,30 +35,21 @@ jobs:
         cache: 'npm'
         cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
 
-    - name: Restore .NET dependencies
-      run: dotnet restore
-
-    - name: Build .NET project
-      run: dotnet build -c Release --no-restore
-      
-    - name: Install React dependencies
+    - name: Build .NET
       run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        else
-          npm install
-        fi
-      working-directory: ${{ env.CLIENT_DIR }}
+        dotnet restore
+        dotnet build -c Release
+        dotnet publish -c Release --no-build
       
-    - name: Build React assets
-      run: npm run build
+    - name: Build React
+      run: |
+        npm ci
+        npm run build
+        mv build/ ../${{ env.WWWROOT_DIR }}
       working-directory: ${{ env.CLIENT_DIR }}
-
-    - name: Publish application
-      run: dotnet publish -c Release -o ./publish
 
     - name: Verify Publish Output
-      run: ls -la publish/
+      run: ls -la /
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -69,8 +61,8 @@ jobs:
     - name: Verify Downloaded Files
       run: |
         echo "Contents of publish directory:"
-        ls -la publish/
-        [ "$(ls -A publish)" ] || { echo "Error: Empty artifact!"; exit 1; }
+        ls -la /
+        [ "$(ls -A)" ] || { echo "Error: Empty artifact!"; exit 1; }
       
   deploy:
     needs: [build]
@@ -82,10 +74,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
-        path: publish  # Critical: exact path match
 
     - name: Show Artifact Structure
-      run: tree publish/
+      run: tree /
 
     - name: Test SSH Connection
       uses: appleboy/ssh-action@v1.0.3
