@@ -52,7 +52,8 @@ jobs:
     - name: Build React
       run: |
         npm ci
-        npm run build -- --output-path ../${{ env.WWWROOT_DIR }}
+        npm run build
+        mv dist/ ../publish/wwwroot/
       working-directory: ${{ env.CLIENT_DIR }}
 
     - name: Verify Publish Contents
@@ -107,8 +108,10 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "/*"
+        source: "/nex-koala/web/*"
         target: ${{ env.APP_DIR }}
+        recursive: true
+        overwrite: true
 
     - name: Restart Application Service
       uses: appleboy/ssh-action@v1.0.3
