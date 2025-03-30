@@ -60,7 +60,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: nex-koala-package
-        path: ./publish
+        path: ./
         retention-days: 1
         
   deploy:
@@ -73,7 +73,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
-        path: ./publish
+        path: ./
         
     - name: Prepare Server Directory
       uses: appleboy/ssh-action@v1.0.3
