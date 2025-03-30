@@ -82,6 +82,10 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
+        path: publish  # Critical: exact path match
+
+    - name: Show Artifact Structure
+      run: tree publish/
 
     - name: Test SSH Connection
       uses: appleboy/ssh-action@v1.0.3
@@ -118,11 +122,8 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "publish/**/*"
+        source: "publish/*"
         target: ${{ env.APP_DIR }}
-        strip_components: 1
-        overwrite: true
-        tar_tmp_path: "/tmp/deploy"
 
     - name: Restart Application Service
       uses: appleboy/ssh-action@v1.0.3
