@@ -39,7 +39,7 @@ jobs:
       run: |
         dotnet restore
         dotnet build -c Release
-        dotnet publish -c Release --no-build
+        dotnet publish -c Release
       
     - name: Build React
       run: |
@@ -58,12 +58,6 @@ jobs:
         path: publish
         retention-days: 1
         
-    - name: Verify Downloaded Files
-      run: |
-        echo "Contents of publish directory:"
-        ls -la /
-        [ "$(ls -A)" ] || { echo "Error: Empty artifact!"; exit 1; }
-      
   deploy:
     needs: [build]
     runs-on: ubuntu-latest
@@ -74,20 +68,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
-
-    - name: Show Artifact Structure
-      run: tree /
-
-    - name: Test SSH Connection
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT }}
-        script: |
-          echo "SSH connection successful!"
-          ls -ld ${{ env.APP_DIR }}
 
     - name: Prepare Server Directory
       uses: appleboy/ssh-action@v1.0.3
@@ -113,7 +93,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "publish/*"
+        source: "/*"
         target: ${{ env.APP_DIR }}
 
     - name: Restart Application Service
