@@ -110,10 +110,11 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "/nex-koala/web/*"
+        source: "publish/*"
         target: ${{ env.APP_DIR }}
         recursive: true
         overwrite: true
+        strip_components: 0
 
     - name: Restart Application Service
       uses: appleboy/ssh-action@v1.0.3
