@@ -122,7 +122,7 @@ jobs:
         target: ${{ env.APP_DIR }}
         strip_components: 1
         overwrite: true
-        rm: true
+        tar_tmp_path: "/tmp/deploy"
 
     - name: Restart Application Service
       uses: appleboy/ssh-action@v1.0.3
