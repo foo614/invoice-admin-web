@@ -45,7 +45,7 @@ jobs:
       run: |
         npm ci
         npm run build
-        mv build/ ../${{ env.WWWROOT_DIR }}
+        mv dist/ ../${{ env.WWWROOT_DIR }}
       working-directory: ${{ env.CLIENT_DIR }}
 
     - name: Verify Publish Output
