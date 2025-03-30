@@ -56,8 +56,10 @@ jobs:
         mv dist/ ../publish/wwwroot/
       working-directory: ${{ env.CLIENT_DIR }}
 
-    - name: Verify Publish Contents
-      run: ls -la publish/
+    - name: Verify Artifact Contents
+      run: |
+        echo "Publish directory structure:"
+        ls -R publish/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -76,7 +78,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: nex-koala-package
-        path: publish 
+        path: ./publish 
 
     - name: Verify Downloaded Files
       run: |
