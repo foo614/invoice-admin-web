@@ -26,7 +26,8 @@ declare namespace API {
     email: string;
     roles: string[];
     isVerified: boolean;
-    jwtToken: string;
+    token: string;
+    refreshToken: string;
   };
 
   type LoginResult = {
@@ -151,5 +152,10 @@ declare namespace API {
     city: string;
     state: string;
     countryCode: string;
+  };
+
+  type RefreshTokenRequest = {
+    token: string;
+    refreshToken: string;
   };
 }

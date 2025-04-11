@@ -42,20 +42,20 @@ const UpdateForm = ({ visible, onClose, onFinish, initialValues }) => {
       />
       <ProFormText
         name="address1"
-        label="Company Address"
+        label="Company Address Line 1"
         placeholder="Enter company address line 1"
         rules={[{ required: true, message: 'Please enter the company address line 1' }]}
       />
 
       <ProFormText
         name="address2"
-        label="Company Address"
+        label="Company Address Line 2"
         placeholder="Enter company address line 2"
       />
 
       <ProFormText
         name="address3"
-        label="Company Address"
+        label="Company Address Line 3"
         placeholder="Enter company address line 3"
       />
 

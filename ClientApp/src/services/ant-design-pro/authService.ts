@@ -12,7 +12,13 @@ export async function outLogin(options?: { [key: string]: any }) {
 
 /** 登录接口 POST /api/login/account */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return httpClient.post('/Account/authenticate', body, { ...options });
+  return httpClient.post('/token', body, {
+    headers: {
+      tenant: 'root',
+      ...(options?.headers || {}),
+    },
+    ...options,
+  });
 }
 
 export async function resetPassword(
@@ -24,4 +30,17 @@ export async function resetPassword(
 
 export async function forgotPassword(body: { email: string }, options?: { [key: string]: any }) {
   return httpClient.post('/account/forgot-password', body, { ...options });
+}
+
+export async function refreshJWToken(
+  body: API.RefreshTokenRequest,
+  options?: { [key: string]: any },
+) {
+  return httpClient.post('/token/refresh', body, {
+    headers: {
+      tenant: 'root',
+      ...(options?.headers || {}),
+    },
+    ...options,
+  });
 }

@@ -42,6 +42,7 @@ interface InvoiceData {
   scamount?: number; // Total Payable (for purchase)
   orderEntryDetails?: OrderEntryDetail[];
   purchaseInvoiceDetails?: PurchaseInvoiceDetail[];
+  crdnetwtx?: number; // Total Payable (for credit/debit notes)
 }
 
 interface OrderEntryDetail {
@@ -103,7 +104,12 @@ const InvoiceSubmission: React.FC = () => {
     },
     {
       title: 'Invoice Date',
-      dataIndex: selectedInvoiceType === '01' ? 'invdate' : 'date',
+      dataIndex:
+        selectedInvoiceType === '01'
+          ? 'invdate'
+          : selectedInvoiceType === '02' || selectedInvoiceType === '03'
+            ? 'crddate'
+            : 'date',
       render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
     },
     {
@@ -112,9 +118,20 @@ const InvoiceSubmission: React.FC = () => {
     },
     {
       title: 'Total Payable Amount',
-      dataIndex: selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx',
+      dataIndex:
+        selectedInvoiceType === '11'
+          ? 'scamount'
+          : selectedInvoiceType === '02' || selectedInvoiceType === '03'
+            ? 'crdnetwtx'
+            : 'invnetwtx',
       render: (_, record) => {
-        const amount = record[selectedInvoiceType === '11' ? 'scamount' : 'invnetwtx'];
+        const amount =
+          selectedInvoiceType === '11'
+            ? record.scamount
+            : selectedInvoiceType === '02' || selectedInvoiceType === '03'
+              ? record.crdnetwtx
+              : record.invnetwtx;
+
         return `${amount?.toFixed(2)}`.replace(/,/g, '');
       },
     },
@@ -224,7 +241,12 @@ const InvoiceSubmission: React.FC = () => {
       { title: 'Currency', dataIndex: selectedInvoiceType === '01' ? 'insourcurr' : 'currency' },
       {
         title: 'Invoice Date',
-        dataIndex: selectedInvoiceType === '01' ? 'invdate' : 'date',
+        dataIndex:
+          selectedInvoiceType === '01'
+            ? 'invdate'
+            : selectedInvoiceType === '02' || selectedInvoiceType === '03'
+              ? 'crddate'
+              : 'date',
         render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
       },
       { title: 'Terms', dataIndex: 'terms' },
@@ -322,7 +344,22 @@ const InvoiceSubmission: React.FC = () => {
     <PageContainer>
       <ProTable<InvoiceData>
         actionRef={actionRef}
-        rowKey="invnumber"
+        rowKey={(record) => {
+          switch (selectedInvoiceType) {
+            case '01':
+              return record.invuniq;
+            case '02':
+            case '03':
+              return record.crduniq;
+            case '11':
+              return record.invhseq;
+            case '12':
+            case '13':
+              return record.crnhseq;
+            default:
+              return `${record.invnumber}_${Math.random()}`;
+          }
+        }}
         search={{ labelWidth: 'auto' }}
         dataSource={tableData.data}
         pagination={{
