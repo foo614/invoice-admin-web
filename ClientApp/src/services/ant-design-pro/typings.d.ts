@@ -158,4 +158,69 @@ declare namespace API {
     token: string;
     refreshToken: string;
   };
+
+  type InvoiceItemRequest = {
+    id: string;
+    qty: number;
+    unit: string;
+    totItemVal: number;
+    description: string;
+    unitPrice: number;
+    taxAmount: number;
+    taxableAmount: number;
+    taxPercent: number;
+  };
+
+  type SubmitInvoiceRequest = {
+    irn: string;
+    issueDate: string;
+    issueTime: string;
+    invoiceTypeCode: string;
+    currencyCode: string;
+
+    // New fields
+    startDate: string;
+    endDate: string;
+    invoicePeriodDescription: string;
+    billingReferenceID: string;
+    additionalDocumentReferenceID: string;
+
+    // Supplier
+    supplierAdditionalAccountID: string;
+    supplierIndustryCode: string;
+    supplierTIN: string;
+    supplierBRN: string;
+    supplierSST: string;
+    supplierTTX: string;
+    supplierCity: string;
+    supplierPostalCode: string;
+    supplierCountrySubentityCode: string;
+    supplierAddressLine1: string;
+    supplierAddressLine2: string;
+    supplierAddressLine3: string;
+    supplierCountryCode: string;
+    supplierName: string;
+    supplierTelephone: string;
+    supplierEmail: string;
+
+    // Customer
+    customerTIN: string;
+    customerBRN: string;
+    customerCity: string;
+    customerPostalCode: string;
+    customerCountrySubentityCode: string;
+    customerAddressLine1: string;
+    customerAddressLine2: string;
+    customerAddressLine3: string;
+    customerCountryCode: string;
+    customerName: string;
+    customerTelephone: string;
+    customerEmail: string;
+
+    // Invoice
+    totalAmount: number;
+    itemList: InvoiceItemRequest[];
+    taxableAmount: number;
+    taxAmount: number;
+  };
 }

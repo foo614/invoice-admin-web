@@ -1,3 +1,4 @@
+import { getIsoCountryCode } from '@/helpers/countryCodeConverter';
 import {
   getCreditDebitNotes,
   getInvoiceTypes,
@@ -6,6 +7,7 @@ import {
   getSalesInvoices,
   submitInvoice,
 } from '@/services/ant-design-pro/invoiceService';
+import { getUserProfile } from '@/services/ant-design-pro/profileService';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -13,6 +15,7 @@ import {
   ProDescriptions,
   ProTable,
 } from '@ant-design/pro-components';
+import { useModel } from '@umijs/max';
 import { Button, Drawer, message, Modal, Select, Space } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -316,18 +319,120 @@ const InvoiceSubmission: React.FC = () => {
     );
   };
 
+  const { initialState } = useModel('@@initialState');
+  const { currentUser } = initialState || {};
+  const [profileData, setProfileData] = useState<API.ProfileItem>();
+  const fetchUserProfile = async () => {
+    setLoading(true);
+    try {
+      const response = await getUserProfile({ email: currentUser!.email });
+      setProfileData(response.data.data);
+    } catch (error) {
+      message.error('Failed to fetch state options');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!profileData) {
+      fetchUserProfile();
+    }
+  }, []);
+
+  const submitRequestMapping = (erpData: InvoiceData) => {
+    if (!profileData) {
+      return;
+    }
+    const itemList = erpData.orderEntryDetails.map((item, index) => ({
+      id: item.invuniq.toString(),
+      qty: item.qtyshipped,
+      unit: item.invunit,
+      totItemVal: item.extinvmisc,
+      description: item.desc,
+      unitPrice: item.unitprice,
+      taxAmount: item.tamounT1,
+      taxableAmount: item.extinvmisc,
+      taxPercent: item.tratE1,
+    }));
+
+    let requestBody: API.SubmitInvoiceRequest = {
+      irn: erpData.invnumber,
+      issueDate: '', // current date
+      issueTime: '', // current time
+      invoiceTypeCode: selectedInvoiceType,
+      currencyCode: erpData.insourcurr,
+      startDate: '', // optional
+      endDate: '', // optional
+      invoicePeriodDescription: '',
+
+      billingReferenceID: erpData.invnumber,
+      additionalDocumentReferenceID: '',
+
+      supplierAdditionalAccountID: '',
+      supplierIndustryCode: profileData.msicCode, // MSIC
+      supplierTIN: profileData.tin, // your company TIN
+      supplierBRN: profileData.registrationNumber, // your company BRN
+      supplierSST: profileData.sstRegistrationNumber, // optional
+      supplierTTX: profileData.tourismTaxRegistrationNumber, // optional
+      supplierCity: profileData.city, // your address
+      supplierPostalCode: profileData.postalCode, // your postal
+      supplierCountrySubentityCode: profileData.state,
+      supplierAddressLine1: profileData.address1, // your address lines
+      supplierAddressLine2: profileData.address2 ?? '',
+      supplierAddressLine3: profileData.address3 ?? '',
+      supplierCountryCode: profileData.countryCode,
+      supplierName: profileData.name,
+      supplierTelephone: profileData.phone,
+      supplierEmail: profileData.email,
+
+      customerTIN: erpData.customerTIN,
+      customerBRN: erpData.customerBRN,
+      customerCity: erpData.biladdR3 || '',
+      customerPostalCode: erpData.bilzip ?? '',
+      customerCountrySubentityCode: erpData.bilstate || 'NA',
+      customerAddressLine1: erpData.biladdR1!,
+      customerAddressLine2: erpData.biladdR2 ?? '',
+      customerAddressLine3: erpData.biladdR3 ?? '',
+      customerCountryCode: getIsoCountryCode(erpData.bilcountry),
+      customerName: erpData.bilname!,
+      customerTelephone: erpData.bilphone?.trim() ? erpData.bilphone : '+60123456789',
+      customerEmail: erpData.bilemail || '',
+
+      totalAmount: erpData.invnetwtx,
+
+      itemList,
+
+      taxableAmount: erpData.invnetnotx,
+      taxAmount: erpData.invnetnotx - erpData.invitaxtot,
+    };
+
+    return requestBody;
+  };
+
   const handleInvoiceSubmission = async (record: InvoiceData) => {
     const dueDate = calculateDueDate(record);
     const payload = {
       ...record,
       dueDate: dueDate.format('YYYY-MM-DD'),
     };
+    const request = submitRequestMapping(payload);
 
     Modal.confirm({
       title: 'Confirm Submission',
       onOk: async () => {
         try {
-          const response = await submitInvoice(payload);
+          if (!profileData?.tin) {
+            Modal.error({
+              title: 'Incomplete Profile',
+              content: 'Please configure your profile before submission.',
+              onOk: () => {
+                window.location.href = '/account';
+              },
+            });
+            return;
+          }
+          const response = await submitInvoice(request);
           if (response.status) {
             message.success('Invoice submitted successfully.');
           } else {
