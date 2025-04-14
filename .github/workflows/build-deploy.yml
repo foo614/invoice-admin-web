@@ -1,0 +1,119 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  NODE_VERSION: '20.x'
+  APP_DIR: '/nex-koala/web'
+  WWWROOT_DIR: 'wwwroot'
+  CLIENT_DIR: 'ClientApp'
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
+
+    - name: Build .NET
+      run: |
+        dotnet restore
+        dotnet build -c Release
+        # Clean previous publish directory
+        rm -rf ./publish
+        # Publish directly to publish directory
+        dotnet publish -c Release -o ./publish
+
+    - name: Cache Node Modules
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.CLIENT_DIR }}/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Build React
+      run: |
+        npm i
+        npm run build
+        # Move React build to publish directory
+        mv dist/ ../publish/wwwroot/
+      working-directory: ${{ env.CLIENT_DIR }}
+
+    - name: Verify Artifact Contents
+      run: |
+        ls -la publish/
+        [ -f publish/invoice-admin-web.dll ] || exit 1
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nex-koala-package
+        path: ./publish
+        retention-days: 1
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: nex-koala-package
+        path: publish
+
+    - name: Prepare Server Directory
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          sudo mkdir -p ${{ env.APP_DIR }}
+          sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} ${{ env.APP_DIR }}
+          sudo rm -rf ${{ env.APP_DIR }}/*
+
+    - name: Deploy Application Files
+      uses: appleboy/scp-action@v0.1.6
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        source: "publish/*"  # Deploy from publish directory
+        target: ${{ env.APP_DIR }}
+        overwrite: true
+
+    - name: Restart Application Service
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          sudo systemctl restart invoice-web.service
+          sudo systemctl status invoice-web.service
