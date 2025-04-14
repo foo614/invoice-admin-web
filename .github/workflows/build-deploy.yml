@@ -54,7 +54,7 @@ jobs:
 
     - name: Build React
       run: |
-        npm ci
+        npm i
         npm run build
         # Move React build to publish directory
         mv dist/ ../publish/wwwroot/
