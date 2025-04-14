@@ -161,8 +161,9 @@ const BaseView: React.FC = () => {
                     message: 'Please enter the TIN!',
                   },
                   {
-                    len: 14,
-                    message: 'TIN must be exactly 14 characters!',
+                    min: 11,
+                    max: 14,
+                    message: 'TIN must be between 11 and 14 characters!',
                   },
                 ]}
               />
@@ -170,7 +171,7 @@ const BaseView: React.FC = () => {
               {/* Scheme ID */}
               <ProFormSelect
                 width="sm"
-                name="schemeID"
+                name="schemeId"
                 label="Scheme ID"
                 tooltip="Choose the appropriate scheme ID: BRN, NRIC, PASSPORT, or ARMY."
                 disabled={!isEditMode}
@@ -200,7 +201,7 @@ const BaseView: React.FC = () => {
                   },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-                      const schemeID = getFieldValue('schemeID');
+                      const schemeID = getFieldValue('schemeId');
                       if (schemeID === 'BRN' && value.length <= 20) {
                         return Promise.resolve();
                       } else if (
