@@ -10,7 +10,9 @@
 bin/
 obj/
 *.log
-
+out
+Properties
+.config
 # Ignore NuGet packages
 packages/
 *.nupkg
