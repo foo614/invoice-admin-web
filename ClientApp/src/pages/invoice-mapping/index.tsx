@@ -77,6 +77,10 @@ interface InvoiceType {
 
 const InvoiceSubmission: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [currentRow, setCurrentRow] = useState<any>();
+  const [selectedRowsState, setSelectedRows] = useState<any[]>([]);
+  const [tableData, setTableData] = useState<any[]>([]);
+
   const [currentRow, setCurrentRow] = useState<InvoiceData | undefined>();
   const [selectedRowsState, setSelectedRows] = useState<InvoiceData[]>([]);
   const [tableData, setTableData] = useState<TableData>({ data: [], success: false, total: 0 });
@@ -142,6 +146,30 @@ const InvoiceSubmission: React.FC = () => {
       title: 'Actions',
       valueType: 'option',
       render: (_, record) => [
+        record.status === 'pending' && (
+          <a
+            key="edit"
+            style={{ marginRight: 10 }}
+            onClick={() => {
+              handleUpdateModalOpen(true);
+              setCurrentRow(record);
+            }}
+          >
+            View Document
+          </a>
+        ),
+        record.status === 'pending' && (
+          <a
+            key="config"
+            onClick={() => {
+              // handleUpdateModalOpen(true);
+              setCurrentRow(record);
+              handleLHDNSubmission(record, '01');
+            }}
+          >
+            Submit
+          </a>
+        ),
         <a key="submit" onClick={() => handleInvoiceSubmission(record)}>
           Submit
         </a>,
@@ -420,6 +448,17 @@ const InvoiceSubmission: React.FC = () => {
 
     Modal.confirm({
       title: 'Confirm Submission',
+      content: (
+        <>
+          <p>Select the Invoice Type before submitting:</p>
+          <Select
+            placeholder="Select Invoice Type"
+            style={{ width: '100%' }}
+            options={invoiceTypeOptions}
+            onChange={(value) => (invoiceType = value)} // Update the state
+          />
+        </>
+      ),
       onOk: async () => {
         try {
           if (!profileData?.tin) {
@@ -508,6 +547,51 @@ const InvoiceSubmission: React.FC = () => {
           <Button onClick={() => setSelectedRows([])}>Batch submission</Button>
         </FooterToolbar>
       )}
+      <ModalForm
+        width={1000}
+        title="Invoice Submission"
+        open={createModalOpen || updateModalOpen}
+        onOpenChange={(open) => {
+          if (updateModalOpen) handleUpdateModalOpen(open);
+          else handleModalOpen(open);
+        }}
+        onFinish={async (value) => {
+          const success = currentRow ? await handleUpdate(value) : await handleAdd(value);
+          if (success) {
+            handleModalOpen(false);
+            handleUpdateModalOpen(false);
+            setCurrentRow(undefined);
+            if (actionRef.current) actionRef.current.reload();
+          }
+        }}
+      >
+        {/* Render Fields Based on Invoice Type */}
+        {/* {lastPathSegment &&
+          invoiceTypesConfig[lastPathSegment].fields.map((field) => renderField(field, true))} */}
+      </ModalForm>
+
+      <Drawer
+        width={800}
+        open={showDetail}
+        onClose={() => {
+          setCurrentRow(undefined);
+          setShowDetail(false);
+        }}
+        closable={false}
+      >
+        {currentRow?.Irn && (
+          <ProDescriptions<any>
+            column={2}
+            title={`Invoice Details: ${currentRow?.Irn}`}
+            request={async () => ({
+              data: currentRow || {},
+            })}
+            params={{
+              id: currentRow?.Irn,
+            }}
+            columns={descriptionColumns}
+          />
+        )}
       <Drawer width={800} open={showDetail} onClose={() => setShowDetail(false)} closable={false}>
         {currentRow && renderProDescriptions(currentRow)}
       </Drawer>
