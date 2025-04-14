@@ -1,5 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Configure(builder.Configuration.GetSection("Kestrel"));
+});
+
 // Register Services
 builder.Services.AddControllersWithViews(); // For MVC controllers
 builder.Services.AddSpaStaticFiles(config =>
