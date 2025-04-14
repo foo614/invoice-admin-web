@@ -9,10 +9,12 @@
 # Ignore build output
 bin/
 obj/
+.config
 *.log
 out
 Properties
 .config
+
 # Ignore NuGet packages
 packages/
 *.nupkg
