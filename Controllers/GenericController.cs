@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text;
+using System.Net.Http.Headers;
 
 namespace invoice_admin_web.Controllers
 {
@@ -23,11 +24,21 @@ namespace invoice_admin_web.Controllers
         {
             // Build the target URL
             var queryString = string.Join("&", queryParams.Select(q => $"{q.Key}={q.Value}"));
-            var targetUrl = $"{_baseUrl}/{path}?{queryString}";
+            var targetUrl = string.IsNullOrEmpty(queryString)
+                ? $"{_baseUrl}/{path}"
+                : $"{_baseUrl}/{path}?{queryString}";
 
             try
             {
-                var response = await _httpClient.GetAsync(targetUrl);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+
+                if (Request.Headers.TryGetValue("Authorization", out var authValue))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
+                        authValue.ToString().Replace("Bearer ", ""));
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -53,7 +64,23 @@ namespace invoice_admin_web.Controllers
             try
             {
                 var content = new StringContent(requestBody.GetRawText(), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(targetUrl, content);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, targetUrl)
+                {
+                    Content = content
+                };
+
+                if (Request.Headers.TryGetValue("Authorization", out var authValue))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
+                        authValue.ToString().Replace("Bearer ", ""));
+                }
+
+                if (Request.Headers.TryGetValue("tenant", out var tenantValue))
+                {
+                    requestMessage.Headers.TryAddWithoutValidation("tenant", tenantValue.ToArray());
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -69,17 +96,26 @@ namespace invoice_admin_web.Controllers
             }
         }
 
-        // Dynamic PUT method
         [HttpPut("{*path}")]
         public async Task<IActionResult> DynamicPut(string path, [FromBody] JsonElement requestBody)
         {
-            // Build the target URL
             var targetUrl = $"{_baseUrl}/{path}";
 
             try
             {
                 var content = new StringContent(requestBody.GetRawText(), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync(targetUrl, content);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Put, targetUrl)
+                {
+                    Content = content
+                };
+
+                if (Request.Headers.TryGetValue("Authorization", out var authValue))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
+                        authValue.ToString().Replace("Bearer ", ""));
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -99,13 +135,22 @@ namespace invoice_admin_web.Controllers
         [HttpDelete("{*path}")]
         public async Task<IActionResult> DynamicDelete(string path, [FromQuery] Dictionary<string, string> queryParams)
         {
-            // Build the target URL
             var queryString = string.Join("&", queryParams.Select(q => $"{q.Key}={q.Value}"));
-            var targetUrl = $"{_baseUrl}/{path}?{queryString}";
+            var targetUrl = string.IsNullOrEmpty(queryString)
+                ? $"{_baseUrl}/{path}"
+                : $"{_baseUrl}/{path}?{queryString}";
 
             try
             {
-                var response = await _httpClient.DeleteAsync(targetUrl);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, targetUrl);
+
+                if (Request.Headers.TryGetValue("Authorization", out var authValue))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
+                        authValue.ToString().Replace("Bearer ", ""));
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -129,7 +174,15 @@ namespace invoice_admin_web.Controllers
 
             try
             {
-                var response = await _httpClient.GetAsync(targetUrl);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+
+                if (Request.Headers.TryGetValue("Authorization", out var authValue))
+                {
+                    requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer",
+                        authValue.ToString().Replace("Bearer ", ""));
+                }
+
+                var response = await _httpClient.SendAsync(requestMessage);
 
                 if (!response.IsSuccessStatusCode)
                 {
