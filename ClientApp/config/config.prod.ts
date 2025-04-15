@@ -12,4 +12,7 @@ export default defineConfig({
   },
   publicPath: '/web-portal/',
   base: '/web-portal/',
+  history: {
+    type: 'browser',
+  },
 });
