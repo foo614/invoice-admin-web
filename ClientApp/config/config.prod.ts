@@ -11,4 +11,5 @@ export default defineConfig({
     API_BASE_URL: 'https://nexkoala.com.my/api',
   },
   publicPath: process.env.NODE_ENV === 'production' ? '/web-portal/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/web-portal/' : '/',
 });
