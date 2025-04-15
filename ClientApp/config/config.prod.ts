@@ -10,4 +10,5 @@ export default defineConfig({
     MY_INVOICE_BASE_URL: 'https://preprod.myinvois.hasil.gov.my',
     API_BASE_URL: 'https://nexkoala.com.my/api',
   },
+  publicPath: process.env.NODE_ENV === 'production' ? '/web-portal/' : '/',
 });
