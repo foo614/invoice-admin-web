@@ -20,9 +20,6 @@ export default defineConfig({
    * @doc https://umijs.org/docs/api/config#hash
    */
   hash: true,
-  base: PUBLIC_PATH,
-  publicPath: PUBLIC_PATH,
-
   /**
    * @name 兼容性设置
    * @description 设置 ie11 不一定完美兼容，需要检查自己使用的所有依赖
@@ -99,7 +96,7 @@ export default defineConfig({
     default: 'en-US',
     antd: true,
     // default true, when it is true, will use `navigator.language` overwrite default
-    baseNavigator: true,
+    baseNavigator: false,
   },
   /**
    * @name antd 插件
@@ -137,4 +134,7 @@ export default defineConfig({
   // mako: {},
   esbuildMinifyIIFE: true,
   requestRecord: {},
+  history: {
+    type: 'browser',
+  },
 });
