@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { refreshJWToken } from './ant-design-pro/authService';
 
 // Base URL from environment configuration
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:5001/api';
+const API_BASE_URL = process.env.API_BASE_URL;
 
 // Track if we're already refreshing to prevent multiple concurrent refreshes
 let isRefreshing = false;

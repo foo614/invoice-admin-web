@@ -1,10 +1,10 @@
+import { getUserProfile, updateUserProfile } from '@/services/ant-design-pro/profileService';
 import { ProForm, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
 import { Button, Form, message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import useStyles from './index.style';
-import { getUserProfile, updateUserProfile } from '@/services/ant-design-pro/profileService';
 
 interface MSICOption {
   Code: string;
@@ -34,7 +34,7 @@ const BaseView: React.FC = () => {
   const fetchMsicOptions = async () => {
     setMsicLoading(true);
     try {
-      const response = await axios.get('https://localhost:5001/api/invoice/msiccodes');
+      const response = await axios.get('/invoice/msiccodes');
       setMsicOptions(response.data);
       setMsicLoading(false);
     } catch (error) {
@@ -46,7 +46,7 @@ const BaseView: React.FC = () => {
   const fetchStateOptions = async () => {
     setStateLoading(true);
     try {
-      const response = await axios.get('https://localhost:5001/api/invoice/statecodes');
+      const response = await axios.get('/invoice/statecodes');
       setStateOptions(response.data);
       setStateLoading(false);
     } catch (error) {
