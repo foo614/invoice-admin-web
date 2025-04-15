@@ -4,8 +4,6 @@ import { join } from 'path';
 import defaultSettings from './defaultSettings';
 import routes from './routes';
 
-const { REACT_APP_ENV = 'dev' } = process.env;
-
 /**
  * @name 使用公共路径
  * @description 部署时的路径，如果部署在非根目录下，需要配置这个变量
@@ -134,7 +132,4 @@ export default defineConfig({
   // mako: {},
   esbuildMinifyIIFE: true,
   requestRecord: {},
-  history: {
-    type: 'browser',
-  },
 });
