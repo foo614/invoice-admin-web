@@ -2,9 +2,6 @@ import { message } from 'antd';
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { refreshJWToken } from './ant-design-pro/authService';
 
-// Base URL from environment configuration
-const API_BASE_URL = process.env.API_BASE_URL;
-
 // Track if we're already refreshing to prevent multiple concurrent refreshes
 let isRefreshing = false;
 // Queue for requests waiting for token refresh
@@ -15,7 +12,7 @@ let failedRequestsQueue: Array<{
 
 // Create Axios instance
 const httpClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_BASE_URL}`,
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
