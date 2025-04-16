@@ -16,7 +16,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
-import { Button, Drawer, message, Modal, Select, Space } from 'antd';
+import { Button, Drawer, List, message, Modal, Select, Space } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import React, { useEffect, useRef, useState } from 'react';
@@ -370,15 +370,15 @@ const InvoiceSubmission: React.FC = () => {
       additionalDocumentReferenceID: '',
 
       supplierAdditionalAccountID: '',
-      supplierIndustryCode: profileData.msicCode, // MSIC
-      supplierTIN: profileData.tin, // your company TIN
-      supplierBRN: profileData.registrationNumber, // your company BRN
-      supplierSST: profileData.sstRegistrationNumber, // optional
-      supplierTTX: profileData.tourismTaxRegistrationNumber, // optional
-      supplierCity: profileData.city, // your address
-      supplierPostalCode: profileData.postalCode, // your postal
+      supplierIndustryCode: profileData.msicCode,
+      supplierTIN: profileData.tin,
+      supplierBRN: profileData.registrationNumber,
+      supplierSST: profileData.sstRegistrationNumber,
+      supplierTTX: profileData.tourismTaxRegistrationNumber,
+      supplierCity: profileData.city,
+      supplierPostalCode: profileData.postalCode,
       supplierCountrySubentityCode: profileData.state,
-      supplierAddressLine1: profileData.address1, // your address lines
+      supplierAddressLine1: profileData.address1,
       supplierAddressLine2: profileData.address2 ?? '',
       supplierAddressLine3: profileData.address3 ?? '',
       supplierCountryCode: profileData.countryCode,
@@ -396,7 +396,7 @@ const InvoiceSubmission: React.FC = () => {
       customerAddressLine3: erpData.biladdR3 ?? '',
       customerCountryCode: getIsoCountryCode(erpData.bilcountry),
       customerName: erpData.bilname!,
-      customerTelephone: erpData.bilphone?.trim() ? erpData.bilphone : '+60123456789',
+      customerTelephone: erpData.bilphone,
       customerEmail: erpData.bilemail || '',
 
       totalAmount: erpData.invnetwtx,
@@ -434,7 +434,28 @@ const InvoiceSubmission: React.FC = () => {
           }
           const response = await submitInvoice(request);
           if (response.status) {
-            message.success('Invoice submitted successfully.');
+            if (response.data.succeeded) {
+              message.success('Invoice submitted successfully.');
+            } else {
+              const errorList = response.data.errors;
+
+              if (Array.isArray(errorList) && errorList.length > 0) {
+                Modal.error({
+                  title: response.data.message || 'Failed to submit invoice',
+                  content: (
+                    <List
+                      size="small"
+                      dataSource={errorList}
+                      renderItem={(item) => (
+                        <List.Item style={{ paddingLeft: 0 }}>• {item}</List.Item>
+                      )}
+                    />
+                  ),
+                });
+              } else {
+                message.error(response.data.message || 'Failed to submit invoice');
+              }
+            }
           } else {
             throw new Error('Submission failed');
           }
