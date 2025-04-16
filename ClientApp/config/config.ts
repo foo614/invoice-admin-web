@@ -132,4 +132,5 @@ export default defineConfig({
   // mako: {},
   esbuildMinifyIIFE: true,
   requestRecord: {},
+  favicons: ['/nex-browser-ico.png'],
 });
