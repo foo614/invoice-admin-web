@@ -34,7 +34,7 @@ const BaseView: React.FC = () => {
   const fetchMsicOptions = async () => {
     setMsicLoading(true);
     try {
-      const response = await axios.get('/invoice/msiccodes');
+      const response = await axios.get('/api/invoice/msiccodes');
       setMsicOptions(response.data);
       setMsicLoading(false);
     } catch (error) {
@@ -46,7 +46,7 @@ const BaseView: React.FC = () => {
   const fetchStateOptions = async () => {
     setStateLoading(true);
     try {
-      const response = await axios.get('/invoice/statecodes');
+      const response = await axios.get('/api/invoice/statecodes');
       setStateOptions(response.data);
       setStateLoading(false);
     } catch (error) {
