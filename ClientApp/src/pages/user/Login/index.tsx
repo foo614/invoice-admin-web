@@ -8,7 +8,7 @@ import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
-import NexKoalaLogo from '../../../../public/logo.svg';
+import NexKoalaLogo from '../../../../public/nex-icon.png';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -127,12 +127,7 @@ const Login: React.FC = () => {
         }}
       >
         <LoginForm
-          contentStyle={{
-            minWidth: 280,
-            maxWidth: '75vw',
-          }}
-          logo={<img alt="logo" src={NexKoalaLogo} />}
-          title="Nex Koala e-Invoice"
+          title={<img alt="logo" src={NexKoalaLogo} width={'190'} />}
           subTitle={intl.formatMessage({ id: 'pages.layouts.userLayout.title' })}
           initialValues={{
             autoLogin: true,
