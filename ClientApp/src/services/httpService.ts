@@ -104,7 +104,7 @@ httpClient.interceptors.response.use(
         localStorage.removeItem('currentUser');
         message.error('Session expired. Please log in again.');
         window.location.href =
-          (process.env.NODE_ENV !== 'development' && '/web-portal') + '/user/login';
+          (process.env.NODE_ENV !== 'development' ? '/web-portal' : '') + '/user/login';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
