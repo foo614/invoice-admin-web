@@ -209,7 +209,7 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'Supplier TIN',
       hideInSearch: true,
-      dataIndex: 'supplierTIN',
+      dataIndex: 'supplierTin',
     },
     {
       title: 'Supplier Name',
@@ -219,7 +219,7 @@ const InvoiceSubmission: React.FC = () => {
     {
       title: 'Receiver TIN',
       hideInSearch: true,
-      dataIndex: 'receiverTIN',
+      dataIndex: 'buyerTin',
     },
     {
       title: 'Receiver Name',
