@@ -22,14 +22,26 @@ export async function login(body: API.LoginParams, options?: { [key: string]: an
 }
 
 export async function resetPassword(
-  body: { password: string; code: string; confirmPassword: string; email: string; token: string },
+  body: { password: string; email: string; token: string },
   options?: { [key: string]: any },
 ) {
-  return httpClient.post('/account/reset-password', body, { ...options });
+  return httpClient.post('/users/reset-password', body, {
+    headers: {
+      tenant: 'root',
+      ...(options?.headers || {}),
+    },
+    ...options,
+  });
 }
 
 export async function forgotPassword(body: { email: string }, options?: { [key: string]: any }) {
-  return httpClient.post('/account/forgot-password', body, { ...options });
+  return httpClient.post('/users/forgot-password', body, {
+    headers: {
+      tenant: 'root',
+      ...(options?.headers || {}),
+    },
+    ...options,
+  });
 }
 
 export async function refreshJWToken(

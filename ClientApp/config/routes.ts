@@ -1,4 +1,4 @@
-export default [
+﻿export default [
   {
     path: '/user',
     layout: false,
@@ -10,12 +10,12 @@ export default [
       },
       {
         name: 'Reset Password',
-        path: '/user/resetPassword',
+        path: '/user/reset-password',
         component: './user/ResetPassword/index.tsx',
       },
       {
         name: 'Forgot Password',
-        path: '/user/forgotPassword',
+        path: '/user/forgot-password',
         component: './user/ForgotPassword/index.tsx',
       },
     ],
