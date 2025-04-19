@@ -1,6 +1,12 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  CloseOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+  SaveOutlined,
+} from '@ant-design/icons';
 import { ProFormSelect, ProTable } from '@ant-design/pro-components';
-import { Button, message } from 'antd';
+import { Button, Empty, message, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useModel } from '@umijs/max';
 import { getClassificationCodes } from '@/services/ant-design-pro/invoiceService';
@@ -300,47 +306,63 @@ const ClassificationMappingPage: React.FC = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h2>Map Local Classification Codes to LHDN Classification Codes</h2>
-      <div>
+      <Space style={{ marginBottom: 16 }}>
         {isEditMode ? (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={addRow}
-            style={{ marginTop: '10px', marginBottom: '20px' }}
-          >
-            Add Row
-          </Button>
+          <>
+            <Button type="primary" icon={<SaveOutlined />} onClick={saveMappings}>
+              Save
+            </Button>
+            <Button icon={<CloseOutlined />} onClick={cancelChanges}>
+              Cancel
+            </Button>
+          </>
         ) : (
-          <Button
-            type="primary"
-            style={{ marginTop: '10px', marginBottom: '20px' }}
-            onClick={toggleEditMode}
-            icon={<EditOutlined />}
-          >
-            Update
+          <Button type="primary" onClick={toggleEditMode} icon={<EditOutlined />}>
+            Edit Mappings
           </Button>
         )}
-      </div>
-      <ProTable
-        loading={loading}
-        search={false}
-        dataSource={rows}
-        columns={columns}
-        pagination={false}
-        bordered
-        rowKey="key"
-        toolBarRender={false}
-      />
-      {isEditMode ? (
+      </Space>
+      {rows.length === 0 ? (
+        <div style={{ textAlign: 'center', margin: '40px 0' }}>
+          {isEditMode ? (
+            <>
+              <Empty description="No UOM mappings found">
+                <Button type="primary" icon={<PlusOutlined />} onClick={addRow} size="large">
+                  Add First Mapping
+                </Button>
+              </Empty>
+            </>
+          ) : (
+            <Empty description="No UOM mappings found" />
+          )}
+        </div>
+      ) : (
         <>
-          <Button onClick={cancelChanges} style={{ marginRight: '8px' }}>
-            Cancel
-          </Button>
-          <Button type="primary" style={{ marginTop: '20px' }} onClick={saveMappings}>
-            Save Mappings
-          </Button>
+          <ProTable
+            loading={loading}
+            search={false}
+            dataSource={rows}
+            columns={columns}
+            pagination={false}
+            bordered
+            rowKey="key"
+            toolBarRender={false}
+          />
+          {isEditMode && (
+            <div style={{ textAlign: 'center', margin: '20px 0' }}>
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                onClick={addRow}
+                block
+                style={{ maxWidth: '300px', margin: '0 auto' }}
+              >
+                Add Another Mapping
+              </Button>
+            </div>
+          )}
         </>
-      ) : null}
+      )}
     </div>
   );
 };
