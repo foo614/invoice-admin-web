@@ -206,7 +206,7 @@ const Login: React.FC = () => {
           {status === 'error' && loginType === 'mobile' && <LoginMessage content="验证码错误" />}
           <div>
             <Link
-              to="/user/forgotPassword"
+              to="/user/forgot-password"
               style={{
                 float: 'right',
                 marginBottom: 24,

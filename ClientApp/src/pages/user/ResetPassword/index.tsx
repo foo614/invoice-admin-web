@@ -26,25 +26,25 @@ const ResetPassword: React.FC = () => {
   const intl = useIntl();
   const [loading, setLoading] = useState(false);
   const location = useLocation();
-  const [code, setCode] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
-    const codeParam = query.get('code');
+    const tokenParam = query.get('token');
     const emailParam = query.get('email');
-    if (codeParam && emailParam) {
-      setCode(codeParam);
+    if (tokenParam && emailParam) {
+      setToken(tokenParam);
       setEmail(emailParam);
     } else {
-      message.error('Invalid or missing reset code and email.');
+      message.error('Invalid or missing reset token and email.');
       history.push('/user/login');
     }
   }, [location]);
 
   const handleSubmit = async (values: { password: string; confirmPassword: string }) => {
-    if (!code || !email) {
-      message.error('Missing reset code or email.');
+    if (!token || !email) {
+      message.error('Missing reset token or email.');
       return;
     }
     setLoading(true);
@@ -56,9 +56,8 @@ const ResetPassword: React.FC = () => {
       }
       const response = await resetPassword({
         password: values.password,
-        confirmPassword: values.confirmPassword,
         email,
-        token: code,
+        token: token,
       });
       if (response.status === 200) {
         message.success('Password reset successfully. Please log in.');
