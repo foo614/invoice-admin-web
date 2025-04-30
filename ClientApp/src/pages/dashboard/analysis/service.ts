@@ -902,26 +902,26 @@ export async function fakeChartData(): Promise<{ data: AnalysisData }> {
       ],
       invoiceSubmissionRateData: [
         {
-          x: 'Pending',
-          y: 165,
+          label: 'Pending',
+          value: 165,
         },
         {
-          x: 'Submitted',
-          y: 178,
+          label: 'Submitted',
+          value: 178,
         },
       ],
       lhdnSubmissionStatusData: [
         {
-          x: 'Success',
-          y: 148,
+          label: 'Success',
+          value: 148,
         },
         {
-          x: 'Failed',
-          y: 168,
+          label: 'Failed',
+          value: 168,
         },
         {
-          x: 'Pending',
-          y: 127,
+          label: 'Pending',
+          value: 127,
         },
       ],
     },

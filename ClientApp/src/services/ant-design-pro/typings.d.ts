@@ -223,4 +223,9 @@ declare namespace API {
     taxableAmount: number;
     taxAmount: number;
   };
+
+  type SubmissionRateItem = {
+    label: string;
+    value: number;
+  };
 }

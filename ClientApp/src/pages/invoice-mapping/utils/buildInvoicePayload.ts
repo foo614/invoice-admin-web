@@ -66,7 +66,7 @@ const mapSalesInvoice = (
     itemList,
 
     taxableAmount: erpData.invnetnotx,
-    taxAmount: erpData.invitaxtot ?? 0,
+    taxAmount: Math.max(erpData.invitaxtot - erpData.invnetnotx, 0),
   };
 
   return requestBody;
@@ -137,7 +137,7 @@ const mapCreditNoteInvoice = (
     itemList,
 
     taxableAmount: erpData.crdnetnotx!,
-    taxAmount: erpData.crditaxtot ?? 0,
+    taxAmount: Math.max(erpData.crditaxtot - erpData.crdnetnotx, 0),
   };
 
   return requestBody;
