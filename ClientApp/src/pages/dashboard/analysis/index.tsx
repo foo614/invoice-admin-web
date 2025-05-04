@@ -59,9 +59,9 @@ const Analysis: FC<AnalysisProps> = () => {
   }, [rangePickerValueSAGE]);
 
   const { initialState } = useModel('@@initialState');
-
+  const currentUser = initialState?.currentUser;
   useEffect(() => {
-    if (!initialState?.isProfileComplete) {
+    if (!initialState?.isProfileComplete && !currentUser?.roles.includes('Admin')) {
       Modal.info({
         title: 'Welcome!',
         content: (
@@ -76,7 +76,7 @@ const Analysis: FC<AnalysisProps> = () => {
         },
       });
     }
-  }, [initialState]);
+  }, [initialState, currentUser]);
 
   return (
     data && (
