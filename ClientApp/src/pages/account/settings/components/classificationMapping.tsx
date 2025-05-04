@@ -305,36 +305,30 @@ const ClassificationMappingPage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Map Local Classification Codes to LHDN Classification Codes</h2>
-      <Space style={{ marginBottom: 16 }}>
-        {isEditMode ? (
-          <>
-            <Button type="primary" icon={<SaveOutlined />} onClick={saveMappings}>
-              Save
-            </Button>
-            <Button icon={<CloseOutlined />} onClick={cancelChanges}>
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <Button type="primary" onClick={toggleEditMode} icon={<EditOutlined />}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16,
+        }}
+      >
+        <h2>Map Local Classification Codes to LHDN Classification Codes</h2>
+        {!isEditMode && (
+          <Button
+            type="primary"
+            onClick={toggleEditMode}
+            icon={<EditOutlined />}
+            style={{ marginLeft: 'auto' }}
+          >
             Edit Mappings
           </Button>
         )}
-      </Space>
-      {rows.length === 0 ? (
+      </div>
+
+      {rows.length === 0 && !isEditMode ? (
         <div style={{ textAlign: 'center', margin: '40px 0' }}>
-          {isEditMode ? (
-            <>
-              <Empty description="No UOM mappings found">
-                <Button type="primary" icon={<PlusOutlined />} onClick={addRow} size="large">
-                  Add First Mapping
-                </Button>
-              </Empty>
-            </>
-          ) : (
-            <Empty description="No UOM mappings found" />
-          )}
+          <Empty description="No Classification Code mappings found" />
         </div>
       ) : (
         <>
@@ -347,17 +341,24 @@ const ClassificationMappingPage: React.FC = () => {
             bordered
             rowKey="key"
             toolBarRender={false}
+            scroll={{ x: 'max-content' }}
           />
+
           {isEditMode && (
-            <div style={{ textAlign: 'center', margin: '20px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 20 }}>
               <Button
                 type="dashed"
                 icon={<PlusOutlined />}
                 onClick={addRow}
-                block
-                style={{ maxWidth: '300px', margin: '0 auto' }}
+                style={{ marginRight: 'auto' }}
               >
-                Add Another Mapping
+                Add Mapping
+              </Button>
+              <Button type="primary" icon={<SaveOutlined />} onClick={saveMappings}>
+                Save
+              </Button>
+              <Button icon={<CloseOutlined />} onClick={cancelChanges}>
+                Cancel
               </Button>
             </div>
           )}

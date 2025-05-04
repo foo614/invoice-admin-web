@@ -1,7 +1,7 @@
 import InvoiceSubmission from '@/pages/invoice-submission';
 import { GridContent } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
-import { Col, message, Row } from 'antd';
+import { useModel, useRequest } from '@umijs/max';
+import { Col, message, Modal, Row } from 'antd';
 import type { RangePickerProps } from 'antd/es/date-picker/generatePicker';
 import dayjs from 'dayjs';
 import type { FC } from 'react';
@@ -12,6 +12,7 @@ import { fakeChartData } from './service';
 import useStyles from './style.style';
 import React from 'react';
 import { getSageSubmissionRate } from '@/services/ant-design-pro/dashboardService';
+import { fetchUserProfile } from '@/pages/invoice-mapping/utils/useInvoiceData';
 type RangePickerValue = RangePickerProps<dayjs.Dayjs>['value'];
 type AnalysisProps = {
   dashboardAndanalysis: AnalysisData;
@@ -30,8 +31,6 @@ const Analysis: FC<AnalysisProps> = () => {
   const { loading1, data } = useRequest(fakeChartData);
 
   const handleRangePickerLHDNChange = (value: RangePickerValue) => {
-    console.log(value);
-    console.log('hi2');
     setRangePickerValueLHDN(value);
   };
   const handleRangePickerSAGEChange = (value: RangePickerValue) => {
@@ -58,6 +57,26 @@ const Analysis: FC<AnalysisProps> = () => {
   useEffect(() => {
     fetchSageSubmissionRate();
   }, [rangePickerValueSAGE]);
+
+  const { initialState } = useModel('@@initialState');
+
+  useEffect(() => {
+    if (!initialState?.isProfileComplete) {
+      Modal.info({
+        title: 'Welcome!',
+        content: (
+          <div>
+            <p>Welcome to Nex Koala! 🎉</p>
+            <p>Before you get started, please take a moment to complete your profile.</p>
+          </div>
+        ),
+        okText: 'Go to Profile',
+        onOk: () => {
+          window.location.href = '/account';
+        },
+      });
+    }
+  }, [initialState]);
 
   return (
     data && (
