@@ -62,7 +62,7 @@ const BaseView: React.FC = () => {
       const response = await getUserProfile({ email: currentUser!.email });
       setProfileData(response.data.data);
     } catch (error) {
-      message.error('Failed to fetch state options');
+      message.error('Failed to fetch profile data');
     } finally {
       setProfileLoading(false);
     }
@@ -86,7 +86,7 @@ const BaseView: React.FC = () => {
         ...prev,
         isProfileComplete: isComplete,
       }));
-
+      localStorage.setItem('isProfileComplete', JSON.stringify(isComplete));
       return isComplete;
     } catch (error) {
       console.error('Failed to refresh profile status:', error);

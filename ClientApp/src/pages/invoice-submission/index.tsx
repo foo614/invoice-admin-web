@@ -275,9 +275,55 @@ const InvoiceSubmission: React.FC = () => {
       hideInTable: true,
     },
     {
+      title: 'Submission Date Range',
+      dataIndex: 'submissionDateRange',
+      valueType: 'dateRange',
+      hideInTable: true,
+      formItemProps: {
+        rules: [
+          {
+            validator: (_, value) => {
+              if (!value || value.length !== 2) {
+                return Promise.reject('Please select both start and end dates');
+              }
+              return Promise.resolve();
+            },
+          },
+        ],
+      },
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+        disabledDate: (current) => {
+          // Disable dates older than 31 days from today
+          return current && current < dayjs().subtract(31, 'days').endOf('day');
+        },
+        onChange: (dates, dateStrings) => {
+          if (dates && dates[0] && dates[1]) {
+            const diffInDays = dates[1].diff(dates[0], 'days');
+            if (diffInDays > 10) {
+              message.error('Maximum search window is 10 days');
+              // You might want to auto-adjust here by setting the end date to start+10
+              dates[1] = dates[0].add(10, 'days');
+              // You'll need to update the form value here
+            }
+          }
+        },
+      },
+      transform: (value) => {
+        if (value && value.length === 2) {
+          return {
+            submissionDateFrom: dayjs(value[0]).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]'),
+            submissionDateTo: dayjs(value[1]).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]'),
+          };
+        }
+        return {};
+      },
+    },
+    {
       title: 'Submission Date From',
       dataIndex: 'submissionDateFrom',
       valueType: 'date',
+      hideInSearch: true,
       formItemProps: {
         labelCol: { span: 12 },
       },
@@ -295,6 +341,7 @@ const InvoiceSubmission: React.FC = () => {
       title: 'Submission Date To',
       dataIndex: 'submissionDateTo',
       valueType: 'date',
+      hideInSearch: true,
       formItemProps: {
         // label width
         labelCol: { span: 12 },
@@ -361,6 +408,9 @@ const InvoiceSubmission: React.FC = () => {
             <FormattedMessage id="pages.invoice.export" />
           </Button>,
         ]}
+        search={{
+          labelWidth: 'auto',
+        }}
       />
 
       <Drawer

@@ -10,7 +10,7 @@ const mapSalesInvoice = (
     id: item.invuniq.toString(),
     qty: item.qtyshipped,
     unit: item.invunit,
-    totItemVal: item.extinvmisc,
+    subtotal: item.extinvmisc,
     description: item.desc,
     unitPrice: item.unitprice,
     taxAmount: item.tamounT1,
@@ -34,9 +34,11 @@ const mapSalesInvoice = (
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode,
     supplierTIN: profileData.tin,
+    supplierIdType: profileData.schemeID,
     supplierBRN: profileData.registrationNumber,
     supplierSST: profileData.sstRegistrationNumber,
     supplierTTX: profileData.tourismTaxRegistrationNumber,
+    supplierBusinessActivityDescription: profileData.businessActivityDescription,
     supplierCity: profileData.city,
     supplierPostalCode: profileData.postalCode,
     supplierCountrySubentityCode: profileData.state,
@@ -50,23 +52,25 @@ const mapSalesInvoice = (
 
     customerTIN: erpData.customerTIN,
     customerBRN: erpData.customerBRN,
-    customerCity: erpData.bilcity || '',
+    customerCity: erpData.bilcity ?? '',
     customerPostalCode: erpData.bilzip ?? '',
-    customerCountrySubentityCode: erpData.bilstate || 'NA',
+    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
     customerAddressLine1: erpData.biladdR1!,
     customerAddressLine2: erpData.biladdR2 ?? '',
     customerAddressLine3: erpData.biladdR3 ?? '',
     customerCountryCode: getIsoCountryCode(erpData.bilcountry),
     customerName: erpData.bilname!,
     customerTelephone: erpData.bilphone,
-    customerEmail: erpData.bilemail || '',
+    customerEmail: erpData.bilemail ?? '',
 
-    totalAmount: erpData.invnetwtx,
+    totalPayableAmount: erpData.invnetwtx,
 
     itemList,
 
     taxableAmount: erpData.invnetnotx,
     taxAmount: Math.max(erpData.invitaxtot - erpData.invnetnotx, 0),
+    totalExcludingTax: erpData.invnetnotx ?? 0,
+    totalIncludingTax: erpData.invitaxtot ?? 0,
   };
 
   return requestBody;
@@ -81,7 +85,7 @@ const mapCreditNoteInvoice = (
     id: item.crduniq.toString(),
     qty: item.qtyreturn,
     unit: item.crdunit,
-    totItemVal: item.extcrdmisc,
+    subtotal: item.extcrdmisc,
     description: item.desc,
     unitPrice: item.unitprice,
     taxAmount: item.tamounT1,
@@ -105,9 +109,11 @@ const mapCreditNoteInvoice = (
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode,
     supplierTIN: profileData.tin,
+    supplierIdType: profileData.schemeID,
     supplierBRN: profileData.registrationNumber,
     supplierSST: profileData.sstRegistrationNumber,
     supplierTTX: profileData.tourismTaxRegistrationNumber,
+    supplierBusinessActivityDescription: profileData.businessActivityDescription,
     supplierCity: profileData.city,
     supplierPostalCode: profileData.postalCode,
     supplierCountrySubentityCode: profileData.state,
@@ -121,23 +127,25 @@ const mapCreditNoteInvoice = (
 
     customerTIN: erpData.customerTIN,
     customerBRN: erpData.customerBRN,
-    customerCity: erpData.bilcity || '',
+    customerCity: erpData.bilcity ?? '',
     customerPostalCode: erpData.bilzip ?? '',
-    customerCountrySubentityCode: erpData.bilstate || 'NA',
+    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
     customerAddressLine1: erpData.biladdR1!,
     customerAddressLine2: erpData.biladdR2 ?? '',
     customerAddressLine3: erpData.biladdR3 ?? '',
     customerCountryCode: getIsoCountryCode(erpData.bilcountry),
     customerName: erpData.bilname!,
     customerTelephone: erpData.bilphone,
-    customerEmail: erpData.bilemail || '',
+    customerEmail: erpData.bilemail ?? '',
 
-    totalAmount: erpData.crdnetwtx!,
+    totalPayableAmount: erpData.crdnetwtx!,
 
     itemList,
 
     taxableAmount: erpData.crdnetnotx!,
     taxAmount: Math.max(erpData.crditaxtot - erpData.crdnetnotx, 0),
+    totalExcludingTax: erpData.crdnetnotx ?? 0,
+    totalIncludingTax: erpData.crditaxtot ?? 0,
   };
 
   return requestBody;
@@ -152,7 +160,7 @@ const mapPurchaseInvoice = (
     id: item.invhseq.toString(),
     qty: item.rqreceived,
     unit: item.rcpunit,
-    totItemVal: item.extended,
+    subtotal: item.extended,
     description: item.itemdesc,
     unitPrice: item.unitcost,
     taxAmount: item.taxamounT1,
@@ -176,9 +184,11 @@ const mapPurchaseInvoice = (
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode, // temp
     supplierTIN: erpData.supplierTIN!,
+    supplierIdType: 'NRIC', //temp
     supplierBRN: erpData.supplierBRN!,
     supplierSST: 'NA',
     supplierTTX: 'NA',
+    supplierBusinessActivityDescription: profileData.businessActivityDescription, // temp
     supplierCity: erpData.vdcity!,
     supplierPostalCode: erpData.vdzip!,
     supplierCountrySubentityCode: erpData.vdstate!,
@@ -192,23 +202,25 @@ const mapPurchaseInvoice = (
 
     customerTIN: profileData.tin,
     customerBRN: profileData.registrationNumber,
-    customerCity: profileData.city || '',
+    customerCity: profileData.city ?? '',
     customerPostalCode: profileData.postalCode ?? '',
-    customerCountrySubentityCode: erpData.bilstate || 'NA',
+    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
     customerAddressLine1: profileData.address1!,
     customerAddressLine2: profileData.address2 ?? '',
     customerAddressLine3: profileData.address3 ?? '',
     customerCountryCode: profileData.countryCode,
     customerName: profileData.name!,
     customerTelephone: profileData.phone,
-    customerEmail: profileData.email || '',
+    customerEmail: profileData.email ?? '',
 
-    totalAmount: erpData.scamount!,
+    totalPayableAmount: erpData.scamount!,
 
     itemList,
 
     taxableAmount: erpData.extended!,
     taxAmount: Math.max(erpData.doctotal - erpData.extended, 0),
+    totalExcludingTax: erpData.extended ?? 0,
+    totalIncludingTax: erpData.doctotal ?? 0,
   };
 
   return requestBody;
@@ -223,7 +235,7 @@ const mapPurchaseCreditNoteInvoice = (
     id: item.crnhseq.toString(),
     qty: item.rqreturned,
     unit: item.retunit,
-    totItemVal: item.extended,
+    subtotal: item.extended,
     description: item.itemdesc,
     unitPrice: item.unitcost,
     taxAmount: item.taxamounT1,
@@ -247,9 +259,11 @@ const mapPurchaseCreditNoteInvoice = (
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode, // temp
     supplierTIN: erpData.supplierTIN!,
+    supplierIdType: 'NRIC', //temp
     supplierBRN: erpData.supplierBRN!,
     supplierSST: 'NA',
     supplierTTX: 'NA',
+    supplierBusinessActivityDescription: profileData.businessActivityDescription, // temp
     supplierCity: erpData.vdcity!,
     supplierPostalCode: erpData.vdzip!,
     supplierCountrySubentityCode: erpData.vdstate!,
@@ -263,23 +277,25 @@ const mapPurchaseCreditNoteInvoice = (
 
     customerTIN: profileData.tin,
     customerBRN: profileData.registrationNumber,
-    customerCity: profileData.city || '',
+    customerCity: profileData.city ?? '',
     customerPostalCode: profileData.postalCode ?? '',
-    customerCountrySubentityCode: erpData.bilstate || 'NA',
+    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
     customerAddressLine1: profileData.address1!,
     customerAddressLine2: profileData.address2 ?? '',
     customerAddressLine3: profileData.address3 ?? '',
     customerCountryCode: profileData.countryCode,
     customerName: profileData.name!,
     customerTelephone: profileData.phone,
-    customerEmail: profileData.email || '',
+    customerEmail: profileData.email ?? '',
 
-    totalAmount: erpData.scamount!,
+    totalPayableAmount: erpData.scamount!,
 
     itemList,
 
     taxableAmount: erpData.extended!,
     taxAmount: Math.max(erpData.doctotal - erpData.extended, 0),
+    totalExcludingTax: erpData.extended ?? 0,
+    totalIncludingTax: erpData.doctotal ?? 0,
   };
 
   return requestBody;

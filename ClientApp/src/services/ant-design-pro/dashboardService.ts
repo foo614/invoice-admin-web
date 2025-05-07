@@ -14,3 +14,16 @@ export async function getSageSubmissionRate(
     ...options,
   });
 }
+
+export async function getLhdnSubmissionRate(
+  params: {
+    startDate?: string;
+    endDate?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return httpClient.get(`${API_VERSION}/dashboard/lhdn/submission-rate`, {
+    params: { ...params },
+    ...options,
+  });
+}

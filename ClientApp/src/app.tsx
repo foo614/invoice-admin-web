@@ -19,6 +19,7 @@ export async function getInitialState(): Promise<{
   currentUser?: API.CurrentUser;
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  checkProfileCompleteFromLocalStorage?: () => boolean;
   isProfileComplete?: boolean;
 }> {
   const fetchUserInfo = async () => {
@@ -34,29 +35,22 @@ export async function getInitialState(): Promise<{
     return undefined;
   };
 
-  const checkProfileComplete = async (user: API.CurrentUser | undefined) => {
-    if (!user?.email) return false;
-
-    try {
-      const response = await getUserProfile({ email: user.email });
-      const profileData = response.data.data;
-      return !!profileData?.tin;
-    } catch (error) {
-      console.error('Failed to verify profile completeness:', error);
-      return false;
-    }
+  const checkProfileCompleteFromLocalStorage = () => {
+    const storedProfileStatus = localStorage.getItem('isProfileComplete');
+    return storedProfileStatus === 'true';
   };
 
   // 如果不是登录页面，执行
   const { location } = history;
   if (location.pathname !== loginPath) {
     const currentUser = await fetchUserInfo();
-    const isProfileComplete = await checkProfileComplete(currentUser);
+    const isProfileComplete = checkProfileCompleteFromLocalStorage();
 
     return {
       fetchUserInfo,
       currentUser,
       isProfileComplete,
+      checkProfileCompleteFromLocalStorage,
       settings: defaultSettings as Partial<LayoutSettings>,
     };
   }
@@ -64,6 +58,7 @@ export async function getInitialState(): Promise<{
     fetchUserInfo,
     settings: defaultSettings as Partial<LayoutSettings>,
     isProfileComplete: false,
+    checkProfileCompleteFromLocalStorage,
   };
 }
 
