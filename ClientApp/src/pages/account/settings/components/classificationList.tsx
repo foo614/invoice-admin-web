@@ -4,6 +4,7 @@ import {
   removeClassification,
   updateClassification,
 } from '@/services/ant-design-pro/classificationService';
+import { PlusOutlined } from '@ant-design/icons';
 import {
   FooterToolbar,
   ModalForm,
@@ -156,7 +157,7 @@ const ClassficationList = () => {
         }}
         search={false}
         toolBarRender={() => [
-          <Button key="add" type="primary" onClick={handleAdd}>
+          <Button key="add" type="primary" onClick={handleAdd} icon={<PlusOutlined />}>
             Add Classification Code
           </Button>,
         ]}

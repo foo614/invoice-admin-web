@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
 import NexKoalaLogo from '../../../../public/nex-icon.png';
+import { getUserProfile } from '@/services/ant-design-pro/profileService';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -78,6 +79,18 @@ const Login: React.FC = () => {
   const { styles } = useStyles();
   const intl = useIntl();
 
+  const checkProfileComplete = async (email: string | undefined) => {
+    if (!email) return false;
+    try {
+      const response = await getUserProfile({ email });
+      const profileData = response.data.data;
+      return !!profileData?.tin;
+    } catch (error) {
+      console.error('Failed to verify profile completeness:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (values: API.LoginParams) => {
     try {
       // 登录
@@ -87,6 +100,9 @@ const Login: React.FC = () => {
           id: 'pages.login.success',
         });
         localStorage.setItem('currentUser', JSON.stringify(response.data.data));
+
+        const isProfileComplete = await checkProfileComplete(values.email);
+        localStorage.setItem('isProfileComplete', JSON.stringify(isProfileComplete));
         message.success(defaultLoginSuccessMessage);
         flushSync(() => {
           setInitialState((s) => ({

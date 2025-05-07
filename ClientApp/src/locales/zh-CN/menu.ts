@@ -56,6 +56,7 @@ export default {
   'menu.invoice.mapping.self-billed-credit-note': '自开票贷记单',
   'menu.invoice.mapping.self-billed-debit-note': '自开票借记单',
   'menu.invoice.submission': 'LHDN 提交历史记录',
+  'menu.invoice.submission.history': '提交历史记录',
   'menu.invoice.submission.invoice': '发票',
   'menu.invoice.submission.credit-note': '贷记单',
   'menu.invoice.submission.debit-note': '借记单',

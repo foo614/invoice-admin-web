@@ -56,6 +56,7 @@ export default {
   'menu.invoice.mapping.self-billed-credit-note': 'Self-billed Credit Note',
   'menu.invoice.mapping.self-billed-debit-note': 'Self-billed Debit Note',
   'menu.invoice.submission': 'LHDN Submission History',
+  'menu.invoice.submission.history': 'Submission History',
   'menu.invoice.submission.invoice': 'Invoice',
   'menu.invoice.submission.credit-note': 'Credit Note',
   'menu.invoice.submission.debit-note': 'Debit Note',

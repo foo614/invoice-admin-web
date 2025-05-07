@@ -95,3 +95,25 @@ export async function generateInvoice(uuid: string, options?: { [key: string]: a
     ...options,
   });
 }
+
+// Get Invoice Document By Uuid (from db)
+export async function getInvoiceDocumentByUuId(uuid: string, options?: { [key: string]: any }) {
+  return httpClient.get(`/v1/InvoiceApi/invoice-document/${uuid}`, {
+    ...options,
+  });
+}
+
+// Get Invoice Document List (from db)
+export async function getInvoiceDocumentList(
+  params: {
+    pageNumber?: number;
+    pageSize?: number;
+    status?: boolean;
+    uuid?: string;
+    issueDateFrom?: string;
+    issueDateTo?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return httpClient.get(`/v1/InvoiceApi/invoice-documents`, { params, ...options });
+}

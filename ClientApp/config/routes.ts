@@ -37,8 +37,30 @@
     path: '/lhdn-submission-history',
     name: 'invoice.submission',
     icon: 'fileDone',
-    access: 'canUser',
-    component: './invoice-submission/index.tsx',
+    access: 'canAdmin',
+    routes: [
+      {
+        path: '/lhdn-submission-history',
+        component: './invoice-submission/index.tsx',
+      },
+    ],
+  },
+  {
+    path: '/submission-history',
+    name: 'invoice.submission.history',
+    icon: 'fileDone',
+    routes: [
+      {
+        path: '/submission-history',
+        component: './submission-history/index.tsx',
+      },
+      {
+        path: '/submission-history/:uuid',
+        name: '',
+        component: './submission-history/submissionDetails.tsx',
+        hideInMenu: true,
+      },
+    ],
   },
   {
     path: '/partner',
@@ -57,6 +79,7 @@
     path: '/audit-log',
     name: 'audit-log',
     icon: 'history',
+    access: 'canAdmin',
     component: './audit-log/index.tsx',
   },
   {

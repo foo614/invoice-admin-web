@@ -6,6 +6,7 @@ import { history } from '@umijs/max';
 import React from 'react';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
+import { getUserProfile } from './services/ant-design-pro/profileService';
 
 // const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -18,6 +19,8 @@ export async function getInitialState(): Promise<{
   currentUser?: API.CurrentUser;
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  checkProfileCompleteFromLocalStorage?: () => boolean;
+  isProfileComplete?: boolean;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -31,19 +34,31 @@ export async function getInitialState(): Promise<{
     }
     return undefined;
   };
+
+  const checkProfileCompleteFromLocalStorage = () => {
+    const storedProfileStatus = localStorage.getItem('isProfileComplete');
+    return storedProfileStatus === 'true';
+  };
+
   // 如果不是登录页面，执行
   const { location } = history;
   if (location.pathname !== loginPath) {
     const currentUser = await fetchUserInfo();
+    const isProfileComplete = checkProfileCompleteFromLocalStorage();
+
     return {
       fetchUserInfo,
       currentUser,
+      isProfileComplete,
+      checkProfileCompleteFromLocalStorage,
       settings: defaultSettings as Partial<LayoutSettings>,
     };
   }
   return {
     fetchUserInfo,
     settings: defaultSettings as Partial<LayoutSettings>,
+    isProfileComplete: false,
+    checkProfileCompleteFromLocalStorage,
   };
 }
 

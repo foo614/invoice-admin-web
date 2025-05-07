@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
@@ -719,6 +720,7 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("msiccodes")]
         public async Task<IActionResult> GetMSICCodes()
         {
@@ -831,6 +833,7 @@ new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("statecodes")]
         public async Task<IActionResult> GetStateCodes()
         {
