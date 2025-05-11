@@ -137,7 +137,7 @@ declare namespace API {
     id: string;
     name: string;
     tin: string;
-    schemeID: string;
+    schemeId: string;
     registrationNumber: string;
     sstRegistrationNumber: string;
     tourismTaxRegistrationNumber: string;
@@ -296,4 +296,44 @@ declare namespace API {
     currencyCode: string;
     invoiceDocumentId: string;
   };
+
+  interface ValidationError {
+    code: string;
+    details: string;
+    error: string;
+    message: string;
+    propertyName: string;
+    propertyPath: string;
+    target: string;
+  }
+
+  interface ValidationStep {
+    status: string;
+    name: string;
+    error?: ValidationError;
+  }
+
+  interface InvoiceDetails {
+    uuid: string;
+    submissionUid: string;
+    longId: string;
+    internalId: string;
+    typeName: string;
+    typeVersionName: string;
+    issuerTin: string;
+    issuerName: string;
+    receiverId: string;
+    receiverName: string;
+    dateTimeReceived: string;
+    dateTimeValidated: string;
+    totalExcludingTax: number;
+    totalDiscount: number;
+    totalNetAmount: number;
+    totalPayableAmount: number;
+    status: string;
+    validationResults: {
+      status: string;
+      validationSteps: ValidationStep[];
+    };
+  }
 }

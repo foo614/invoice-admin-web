@@ -1,17 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Descriptions, Row, Spin, Table, message, Empty, Button } from 'antd';
-import { useParams } from '@umijs/max'; // or 'react-router-dom' if not using Umi
+import {
+  Card,
+  Col,
+  Descriptions,
+  Row,
+  Spin,
+  Table,
+  message,
+  Empty,
+  Button,
+  Tag,
+  Alert,
+  QRCode,
+  Typography,
+  Breadcrumb,
+} from 'antd';
+import { Link, useParams } from '@umijs/max';
 import {
   generateInvoice,
+  getDocumentDetails,
   getInvoiceDocumentByUuId,
 } from '@/services/ant-design-pro/invoiceService';
 import { PageContainer } from '@ant-design/pro-components';
-import { DownloadOutlined } from '@ant-design/icons';
+import { DownloadOutlined, ScanOutlined } from '@ant-design/icons';
 
 const InvoiceDetail: React.FC = () => {
   const { uuid } = useParams<{ uuid: string }>();
   const [loading, setLoading] = useState(true);
+  const [fetchDetailsLoading, setFetchDetailsLoading] = useState(false);
   const [invoiceData, setInvoiceData] = useState<API.InvoiceDocument | null>(null);
+  const [documentDetails, setDocumentDetails] = useState<API.InvoiceDetails | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
 
@@ -40,6 +58,27 @@ const InvoiceDetail: React.FC = () => {
     }
   };
 
+  // Fetch document details by UUID
+  const fetchDocumentDetails = async (uuid: string) => {
+    try {
+      setFetchDetailsLoading(true);
+      const response = await getDocumentDetails(uuid);
+
+      if (response.data.succeeded) {
+        const result = await response.data.data;
+        setDocumentDetails(result);
+      } else {
+        message.error('Failed to fetch document details.');
+        return null;
+      }
+    } catch (error) {
+      message.error('Error fetching document details.');
+      return null;
+    } finally {
+      setFetchDetailsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchInvoice = async () => {
       try {
@@ -62,9 +101,12 @@ const InvoiceDetail: React.FC = () => {
     };
 
     fetchInvoice();
+    if (invoiceData?.documentStatus !== 'Submitted') {
+      fetchDocumentDetails(uuid!);
+    }
   }, [uuid]);
 
-  if (loading) {
+  if (loading || fetchDetailsLoading) {
     return (
       <PageContainer>
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
@@ -96,25 +138,118 @@ const InvoiceDetail: React.FC = () => {
 
   return (
     <PageContainer
-      title="Invoice Details"
-      breadcrumb={{
-        routes: [
-          { href: '/submission-history', breadcrumbName: 'Submission History' },
-          { breadcrumbName: uuid },
-        ],
-      }}
+      title={
+        <>
+          <Breadcrumb style={{ fontWeight: 'normal', marginBottom: '16px' }}>
+            <Breadcrumb.Item>
+              <Link to="/submission-history">Submission History</Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>{uuid}</Breadcrumb.Item>
+          </Breadcrumb>
+          <div>Invoice Details</div>
+        </>
+      }
       extra={[
-        <Button
-          key="submit"
-          type="primary"
-          loading={downloadLoading}
-          onClick={() => generatePdfInvoice(invoiceData.uuid)}
-          icon={<DownloadOutlined />}
-        >
-          Download Invoice
-        </Button>,
+        invoiceData?.documentStatus === 'Valid' && (
+          <Button
+            key="submit"
+            type="primary"
+            loading={downloadLoading}
+            onClick={() => generatePdfInvoice(invoiceData.uuid)}
+            icon={<DownloadOutlined />}
+          >
+            Download Invoice
+          </Button>
+        ),
       ]}
     >
+      {documentDetails?.validationResults.status === 'Invalid' && (
+        <Alert
+          message="Document Validation Failed"
+          description="This document contains validation errors that need to be addressed."
+          type="error"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      <Card title="Invoice Summary" style={{ marginBottom: 24 }}>
+        <Row gutter={[24, 16]}>
+          <Col xs={24} md={16}>
+            <Descriptions
+              column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
+              size="small"
+              labelStyle={{ fontWeight: 500 }}
+            >
+              <Descriptions.Item label="Document Type">
+                {documentDetails?.typeName || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reference No.">
+                {invoiceData.invoiceNumber}
+              </Descriptions.Item>
+              <Descriptions.Item label="Status">
+                <Tag
+                  color={
+                    invoiceData.documentStatus === 'Valid'
+                      ? 'green'
+                      : invoiceData.documentStatus === 'Submitted'
+                        ? 'blue'
+                        : invoiceData.documentStatus === 'Invalid'
+                          ? 'red'
+                          : 'gray'
+                  }
+                >
+                  {invoiceData.documentStatus ?? '-'}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Issued Date">
+                {new Date(invoiceData.issueDate).toLocaleDateString()}
+              </Descriptions.Item>
+              <Descriptions.Item label="Currency">
+                {invoiceData.documentCurrencyCode}
+              </Descriptions.Item>
+              <Descriptions.Item label="Validation">
+                {documentDetails?.dateTimeValidated
+                  ? new Date(documentDetails.dateTimeValidated).toLocaleString()
+                  : '-'}
+              </Descriptions.Item>
+            </Descriptions>
+          </Col>
+
+          {!fetchDetailsLoading && (
+            <Col xs={24} md={8} style={{ display: 'flex', justifyContent: 'center' }}>
+              {invoiceData.documentStatus !== 'Submitted' && documentDetails?.longId ? (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <QRCode
+                    value={`${MY_INVOICE_BASE_URL}/${documentDetails.uuid}/share/${documentDetails.longId}`}
+                    size={150}
+                    iconSize={30}
+                  />
+                  <Typography.Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                    <ScanOutlined /> Scan to verify
+                  </Typography.Text>
+                  <Typography.Text copyable style={{ fontSize: 12 }}>
+                    ID: {documentDetails.longId}
+                  </Typography.Text>
+                </div>
+              ) : (
+                <Alert
+                  message="No Verification Code"
+                  description="This document cannot be verified electronically"
+                  type="warning"
+                  showIcon
+                />
+              )}
+            </Col>
+          )}
+        </Row>
+      </Card>
       <Row gutter={[24, 24]}>
         <Col span={24} lg={12}>
           <Card title="Supplier (From)">
@@ -223,6 +358,115 @@ const InvoiceDetail: React.FC = () => {
           </>
         ) : (
           <Empty description="No line items found" />
+        )}
+      </Card>
+      <Card
+        title="Validation Details"
+        style={{ marginTop: 24 }}
+        headStyle={{
+          backgroundColor:
+            documentDetails?.validationResults?.status === 'Invalid' ? '#fff1f0' : undefined,
+          borderBottomColor:
+            documentDetails?.validationResults?.status === 'Invalid' ? '#ffccc7' : undefined,
+        }}
+      >
+        {documentDetails?.validationResults ? (
+          <>
+            <Descriptions column={1} size="small">
+              <Descriptions.Item label="Overall Status">
+                <Tag color={documentDetails.validationResults.status === 'Valid' ? 'green' : 'red'}>
+                  {documentDetails.validationResults.status.toUpperCase()}
+                </Tag>
+                {documentDetails.validationResults.status === 'Invalid' && (
+                  <span style={{ color: '#ff4d4f', marginLeft: 8 }}>
+                    {
+                      documentDetails.validationResults.validationSteps.filter(
+                        (step) => step.status === 'Invalid',
+                      ).length
+                    }{' '}
+                    validation errors
+                  </span>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Document Type">
+                {documentDetails.typeName} ({documentDetails.typeVersionName})
+              </Descriptions.Item>
+              <Descriptions.Item label="Received">
+                {new Date(documentDetails.dateTimeReceived).toLocaleString()}
+              </Descriptions.Item>
+              <Descriptions.Item label="Validated">
+                {new Date(documentDetails.dateTimeValidated).toLocaleString()}
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Table
+              columns={[
+                {
+                  title: 'Validation Step',
+                  dataIndex: 'name',
+                  key: 'name',
+                  render: (name, record) => (
+                    <div style={{ fontWeight: record.status === 'Invalid' ? 600 : 'normal' }}>
+                      {name}
+                    </div>
+                  ),
+                },
+                {
+                  title: 'Status',
+                  dataIndex: 'status',
+                  key: 'status',
+                  render: (status) => (
+                    <Tag color={status === 'Valid' ? 'green' : 'red'}>{status.toUpperCase()}</Tag>
+                  ),
+                },
+                {
+                  title: 'Error Details',
+                  key: 'error',
+                  width: '40%',
+                  render: (_, record) =>
+                    record.error ? (
+                      <div style={{ color: '#ff4d4f' }}>
+                        {Object.entries(record.error)
+                          .filter(([key, value]) => value !== null && key !== 'details')
+                          .map(([key, value]) => (
+                            <div key={key} style={{ marginTop: key === 'error' ? 0 : 4 }}>
+                              <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong> {value}
+                            </div>
+                          ))}
+                        {record.error.details && (
+                          <div style={{ marginTop: 4 }}>
+                            <strong>Details:</strong>
+                            <pre
+                              style={{
+                                margin: '4px 0 0',
+                                padding: '8px',
+                                background: '#f5f5f5',
+                                borderRadius: '4px',
+                                overflowX: 'auto',
+                              }}
+                            >
+                              {JSON.stringify(record.error.details, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      '-'
+                    ),
+                },
+              ]}
+              dataSource={documentDetails.validationResults.validationSteps}
+              pagination={false}
+              size="small"
+              rowKey="name"
+              rowClassName={(record) => (record.status === 'Invalid' ? 'validation-error-row' : '')}
+              style={{
+                marginTop: 16,
+              }}
+            />
+          </>
+        ) : (
+          <Empty description="No validation details available" />
         )}
       </Card>
     </PageContainer>

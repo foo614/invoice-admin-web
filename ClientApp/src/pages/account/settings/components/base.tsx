@@ -128,7 +128,13 @@ const BaseView: React.FC = () => {
               marginBottom: 16,
             }}
           >
-            <h2>Profile</h2>
+            <h2
+              style={{
+                margin: 0,
+              }}
+            >
+              Profile
+            </h2>
             {!isEditMode && (
               <Button
                 type="primary"

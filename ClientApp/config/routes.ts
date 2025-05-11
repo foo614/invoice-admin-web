@@ -73,6 +73,7 @@
     name: 'account.settings',
     icon: 'setting',
     path: '/account',
+    access: 'canUser',
     component: './account/settings/index.tsx',
   },
   {

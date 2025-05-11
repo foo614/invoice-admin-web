@@ -1,6 +1,5 @@
-import InvoiceSubmission from '@/pages/invoice-submission';
 import { GridContent } from '@ant-design/pro-components';
-import { useModel, useRequest } from '@umijs/max';
+import { useModel } from '@umijs/max';
 import { Col, message, Modal, Row } from 'antd';
 import type { RangePickerProps } from 'antd/es/date-picker/generatePicker';
 import dayjs from 'dayjs';
@@ -13,6 +12,7 @@ import {
   getLhdnSubmissionRate,
   getSageSubmissionRate,
 } from '@/services/ant-design-pro/dashboardService';
+import SubmissionHistoryList from '@/pages/submission-history/submissionHistoryList';
 type RangePickerValue = RangePickerProps<dayjs.Dayjs>['value'];
 type AnalysisProps = {
   dashboardAndanalysis: AnalysisData;
@@ -136,7 +136,7 @@ const Analysis: FC<AnalysisProps> = () => {
           </Col>
         </Row>
         <Suspense fallback={null}>
-          <InvoiceSubmission />
+          <SubmissionHistoryList />
         </Suspense>
       </>
     </GridContent>

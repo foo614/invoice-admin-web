@@ -99,9 +99,16 @@ const Login: React.FC = () => {
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
         });
-        localStorage.setItem('currentUser', JSON.stringify(response.data.data));
+        const currentUser = response.data.data;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-        const isProfileComplete = await checkProfileComplete(values.email);
+        let isProfileComplete = false;
+        if (currentUser.roles.includes('Admin')) {
+          isProfileComplete = true;
+        } else {
+          isProfileComplete = await checkProfileComplete(values.email);
+        }
+
         localStorage.setItem('isProfileComplete', JSON.stringify(isProfileComplete));
         message.success(defaultLoginSuccessMessage);
         flushSync(() => {
