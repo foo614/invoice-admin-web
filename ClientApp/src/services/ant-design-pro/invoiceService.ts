@@ -74,6 +74,20 @@ export async function getClassificationCodes(options?: { [key: string]: any }) {
   });
 }
 
+// Get Msic Codes
+export async function getMsicCodes(options?: { [key: string]: any }) {
+  return httpClient.get('/v1/InvoiceApi/msic-codes', {
+    ...options,
+  });
+}
+
+// Get State Codes
+export async function getStateCodes(options?: { [key: string]: any }) {
+  return httpClient.get('/v1/InvoiceApi/state-codes', {
+    ...options,
+  });
+}
+
 // Get Recent Invoices
 export async function getRecentInvoices(params: any, options?: { [key: string]: any }) {
   return httpClient.get('/v1/InvoiceApi/recent', {

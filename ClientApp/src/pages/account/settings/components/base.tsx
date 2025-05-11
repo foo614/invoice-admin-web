@@ -2,10 +2,10 @@ import { getUserProfile, updateUserProfile } from '@/services/ant-design-pro/pro
 import { ProForm, ProFormSelect, ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
 import { Button, Card, Col, Form, message, Row } from 'antd';
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import useStyles from './index.style';
 import { EditOutlined } from '@ant-design/icons';
+import { getMsicCodes, getStateCodes } from '@/services/ant-design-pro/invoiceService';
 
 interface MSICOption {
   Code: string;
@@ -35,8 +35,8 @@ const BaseView: React.FC = () => {
   const fetchMsicOptions = async () => {
     setMsicLoading(true);
     try {
-      const response = await axios.get('/api/invoice/msiccodes');
-      setMsicOptions(response.data);
+      const response = await getMsicCodes();
+      setMsicOptions(response.data.data);
       setMsicLoading(false);
     } catch (error) {
       message.error('Failed to fetch MSIC options');
@@ -47,8 +47,8 @@ const BaseView: React.FC = () => {
   const fetchStateOptions = async () => {
     setStateLoading(true);
     try {
-      const response = await axios.get('/api/invoice/statecodes');
-      setStateOptions(response.data);
+      const response = await getStateCodes();
+      setStateOptions(response.data.data);
       setStateLoading(false);
     } catch (error) {
       message.error('Failed to fetch state options');
