@@ -123,6 +123,7 @@ export async function getInvoiceDocumentList(
     pageNumber?: number;
     pageSize?: number;
     status?: boolean;
+    documentStatus?: string;
     uuid?: string;
     issueDateFrom?: string;
     issueDateTo?: string;

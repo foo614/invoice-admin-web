@@ -15,14 +15,16 @@ const SubmissionHistoryList: React.FC = () => {
     issueDateFrom?: string;
     issueDateTo?: string;
     uuid?: string;
+    documentStatus?: string;
   }) => {
-    const { current, pageSize, issueDateFrom, issueDateTo, uuid } = params;
+    const { current, pageSize, issueDateFrom, issueDateTo, uuid, documentStatus } = params;
 
     try {
       const response = await getInvoiceDocumentList({
         pageNumber: current,
         pageSize: pageSize,
         status: true,
+        documentStatus: documentStatus,
         uuid,
         issueDateFrom,
         issueDateTo,
