@@ -1,3 +1,4 @@
+import { formatUtcToLocalDateTimeWithAmPm } from '@/helpers/dateFormatter';
 import { generateInvoice, getInvoiceDocumentList } from '@/services/ant-design-pro/invoiceService';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage, useNavigate } from '@umijs/max';
@@ -109,8 +110,8 @@ const SubmissionHistoryList: React.FC = () => {
       transform: (value: any) => {
         if (value && value.length === 2) {
           return {
-            issueDateFrom: dayjs(value[0]).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]'),
-            issueDateTo: dayjs(value[1]).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]'),
+            issueDateFrom: dayjs(value[0]).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ'),
+            issueDateTo: dayjs(value[1]).endOf('day').format('YYYY-MM-DDTHH:mm:ssZ'),
           };
         }
         return {};
@@ -199,7 +200,7 @@ const SubmissionHistoryList: React.FC = () => {
       valueType: 'date',
       search: false,
       render: (_: any, record: any) => {
-        return record.issueDate ? dayjs(record.issueDate).format('YYYY-MM-DD HH:mm:ss') : '';
+        return record.issueDate ? formatUtcToLocalDateTimeWithAmPm(record.issueDate) : '';
       },
     },
     {

@@ -23,6 +23,7 @@ import {
 } from '@/services/ant-design-pro/invoiceService';
 import { PageContainer } from '@ant-design/pro-components';
 import { DownloadOutlined, ScanOutlined } from '@ant-design/icons';
+import { formatUtcToLocalDateTimeWithAmPm } from '@/helpers/dateFormatter';
 
 const InvoiceDetail: React.FC = () => {
   const { uuid } = useParams<{ uuid: string }>();
@@ -202,14 +203,14 @@ const InvoiceDetail: React.FC = () => {
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Issued Date">
-                {new Date(invoiceData.issueDate).toLocaleDateString()}
+                {formatUtcToLocalDateTimeWithAmPm(invoiceData.issueDate)}
               </Descriptions.Item>
               <Descriptions.Item label="Currency">
                 {invoiceData.documentCurrencyCode}
               </Descriptions.Item>
               <Descriptions.Item label="Validation">
                 {documentDetails?.dateTimeValidated
-                  ? new Date(documentDetails.dateTimeValidated).toLocaleString()
+                  ? formatUtcToLocalDateTimeWithAmPm(documentDetails.dateTimeValidated)
                   : '-'}
               </Descriptions.Item>
             </Descriptions>
@@ -392,10 +393,10 @@ const InvoiceDetail: React.FC = () => {
                 {documentDetails.typeName} ({documentDetails.typeVersionName})
               </Descriptions.Item>
               <Descriptions.Item label="Received">
-                {new Date(documentDetails.dateTimeReceived).toLocaleString()}
+                {formatUtcToLocalDateTimeWithAmPm(documentDetails.dateTimeReceived)}
               </Descriptions.Item>
               <Descriptions.Item label="Validated">
-                {new Date(documentDetails.dateTimeValidated).toLocaleString()}
+                {formatUtcToLocalDateTimeWithAmPm(documentDetails.dateTimeValidated)}
               </Descriptions.Item>
             </Descriptions>
 
