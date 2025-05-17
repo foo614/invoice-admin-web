@@ -98,7 +98,14 @@ const Login: React.FC = () => {
         });
 
         const redirect = new URL(window.location.href).searchParams.get('redirect');
-        history.push(redirect || '/dashboard');
+        const basePath = '/web-portal';
+        let finalRedirect = redirect || '/dashboard';
+
+        if (finalRedirect.startsWith(basePath)) {
+          finalRedirect = finalRedirect.slice(basePath.length);
+        }
+
+        history.push(finalRedirect);
         return;
       }
 
