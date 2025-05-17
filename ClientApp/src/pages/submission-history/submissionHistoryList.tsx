@@ -80,7 +80,7 @@ const SubmissionHistoryList: React.FC = () => {
       render: (dom: any) => (
         <a
           onClick={async () => {
-            navigate(`/submission-history/${dom}`, { replace: true });
+            navigate(`/submission-history/${dom}`);
           }}
         >
           {dom}
