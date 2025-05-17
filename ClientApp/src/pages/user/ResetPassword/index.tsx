@@ -6,6 +6,7 @@ import { Button, message } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useEffect, useState } from 'react';
 import Settings from '../../../../config/defaultSettings';
+import NexKoalaLogo from '../../../../public/nex-icon.png';
 
 const useStyles = createStyles(({ token }) => {
   return {
@@ -93,11 +94,9 @@ const ResetPassword: React.FC = () => {
             minWidth: 280,
             maxWidth: '75vw',
           }}
-          logo={<img alt="logo" src="/logo.svg" />}
-          title="Nex Koala e-Invoice"
+          title={<img alt="logo" src={NexKoalaLogo} width={'190'} />}
           subTitle={intl.formatMessage({
             id: 'pages.resetPassword.subtitle',
-            defaultMessage: 'Enter your new password below',
           })}
           onFinish={async (values) => {
             await handleSubmit(values as { password: string; confirmPassword: string });

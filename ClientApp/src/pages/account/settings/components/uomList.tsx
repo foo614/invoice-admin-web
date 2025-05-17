@@ -1,4 +1,5 @@
 import { addUom, getUoms, removeUom, updateUom } from '@/services/ant-design-pro/uomService';
+import { PlusOutlined } from '@ant-design/icons';
 import {
   FooterToolbar,
   ModalForm,
@@ -151,7 +152,7 @@ const UomList = () => {
         }}
         search={false}
         toolBarRender={() => [
-          <Button key="add" type="primary" onClick={handleAdd}>
+          <Button key="add" type="primary" onClick={handleAdd} icon={<PlusOutlined />}>
             Add UOM
           </Button>,
         ]}

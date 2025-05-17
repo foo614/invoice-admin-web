@@ -74,6 +74,20 @@ export async function getClassificationCodes(options?: { [key: string]: any }) {
   });
 }
 
+// Get Msic Codes
+export async function getMsicCodes(options?: { [key: string]: any }) {
+  return httpClient.get('/v1/InvoiceApi/msic-codes', {
+    ...options,
+  });
+}
+
+// Get State Codes
+export async function getStateCodes(options?: { [key: string]: any }) {
+  return httpClient.get('/v1/InvoiceApi/state-codes', {
+    ...options,
+  });
+}
+
 // Get Recent Invoices
 export async function getRecentInvoices(params: any, options?: { [key: string]: any }) {
   return httpClient.get('/v1/InvoiceApi/recent', {
@@ -94,4 +108,27 @@ export async function generateInvoice(uuid: string, options?: { [key: string]: a
   return httpClient.get(`/invoice/${uuid}/generate-invoice`, {
     ...options,
   });
+}
+
+// Get Invoice Document By Uuid (from db)
+export async function getInvoiceDocumentByUuId(uuid: string, options?: { [key: string]: any }) {
+  return httpClient.get(`/v1/InvoiceApi/invoice-document/${uuid}`, {
+    ...options,
+  });
+}
+
+// Get Invoice Document List (from db)
+export async function getInvoiceDocumentList(
+  params: {
+    pageNumber?: number;
+    pageSize?: number;
+    status?: boolean;
+    documentStatus?: string;
+    uuid?: string;
+    issueDateFrom?: string;
+    issueDateTo?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return httpClient.get(`/v1/InvoiceApi/invoice-documents`, { params, ...options });
 }

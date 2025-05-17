@@ -23,7 +23,8 @@ namespace invoice_admin_web.Controllers
         public async Task<IActionResult> DynamicGet(string path, [FromQuery] Dictionary<string, string> queryParams)
         {
             // Build the target URL
-            var queryString = string.Join("&", queryParams.Select(q => $"{q.Key}={q.Value}"));
+            var queryString = string.Join("&", queryParams.Select(q =>
+                $"{Uri.EscapeDataString(q.Key)}={Uri.EscapeDataString(q.Value)}"));
             var targetUrl = string.IsNullOrEmpty(queryString)
                 ? $"{_baseUrl}/{path}"
                 : $"{_baseUrl}/{path}?{queryString}";
@@ -135,7 +136,8 @@ namespace invoice_admin_web.Controllers
         [HttpDelete("{*path}")]
         public async Task<IActionResult> DynamicDelete(string path, [FromQuery] Dictionary<string, string> queryParams)
         {
-            var queryString = string.Join("&", queryParams.Select(q => $"{q.Key}={q.Value}"));
+            var queryString = string.Join("&", queryParams.Select(q =>
+                $"{Uri.EscapeDataString(q.Key)}={Uri.EscapeDataString(q.Value)}"));
             var targetUrl = string.IsNullOrEmpty(queryString)
                 ? $"{_baseUrl}/{path}"
                 : $"{_baseUrl}/{path}?{queryString}";

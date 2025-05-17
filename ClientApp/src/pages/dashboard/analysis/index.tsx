@@ -1,17 +1,18 @@
-import InvoiceSubmission from '@/pages/invoice-submission';
 import { GridContent } from '@ant-design/pro-components';
-import { useRequest } from '@umijs/max';
-import { Col, Row } from 'antd';
+import { useModel } from '@umijs/max';
+import { Col, message, Modal, Row } from 'antd';
 import type { RangePickerProps } from 'antd/es/date-picker/generatePicker';
-import type dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import type { FC } from 'react';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import ProportionSales from './components/ProportionSales';
-import type { TimeType } from './components/SalesCard';
 import type { AnalysisData } from './data.d';
-import { fakeChartData } from './service';
-import useStyles from './style.style';
-import { getTimeDistance } from './utils/utils';
+import React from 'react';
+import {
+  getLhdnSubmissionRate,
+  getSageSubmissionRate,
+} from '@/services/ant-design-pro/dashboardService';
+import SubmissionHistoryList from '@/pages/submission-history/submissionHistoryList';
 type RangePickerValue = RangePickerProps<dayjs.Dayjs>['value'];
 type AnalysisProps = {
   dashboardAndanalysis: AnalysisData;
@@ -19,19 +20,19 @@ type AnalysisProps = {
 };
 
 const Analysis: FC<AnalysisProps> = () => {
-  const { styles } = useStyles();
-  const [rangePickerValue, setRangePickerValue] = useState<RangePickerValue>(
-    getTimeDistance('year'),
-  );
-  const [rangePickerValueSAGE, setRangePickerValueSAGE] = useState<RangePickerValue>();
-  const [rangePickerValueLHDN, setRangePickerValueLHDN] = useState<RangePickerValue>();
-  const { loading, data } = useRequest(fakeChartData);
-  const selectDate = (type: TimeType) => {
-    setRangePickerValue(getTimeDistance(type));
-  };
-  const handleRangePickerChange = (value: RangePickerValue) => {
-    setRangePickerValue(value);
-  };
+  const [rangePickerValueSAGE, setRangePickerValueSAGE] = useState<RangePickerProps['value']>([
+    dayjs().subtract(6, 'day'), // default latest 7 days
+    dayjs(),
+  ]);
+  const [rangePickerValueLHDN, setRangePickerValueLHDN] = useState<RangePickerProps['value']>([
+    dayjs().subtract(6, 'day'), // default latest 7 days
+    dayjs(),
+  ]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingLhdn, setLoadingLhdn] = useState<boolean>(false);
+  const [sageSubmissionRate, setSageSubmissionRate] = useState<API.SubmissionRateItem[]>([]);
+  const [lhdnSubmissionRate, setLhdnSubmissionRate] = useState<API.SubmissionRateItem[]>([]);
+
   const handleRangePickerLHDNChange = (value: RangePickerValue) => {
     setRangePickerValueLHDN(value);
   };
@@ -39,65 +40,106 @@ const Analysis: FC<AnalysisProps> = () => {
     setRangePickerValueSAGE(value);
   };
 
-  const isActive = (type: TimeType) => {
-    if (!rangePickerValue) {
-      return '';
+  const fetchSageSubmissionRate = async () => {
+    try {
+      setLoading(true);
+
+      const response = await getSageSubmissionRate({
+        startDate: rangePickerValueSAGE[0].format('YYYY-MM-DD'),
+        endDate: rangePickerValueSAGE[1].format('YYYY-MM-DD'),
+      });
+
+      setSageSubmissionRate(response?.data.data || []);
+    } catch (error) {
+      message.error('Failed to fetch sage submission rate.');
+    } finally {
+      setLoading(false);
     }
-    const value = getTimeDistance(type);
-    if (!value) {
-      return '';
-    }
-    if (!rangePickerValue[0] || !rangePickerValue[1]) {
-      return '';
-    }
-    if (
-      rangePickerValue[0].isSame(value[0] as dayjs.Dayjs, 'day') &&
-      rangePickerValue[1].isSame(value[1] as dayjs.Dayjs, 'day')
-    ) {
-      return styles.currentDate;
-    }
-    return '';
   };
 
+  useEffect(() => {
+    fetchSageSubmissionRate();
+  }, [rangePickerValueSAGE]);
+
+  const fetchLhdnSubmissionRate = async () => {
+    try {
+      setLoadingLhdn(true);
+
+      const response = await getLhdnSubmissionRate({
+        startDate: rangePickerValueSAGE[0].format('YYYY-MM-DD'),
+        endDate: rangePickerValueSAGE[1].format('YYYY-MM-DD'),
+      });
+
+      setLhdnSubmissionRate(response?.data.data || []);
+    } catch (error) {
+      message.error('Failed to fetch lhdn submission rate.');
+    } finally {
+      setLoadingLhdn(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLhdnSubmissionRate();
+  }, [rangePickerValueLHDN]);
+
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  useEffect(() => {
+    if (initialState && !initialState?.isProfileComplete && !currentUser?.roles.includes('Admin')) {
+      if (initialState.checkProfileCompleteFromLocalStorage!()) return;
+      Modal.info({
+        title: 'Welcome!',
+        content: (
+          <div>
+            <p>Welcome to Nex Koala! 🎉</p>
+            <p>Before you get started, please take a moment to complete your profile.</p>
+          </div>
+        ),
+        okText: 'Go to Profile',
+        onOk: () => {
+          window.location.href = '/account';
+        },
+      });
+    }
+  }, [initialState, currentUser]);
+
   return (
-    data && (
-      <GridContent>
-        <>
-          <Row
-            gutter={24}
-            style={{
-              marginBottom: 24,
-            }}
-          >
-            <Col xl={12} lg={24} md={24} sm={24} xs={24}>
-              <Suspense fallback={null}>
-                <ProportionSales
-                  rangePickerValue={rangePickerValueSAGE}
-                  loading={loading}
-                  salesPieData={data.invoiceSubmissionRateData || []}
-                  handleRangePickerChange={handleRangePickerLHDNChange}
-                  title={'SAGE Submission Rate'}
-                />
-              </Suspense>
-            </Col>
-            <Col xl={12} lg={24} md={24} sm={24} xs={24}>
-              <Suspense fallback={null}>
-                <ProportionSales
-                  rangePickerValue={rangePickerValueLHDN}
-                  loading={loading}
-                  salesPieData={data.lhdnSubmissionStatusData || []}
-                  handleRangePickerChange={handleRangePickerSAGEChange}
-                  title={'LHDN Submission Rate'}
-                />
-              </Suspense>
-            </Col>
-          </Row>
-          <Suspense fallback={null}>
-            <InvoiceSubmission />
-          </Suspense>
-        </>
-      </GridContent>
-    )
+    <GridContent>
+      <>
+        <Row
+          gutter={[24, 24]}
+          style={{
+            marginBottom: 24,
+          }}
+        >
+          <Col xl={12} lg={24} md={24} sm={24} xs={24}>
+            <Suspense fallback={null}>
+              <ProportionSales
+                rangePickerValue={rangePickerValueSAGE}
+                loading={loading}
+                salesPieData={sageSubmissionRate || []}
+                handleRangePickerChange={handleRangePickerSAGEChange}
+                title={'SAGE Submission Rate'}
+              />
+            </Suspense>
+          </Col>
+          <Col xl={12} lg={24} md={24} sm={24} xs={24}>
+            <Suspense fallback={null}>
+              <ProportionSales
+                rangePickerValue={rangePickerValueLHDN}
+                loading={loadingLhdn}
+                salesPieData={lhdnSubmissionRate || []}
+                handleRangePickerChange={handleRangePickerLHDNChange}
+                title={'LHDN Submission Rate'}
+              />
+            </Suspense>
+          </Col>
+        </Row>
+        <Suspense fallback={null}>
+          <SubmissionHistoryList />
+        </Suspense>
+      </>
+    </GridContent>
   );
 };
 export default Analysis;

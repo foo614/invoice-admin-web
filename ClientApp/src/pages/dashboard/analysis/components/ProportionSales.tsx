@@ -43,14 +43,14 @@ const ProportionSales = ({
           height={340}
           radius={0.8}
           innerRadius={0.5}
-          angleField="y"
-          colorField="x"
+          angleField="value"
+          colorField="label"
           data={salesPieData as any}
-          legend={false}
+          legend={true}
           label={{
             position: 'spider',
-            text: (item: { x: number; y: number }) => {
-              return `${item.x}: ${numeral(item.y).format('0,0')}`;
+            text: (item: { label: number; value: number }) => {
+              return `${item.label}: ${numeral(item.value).format('0,0')}`;
             },
           }}
         />
