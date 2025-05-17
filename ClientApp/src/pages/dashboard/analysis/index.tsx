@@ -1,18 +1,18 @@
+import SubmissionHistoryList from '@/pages/submission-history/submissionHistoryList';
+import {
+  getLhdnSubmissionRate,
+  getSageSubmissionRate,
+} from '@/services/ant-design-pro/dashboardService';
 import { GridContent } from '@ant-design/pro-components';
 import { useModel } from '@umijs/max';
 import { Col, message, Modal, Row } from 'antd';
 import type { RangePickerProps } from 'antd/es/date-picker/generatePicker';
 import dayjs from 'dayjs';
 import type { FC } from 'react';
-import { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
+import { history } from 'umi';
 import ProportionSales from './components/ProportionSales';
 import type { AnalysisData } from './data.d';
-import React from 'react';
-import {
-  getLhdnSubmissionRate,
-  getSageSubmissionRate,
-} from '@/services/ant-design-pro/dashboardService';
-import SubmissionHistoryList from '@/pages/submission-history/submissionHistoryList';
 type RangePickerValue = RangePickerProps<dayjs.Dayjs>['value'];
 type AnalysisProps = {
   dashboardAndanalysis: AnalysisData;
@@ -97,7 +97,7 @@ const Analysis: FC<AnalysisProps> = () => {
         ),
         okText: 'Go to Profile',
         onOk: () => {
-          window.location.href = '/account';
+          history.push('/account');
         },
       });
     }

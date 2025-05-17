@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import { history } from 'umi';
 import { refreshJWToken } from './ant-design-pro/authService';
 
 // Track if we're already refreshing to prevent multiple concurrent refreshes
@@ -103,8 +104,7 @@ httpClient.interceptors.response.use(
 
         localStorage.removeItem('currentUser');
         message.error('Session expired. Please log in again.');
-        window.location.href =
-          (process.env.NODE_ENV !== 'development' ? '/web-portal' : '') + '/user/login';
+        history.push('/user/login');
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
