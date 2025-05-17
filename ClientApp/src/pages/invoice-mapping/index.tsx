@@ -6,12 +6,13 @@ import { Button, Drawer, List, message, Modal, Select, Space } from 'antd';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import React, { useEffect, useRef, useState } from 'react';
-import { InvoiceData } from './utils/invoiceData';
+import { history } from 'umi';
 import { buildInvoicePayload } from './utils/buildInvoicePayload';
-import { calculateDueDate, calculateTotalInvoiceValue } from './utils/invoiceHelperFunctions';
-import { fetchDataBasedOnInvoiceType, fetchUserProfile } from './utils/useInvoiceData';
-import { renderProDescriptions } from './utils/proDescriptions';
 import { getInvoiceColumns } from './utils/columns';
+import { InvoiceData } from './utils/invoiceData';
+import { calculateDueDate, calculateTotalInvoiceValue } from './utils/invoiceHelperFunctions';
+import { renderProDescriptions } from './utils/proDescriptions';
+import { fetchDataBasedOnInvoiceType, fetchUserProfile } from './utils/useInvoiceData';
 
 dayjs.extend(customParseFormat);
 
@@ -64,7 +65,7 @@ const InvoiceSubmission: React.FC = () => {
               title: 'Incomplete Profile',
               content: 'Please configure your profile before submission.',
               onOk: () => {
-                window.location.href = '/account';
+                history.push('/account');
               },
             });
             return;
