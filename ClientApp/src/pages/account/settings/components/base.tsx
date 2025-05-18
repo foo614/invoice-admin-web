@@ -12,8 +12,8 @@ interface MSICOption {
 }
 
 interface StateOption {
-  Code: string;
-  State: string;
+  code: string;
+  state: string;
 }
 
 const BaseView: React.FC = () => {
@@ -111,8 +111,8 @@ const BaseView: React.FC = () => {
 
   const getStateSelectOptions = () =>
     stateOptions.map((option) => ({
-      label: option.State,
-      value: option.Code,
+      label: option.state,
+      value: option.code,
     }));
 
   return (
