@@ -105,7 +105,7 @@ export async function getDocumentDetails(uuid: string, options?: { [key: string]
 
 // Generate invoice
 export async function generateInvoice(uuid: string, options?: { [key: string]: any }) {
-  return httpClient.get(`/invoice/${uuid}/generate-invoice`, {
+  return httpClient.get(`/v1/InvoiceApi/${uuid}/generate-invoice`, {
     ...options,
   });
 }
