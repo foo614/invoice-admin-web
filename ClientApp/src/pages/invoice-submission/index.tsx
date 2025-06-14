@@ -5,9 +5,10 @@ import {
 } from '@/services/ant-design-pro/invoiceService';
 import { ProDescriptions, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage } from '@umijs/max';
-import { Button, Drawer, message, QRCode } from 'antd';
+import { Button, Drawer, message, QRCode, Tooltip } from 'antd';
 import React, { useRef, useState } from 'react';
 import dayjs from 'dayjs';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 
 // Types for API response and records
 interface InvoiceRecord {
@@ -373,7 +374,14 @@ const InvoiceSubmission: React.FC = () => {
   return (
     <>
       <ProTable
-        headerTitle="Recent E-Invoice Transactions"
+        headerTitle={
+          <span>
+            Recent E-Invoice Transactions{' '}
+            <Tooltip title="LHDN data retention 30 days">
+              <QuestionCircleOutlined style={{ color: '#999', marginLeft: 8 }} />
+            </Tooltip>
+          </span>
+        }
         actionRef={actionRef}
         rowKey="uuid"
         request={async (params) => {
