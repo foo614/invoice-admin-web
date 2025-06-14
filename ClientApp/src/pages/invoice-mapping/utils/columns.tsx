@@ -37,8 +37,27 @@ export const getInvoiceColumns = (
     },
     {
       title: 'Invoice Date',
+      hideInSearch: true,
       dataIndex: isSalesInvoice ? 'invdate' : isCreditDebitNoteInvoice ? 'crddate' : 'date',
       render: (date) => dayjs(date?.toString(), 'YYYYMMDD').format('YYYY-MM-DD'),
+    },
+    {
+      title: 'Invoice Date Range',
+      valueType: 'dateRange',
+      hideInTable: true,
+      dataIndex: 'invoiceDateRange',
+      fieldProps: {
+        format: 'YYYY-MM-DD',
+      },
+      transform: (value: any) => {
+        if (value && value.length === 2) {
+          return {
+            invoiceDateFrom: dayjs(value[0]).format('YYYYMMDD'),
+            invoiceDateTo: dayjs(value[1]).format('YYYYMMDD'),
+          };
+        }
+        return {};
+      },
     },
     {
       title: 'Currency',
