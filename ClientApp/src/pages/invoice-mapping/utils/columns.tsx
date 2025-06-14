@@ -30,7 +30,7 @@ export const getInvoiceColumns = (
         </a>
       ),
     },
-    { title: 'e-Invoice Code', dataIndex: 'uuid' },
+    { title: 'e-Invoice Code', dataIndex: 'uuid', hideInTable: true, hideInSearch: true },
     {
       title: isPurchaseInvoice || isPurchaseCreditDebitNoteInvoice ? 'Supplier Name' : 'Buyer Name',
       dataIndex: isPurchaseInvoice || isPurchaseCreditDebitNoteInvoice ? 'vdname' : 'bilname',
@@ -42,6 +42,7 @@ export const getInvoiceColumns = (
     },
     {
       title: 'Currency',
+      hideInSearch: true,
       dataIndex: isSalesInvoice
         ? 'insourcurr'
         : isCreditDebitNoteInvoice
@@ -50,6 +51,7 @@ export const getInvoiceColumns = (
     },
     {
       title: 'Total Payable Amount',
+      hideInSearch: true,
       dataIndex: isSalesInvoice ? 'invnetwtx' : isCreditDebitNoteInvoice ? 'crdnetwtx' : 'scamount',
       render: (_, record) => {
         const amount = isPurchaseInvoice
