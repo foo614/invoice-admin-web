@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import React, { useState } from 'react';
 
 const SubmissionHistoryList: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const [loadingIds, setLoadingIds] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const fetchInvoiceDocuments = async (params: {
@@ -48,8 +48,6 @@ const SubmissionHistoryList: React.FC = () => {
   };
 
   const generatePdfInvoice = async (uuid: string) => {
-    setLoading(true);
-
     try {
       const response = await generateInvoice(uuid, {
         responseType: 'blob',
@@ -67,8 +65,15 @@ const SubmissionHistoryList: React.FC = () => {
       message.success('Invoice generated successfully.');
     } catch (error) {
       message.error('Failed to generate invoice.');
+    }
+  };
+
+  const handleDownload = async (id: string) => {
+    setLoadingIds((prev) => [...prev, id]);
+    try {
+      await generatePdfInvoice(id);
     } finally {
-      setLoading(false);
+      setLoadingIds((prev) => prev.filter((itemId) => itemId !== id));
     }
   };
 
@@ -212,7 +217,7 @@ const SubmissionHistoryList: React.FC = () => {
       render: (_: any, record: any) =>
         [
           record.documentStatus === 'Valid' && (
-            <Button key="submit" loading={loading} onClick={() => generatePdfInvoice(record.uuid)}>
+            <Button key="submit" loading={loadingIds.includes(record.uuid)} onClick={() => handleDownload(record.uuid)}>
               PDF
             </Button>
           ),
