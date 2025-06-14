@@ -211,17 +211,29 @@ const SubmissionHistoryList: React.FC = () => {
     {
       title: 'Actions',
       key: 'action',
-      width: 80,
+      width: 150,
       fixed: 'right',
       search: false,
-      render: (_: any, record: any) =>
-        [
-          record.documentStatus === 'Valid' && (
-            <Button key="submit" loading={loadingIds.includes(record.uuid)} onClick={() => handleDownload(record.uuid)}>
+      render: (_: any, record: any) => (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button
+            key="view"
+            type="primary"
+            onClick={() => navigate(`/submission-history/${record.uuid}`)}
+          >
+            View Details
+          </Button>
+          {record.documentStatus === 'Valid' && (
+            <Button
+              key="pdf"
+              loading={loadingIds.includes(record.uuid)}
+              onClick={() => handleDownload(record.uuid)}
+            >
               PDF
             </Button>
-          ),
-        ].filter(Boolean),
+          )}
+        </div>
+      ),
     },
   ];
 
