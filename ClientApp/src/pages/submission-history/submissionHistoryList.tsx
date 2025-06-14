@@ -1,13 +1,18 @@
 import { formatUtcToLocalDateTimeWithAmPm } from '@/helpers/dateFormatter';
-import { generateInvoice, getInvoiceDocumentList } from '@/services/ant-design-pro/invoiceService';
+import { exportInvoiceSubmissionHistory, generateInvoice, getInvoiceDocumentList } from '@/services/ant-design-pro/invoiceService';
 import { ProColumns, ProTable } from '@ant-design/pro-components';
 import { FormattedMessage, useNavigate } from '@umijs/max';
-import { Button, message } from 'antd';
+import { Button, message, Modal, Form, DatePicker, Select } from 'antd';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
 
+const { RangePicker } = DatePicker;
+
 const SubmissionHistoryList: React.FC = () => {
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
+  const [exportLoading, setExportLoading] = useState<boolean>(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportForm] = Form.useForm();
   const navigate = useNavigate();
 
   const fetchInvoiceDocuments = async (params: {
@@ -74,6 +79,41 @@ const SubmissionHistoryList: React.FC = () => {
       await generatePdfInvoice(id);
     } finally {
       setLoadingIds((prev) => prev.filter((itemId) => itemId !== id));
+    }
+  };
+
+  const handleExportExcel = async (filters?: any) => {
+    setExportLoading(true);
+    try {
+      const params: any = {};
+      if (filters) {
+        if (filters.issueDateRange) {
+          params.issueDateFrom = dayjs(filters.issueDateRange[0]).startOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+          params.issueDateTo = dayjs(filters.issueDateRange[1]).endOf('day').format('YYYY-MM-DDTHH:mm:ssZ');
+        }
+        if (filters.documentStatus) {
+          params.documentStatus = filters.documentStatus;
+        }
+      }
+      const response = await exportInvoiceSubmissionHistory(params, {
+        responseType: 'blob',
+      });
+
+      const timestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+      const url = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice_submission_history_${timestamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      message.success('Submission history exported successfully.');
+    } catch (error) {
+      message.error('Failed to export submission history.');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -238,32 +278,68 @@ const SubmissionHistoryList: React.FC = () => {
   ];
 
   return (
-    <ProTable<API.InvoiceDocument>
-      columns={columns}
-      request={async (params) => {
-        const response = await fetchInvoiceDocuments(params);
-        return {
-          data: response.data,
-          success: response.success,
-          total: response.total,
-        };
-      }}
-      scroll={{ x: 'max-content' }}
-      rowKey="uuid"
-      search={{
-        labelWidth: 'auto',
-      }}
-      pagination={{
-        pageSize: 10,
-      }}
-      dateFormatter="string"
-      headerTitle="E-Invoice Transactions"
-      toolBarRender={() => [
-        <Button key="primary">
-          <FormattedMessage id="pages.invoice.export" />
-        </Button>,
-      ]}
-    />
+    <>
+      <ProTable<API.InvoiceDocument>
+        columns={columns}
+        request={async (params) => {
+          const response = await fetchInvoiceDocuments(params);
+          return {
+            data: response.data,
+            success: response.success,
+            total: response.total,
+          };
+        }}
+        scroll={{ x: 'max-content' }}
+        rowKey="uuid"
+        search={{
+          labelWidth: 'auto',
+        }}
+        pagination={{
+          pageSize: 10,
+        }}
+        dateFormatter="string"
+        headerTitle="E-Invoice Transactions"
+        toolBarRender={() => [
+          <Button key="primary" onClick={() => setExportModalVisible(true)}>
+            <FormattedMessage id="pages.invoice.export" />
+          </Button>,
+        ]}
+      />
+      <Modal
+        title="Export Submission History"
+        open={exportModalVisible}
+        onCancel={() => {
+          setExportModalVisible(false);
+          exportForm.resetFields();
+        }}
+        onOk={async () => {
+          try {
+            const values = await exportForm.validateFields();
+            setExportModalVisible(false);
+            handleExportExcel(values);
+          } catch {
+            // validation error
+          }
+        }}
+        confirmLoading={exportLoading}
+        okText="Export"
+        destroyOnClose
+      >
+        <Form form={exportForm} layout="vertical">
+          <Form.Item label="Issue Date Range" name="issueDateRange">
+            <RangePicker format="YYYY-MM-DD" />
+          </Form.Item>
+          <Form.Item label="Status" name="documentStatus">
+            <Select allowClear placeholder="Select Status">
+              <Select.Option value="Valid">Valid</Select.Option>
+              <Select.Option value="Invalid">Invalid</Select.Option>
+              <Select.Option value="Cancelled">Cancelled</Select.Option>
+              <Select.Option value="Submitted">Submitted</Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 };
 

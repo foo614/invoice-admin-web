@@ -132,3 +132,17 @@ export async function getInvoiceDocumentList(
 ) {
   return httpClient.get(`/v1/InvoiceApi/invoice-documents`, { params, ...options });
 }
+
+// Export invoice submission history
+export async function exportInvoiceSubmissionHistory(params: {
+  status?: boolean;
+  documentStatus?: string;
+  uuid?: string;
+  issueDateFrom?: string;
+  issueDateTo?: string;
+}, options?: { [key: string]: any }) {
+  return httpClient.get(`/v1/InvoiceApi/export-submission-history`, {
+    params,
+    ...options,
+  });
+}
