@@ -154,18 +154,25 @@ const InvoiceSubmission: React.FC = () => {
         }}
         search={{ labelWidth: 'auto' }}
         dataSource={tableData.data}
+        request={async (params, sorter, filter) => {
+          return await fetchDataBasedOnInvoiceType({
+            type: selectedInvoiceType,
+            page: params.current,
+            pageSize: params.pageSize,
+            searchParams: {
+              invoiceNumber: params.invnumber,
+              buyerName: params.bilname,
+              supplierName: params.vdname,
+              invoiceDateFrom: params.invoiceDateFrom,
+              invoiceDateTo: params.invoiceDateTo,
+            },
+            setLoading,
+            setTableData,
+          });
+        }}
         pagination={{
-          total: tableData.total,
           showSizeChanger: true,
           showQuickJumper: true,
-          onChange: (page, pageSize) =>
-            fetchDataBasedOnInvoiceType({
-              type: selectedInvoiceType,
-              page,
-              pageSize,
-              setLoading,
-              setTableData,
-            }),
         }}
         loading={loading}
         columns={columns}
