@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy (Docker)
 
 on:
   push:
@@ -6,108 +6,39 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '8.0.x'
-  NODE_VERSION: '20.x'
-  APP_DIR: '/nex-koala/web'
-  WWWROOT_DIR: 'wwwroot'
-  CLIENT_DIR: 'ClientApp'
-  
+  IMAGE_NAME: nex-koala-web
+  TARBALL_NAME: nex-koala-web.tar
+  CONTAINER_NAME: nex-koala-web
+  TARGET_PORT: 8081
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
 
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
-
-    - name: Build .NET
+    - name: Build Docker Image
       run: |
-        dotnet restore
-        dotnet build -c Release
-        # Clean previous publish directory
-        rm -rf ./publish
-        # Publish directly to publish directory
-        dotnet publish -c Release -o ./publish
+        docker build -t ${{ env.IMAGE_NAME }} .
 
-    - name: Cache Node Modules
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.CLIENT_DIR }}/node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Build React
+    - name: Save Docker Image to Tar
       run: |
-        npm i
-        npm run build
-        # Move React build to publish directory
-        mv dist/ ../publish/wwwroot/
-      working-directory: ${{ env.CLIENT_DIR }}
+        docker save ${{ env.IMAGE_NAME }} -o ${{ env.TARBALL_NAME }}
 
-    - name: Verify Artifact Contents
-      run: |
-        ls -la publish/
-        [ -f publish/invoice-admin-web.dll ] || exit 1
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: nex-koala-package
-        path: ./publish
-        retention-days: 1
-
-  deploy:
-    needs: [build]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: nex-koala-package
-        path: publish
-
-    - name: Prepare Server Directory
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT }}
-        script: |
-          sudo mkdir -p ${{ env.APP_DIR }}
-          sudo chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} ${{ env.APP_DIR }}
-          sudo rm -rf ${{ env.APP_DIR }}/*
-
-    - name: Deploy Application Files
+    - name: Copy Image to Server
       uses: appleboy/scp-action@v0.1.6
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
-        source: "publish/*"  # Deploy from publish directory
-        target: ${{ env.APP_DIR }}
+        source: ${{ env.TARBALL_NAME }}
+        target: /tmp/
         overwrite: true
 
-    - name: Restart Application Service
+    - name: Load and Run Container on Server
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.SSH_HOST }}
@@ -115,5 +46,10 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          sudo systemctl restart invoice-web.service
-          sudo systemctl status invoice-web.service
+          docker rm -f ${{ env.CONTAINER_NAME }} || true
+          docker load -i /tmp/${{ env.TARBALL_NAME }}
+          docker run -d \
+            --name ${{ env.CONTAINER_NAME }} \
+            -p ${{ env.TARGET_PORT }}:80 \
+            --restart always \
+            ${{ env.IMAGE_NAME }}
