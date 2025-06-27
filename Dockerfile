@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y curl gnupg && \
     apt-get install -y nodejs && \
     npm install && npm run build
 
-RUN cp -r dist/* /out/wwwroot/
+RUN mkdir -p /out/wwwroot && cp -r dist/* /out/wwwroot/
 
 # 2. Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
