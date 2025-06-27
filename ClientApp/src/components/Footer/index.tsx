@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
       style={{
         background: 'none',
       }}
-      copyright="Nex Koala Sdn Bhd"
+      copyright="Nex Koala"
     />
   );
 };

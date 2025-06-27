@@ -105,7 +105,7 @@ export async function getDocumentDetails(uuid: string, options?: { [key: string]
 
 // Generate invoice
 export async function generateInvoice(uuid: string, options?: { [key: string]: any }) {
-  return httpClient.get(`/invoice/${uuid}/generate-invoice`, {
+  return httpClient.get(`/v1/InvoiceApi/${uuid}/generate-invoice`, {
     ...options,
   });
 }
@@ -131,4 +131,18 @@ export async function getInvoiceDocumentList(
   options?: { [key: string]: any },
 ) {
   return httpClient.get(`/v1/InvoiceApi/invoice-documents`, { params, ...options });
+}
+
+// Export invoice submission history
+export async function exportInvoiceSubmissionHistory(params: {
+  status?: boolean;
+  documentStatus?: string;
+  uuid?: string;
+  issueDateFrom?: string;
+  issueDateTo?: string;
+}, options?: { [key: string]: any }) {
+  return httpClient.get(`/v1/InvoiceApi/export-submission-history`, {
+    params,
+    ...options,
+  });
 }

@@ -336,4 +336,17 @@ declare namespace API {
       validationSteps: ValidationStep[];
     };
   }
+
+  type AuditTrails = {
+    id: string;
+    userId: string;
+    userName: string;
+    operation: string;
+    entity: string;
+    dateTime: string | null;
+    previousValues: string | null;
+    newValues: string | null;
+    modifiedProperties: string | null;
+    primaryKey: string | null;
+  };
 }
