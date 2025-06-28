@@ -1,28 +1,17 @@
-# 1. Build stage for .NET + Frontend
+# 1. Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy everything
 COPY . .
 
-# Restore & publish .NET backend
-RUN dotnet restore Invoice.Admin.Web.csproj
-RUN dotnet publish Invoice.Admin.Web.csproj -c Release -o /out
+# ✅ Use the correct csproj filename (all lowercase with dashes)
+RUN dotnet restore invoice-admin-web.csproj
+RUN dotnet publish invoice-admin-web.csproj -c Release -o /out
 
-# Install Node.js + build Ant Design Pro frontend
-WORKDIR /app/ClientApp
-RUN apt-get update && apt-get install -y curl gnupg && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install && npm run build
-
-# Copy frontend output into wwwroot
-RUN mkdir -p /out/wwwroot/web-portal && cp -r dist/* /out/wwwroot/web-portal/
-
-# 2. Final runtime stage
+# 2. Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-
 COPY --from=build /out .
 
-ENTRYPOINT ["dotnet", "Invoice.Admin.Web.dll"]
+# ✅ Also update DLL name to match output
+ENTRYPOINT ["dotnet", "invoice-admin-web.dll"]
