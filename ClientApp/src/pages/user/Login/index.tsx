@@ -111,7 +111,7 @@ const Login: React.FC = () => {
 
       setUserLoginState(res.data.data);
     } catch (err) {
-      message.error(intl.formatMessage({ id: 'pages.login.failure' }));
+      // message.error(intl.formatMessage({ id: 'pages.login.failure' }));
     } finally {
       setSubmitLoading(false);
     }
