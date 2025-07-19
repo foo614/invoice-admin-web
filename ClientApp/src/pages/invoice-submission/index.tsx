@@ -377,7 +377,7 @@ const InvoiceSubmission: React.FC = () => {
         headerTitle={
           <span>
             Recent E-Invoice Transactions{' '}
-            <Tooltip title="LHDN data retention 30 days">
+            <Tooltip title="LHDN data retention 10 days">
               <QuestionCircleOutlined style={{ color: '#999', marginLeft: 8 }} />
             </Tooltip>
           </span>
