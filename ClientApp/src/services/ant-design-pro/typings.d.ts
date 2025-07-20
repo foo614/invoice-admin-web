@@ -264,7 +264,9 @@ declare namespace API {
     taxTourismRegistrationNumber: string;
     msicCode: string;
     businessActivityDescription: string;
-    address: string;
+    address1: string;
+    address2: string;
+    address3: string;
     email: string;
     contactNumber: string;
     city: string;
@@ -277,7 +279,9 @@ declare namespace API {
     name: string;
     tin: string;
     brn: string;
-    address: string;
+    address1: string;
+    address2: string;
+    address3: string;
     city: string;
     postalCode: string;
     countryCode: string;
