@@ -1,7 +1,7 @@
-import type { RangePickerProps } from 'antd/es/date-picker/generatePicker';
+import type { PickerProps } from 'antd/es/date-picker/generatePicker';
 import dayjs from 'dayjs';
 
-type RangePickerValue = RangePickerProps<dayjs.Dayjs>['value'];
+type RangePickerValue = PickerProps<dayjs.Dayjs>['value'];
 
 export function fixedZero(val: number) {
   return val * 1 < 10 ? `0${val}` : val;
@@ -49,18 +49,4 @@ export function getTimeDistance(type: 'today' | 'week' | 'month' | 'year'): Rang
   }
 
   return [dayjs(`${year}-01-01 00:00:00`), dayjs(`${year}-12-31 23:59:59`)];
-}
-
-export const formatAddress = (
-  address1?: string,
-  address2?: string,
-  address3?: string,
-  postalCode?: string,
-  city?: string
-): string => {
-  const parts = [address1, address2, address3, postalCode, city]
-    .filter((p) => p && p.trim().length > 0)
-    .map((p) => p!.trim().replace(/,+$/, ''));
-
-  return parts.join(', ');
 }

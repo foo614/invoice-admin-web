@@ -163,6 +163,7 @@ declare namespace API {
     id: string;
     qty: number;
     unit: string;
+    classificationCode: string;
     subtotal: number;
     description: string;
     unitPrice: number;
@@ -207,7 +208,9 @@ declare namespace API {
 
     // Customer
     customerTIN: string;
+    customerIdType: string;
     customerBRN: string;
+    customerSST: string;
     customerCity: string;
     customerPostalCode: string;
     customerCountrySubentityCode: string;
@@ -271,6 +274,7 @@ declare namespace API {
     contactNumber: string;
     city: string;
     postalCode: string;
+    state: string;
     countryCode: string;
   };
 
@@ -278,12 +282,15 @@ declare namespace API {
     id: string;
     name: string;
     tin: string;
+    idType: string;
     brn: string;
+    sstRegistrationNumber: string;
     address1: string;
     address2: string;
     address3: string;
     city: string;
     postalCode: string;
+    state: string;
     countryCode: string;
     email: string;
     contactNumber: string;
@@ -353,4 +360,52 @@ declare namespace API {
     modifiedProperties: string | null;
     primaryKey: string | null;
   };
+
+  type InvoiceType = {
+    code: string;
+    label: string;
+  };
+
+  type SellerUOM = {
+    id: number;
+    code: string;
+    description: string;
+  }
+  type LhdnUOM = {
+    code: string;
+    name: string;
+  }
+
+  type UomMapping = {
+    id: string;
+    lhdnUomCode?: string;
+    uomId: number;
+  }
+
+  type LhdnClassification = {
+    code: string;
+    description: string;
+  }
+
+  type LocalClassification = {
+    id: number;
+    code: string;
+    description: string;
+  }
+
+  type ClassificationMapping = {
+    id: string;
+    lhdnClassificationCode?: string;
+    classificationId: number;
+  }
+
+  type MSICOption = {
+    code: string;
+    description: string;
+  }
+
+  type StateOption = {
+    code: string;
+    state: string;
+  }
 }

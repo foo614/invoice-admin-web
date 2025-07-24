@@ -7,7 +7,6 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
 import { Button, Form, message, Modal } from 'antd';
 import React, { useRef, useState } from 'react';
 
@@ -19,8 +18,6 @@ type Uom = {
 };
 
 const UomList = () => {
-  const { initialState } = useModel('@@initialState');
-  const { currentUser } = initialState || {};
   const actionRef = useRef();
   const [selectedRowsState, setSelectedRowsState] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -34,7 +31,6 @@ const UomList = () => {
       const response = await getUoms({
         pageNumber: params.pageNumber,
         pageSize: params.pageSize,
-        userId: currentUser?.id,
       });
 
       setUomList(response?.data.data || []);
@@ -86,7 +82,6 @@ const UomList = () => {
     } else {
       await addUom({
         ...values,
-        userId: currentUser?.id,
       });
     }
     setEditUom(null);

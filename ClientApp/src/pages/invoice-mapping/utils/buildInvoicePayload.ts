@@ -6,7 +6,7 @@ const mapSalesInvoice = (
   erpData: InvoiceData,
   profileData: API.ProfileItem,
 ) => {
-  const itemList = erpData.orderEntryDetails.map((item, index) => ({
+  const itemList: API.InvoiceItemRequest[] = erpData.orderEntryDetails!.map((item, index) => ({
     id: item.invuniq.toString(),
     qty: item.qtyshipped,
     unit: item.invunit,
@@ -16,20 +16,21 @@ const mapSalesInvoice = (
     taxAmount: item.tamounT1,
     taxableAmount: item.extinvmisc,
     taxPercent: item.tratE1,
+    classificationCode: '', // manually map by user
   }));
 
   let requestBody: API.SubmitInvoiceRequest = {
-    irn: erpData.invnumber,
+    irn: erpData.invnumber!,
     issueDate: '', // current date
     issueTime: '', // current time
     invoiceTypeCode: selectedInvoiceType,
-    currencyCode: erpData.insourcurr,
+    currencyCode: erpData.insourcurr ?? "MYR",
     startDate: '', // optional
     endDate: '', // optional
     invoicePeriodDescription: '',
 
-    billingReferenceID: erpData.invnumber,
-    additionalDocumentReferenceID: '',
+    billingReferenceID: '',
+    additionalDocumentReferenceID: erpData.reference ?? '',
 
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode,
@@ -50,25 +51,27 @@ const mapSalesInvoice = (
     supplierTelephone: profileData.phone,
     supplierEmail: profileData.email,
 
-    customerTIN: erpData.customerTIN,
-    customerBRN: erpData.customerBRN,
+    customerTIN: erpData.customerTIN ?? '',
+    customerIdType: "NRIC", // temp
+    customerBRN: erpData.customerBRN ?? '',
+    customerSST: 'NA',
     customerCity: erpData.bilcity ?? '',
     customerPostalCode: erpData.bilzip ?? '',
-    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
+    customerCountrySubentityCode: erpData.bilstate ?? '17',
     customerAddressLine1: erpData.biladdR1!,
     customerAddressLine2: erpData.biladdR2 ?? '',
     customerAddressLine3: erpData.biladdR3 ?? '',
     customerCountryCode: getIsoCountryCode(erpData.bilcountry),
     customerName: erpData.bilname!,
-    customerTelephone: erpData.bilphone,
+    customerTelephone: erpData.bilphone ?? '',
     customerEmail: erpData.bilemail ?? '',
 
-    totalPayableAmount: erpData.invnetwtx,
+    totalPayableAmount: erpData.invnetwtx ?? 0,
 
     itemList,
 
-    taxableAmount: erpData.invnetnotx,
-    taxAmount: Math.max(erpData.invitaxtot - erpData.invnetnotx, 0),
+    taxableAmount: erpData.invnetnotx ?? 0,
+    taxAmount: Math.max((erpData.invitaxtot ?? 0) - (erpData.invnetnotx ?? 0), 0),
     totalExcludingTax: erpData.invnetnotx ?? 0,
     totalIncludingTax: erpData.invitaxtot ?? 0,
   };
@@ -81,7 +84,7 @@ const mapCreditNoteInvoice = (
   erpData: InvoiceData,
   profileData: API.ProfileItem,
 ) => {
-  const itemList = erpData.orderCreditDebitDetails.map((item, index) => ({
+  const itemList: API.InvoiceItemRequest[] = erpData.orderCreditDebitDetails!.map((item, index) => ({
     id: item.crduniq.toString(),
     qty: item.qtyreturn,
     unit: item.crdunit,
@@ -91,20 +94,21 @@ const mapCreditNoteInvoice = (
     taxAmount: item.tamounT1,
     taxableAmount: item.extcrdmisc,
     taxPercent: item.tratE1,
+    classificationCode: '', // manually map by user
   }));
 
   let requestBody: API.SubmitInvoiceRequest = {
-    irn: erpData.invnumber,
+    irn: erpData.invnumber!,
     issueDate: '', // current date
     issueTime: '', // current time
     invoiceTypeCode: selectedInvoiceType,
-    currencyCode: erpData.crsourcurr,
+    currencyCode: erpData.crsourcurr ?? 'MYR',
     startDate: '', // optional
     endDate: '', // optional
     invoicePeriodDescription: '',
 
-    billingReferenceID: erpData.invnumber,
-    additionalDocumentReferenceID: '',
+    billingReferenceID: '',
+    additionalDocumentReferenceID: erpData.reference ?? '',
 
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode,
@@ -125,17 +129,19 @@ const mapCreditNoteInvoice = (
     supplierTelephone: profileData.phone,
     supplierEmail: profileData.email,
 
-    customerTIN: erpData.customerTIN,
-    customerBRN: erpData.customerBRN,
+    customerTIN: erpData.customerTIN ?? '',
+    customerIdType: "NRIC", // temp
+    customerBRN: erpData.customerBRN ?? '',
+    customerSST: 'NA',
     customerCity: erpData.bilcity ?? '',
     customerPostalCode: erpData.bilzip ?? '',
-    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
+    customerCountrySubentityCode: erpData.bilstate ?? '17',
     customerAddressLine1: erpData.biladdR1!,
     customerAddressLine2: erpData.biladdR2 ?? '',
     customerAddressLine3: erpData.biladdR3 ?? '',
     customerCountryCode: getIsoCountryCode(erpData.bilcountry),
     customerName: erpData.bilname!,
-    customerTelephone: erpData.bilphone,
+    customerTelephone: erpData.bilphone ?? '',
     customerEmail: erpData.bilemail ?? '',
 
     totalPayableAmount: erpData.crdnetwtx!,
@@ -143,7 +149,7 @@ const mapCreditNoteInvoice = (
     itemList,
 
     taxableAmount: erpData.crdnetnotx!,
-    taxAmount: Math.max(erpData.crditaxtot - erpData.crdnetnotx, 0),
+    taxAmount: Math.max((erpData.crditaxtot ?? 0) - (erpData.crdnetnotx ?? 0), 0),
     totalExcludingTax: erpData.crdnetnotx ?? 0,
     totalIncludingTax: erpData.crditaxtot ?? 0,
   };
@@ -156,7 +162,7 @@ const mapPurchaseInvoice = (
   erpData: InvoiceData,
   profileData: API.ProfileItem,
 ) => {
-  const itemList = erpData.purchaseInvoiceDetails.map((item, index) => ({
+  const itemList: API.InvoiceItemRequest[] = erpData.purchaseInvoiceDetails!.map((item, index) => ({
     id: item.invhseq.toString(),
     qty: item.rqreceived,
     unit: item.rcpunit,
@@ -166,6 +172,7 @@ const mapPurchaseInvoice = (
     taxAmount: item.taxamounT1,
     taxableAmount: item.extended,
     taxPercent: item.taxratE1,
+    classificationCode: '', // manually map by user
   }));
 
   let requestBody: API.SubmitInvoiceRequest = {
@@ -178,8 +185,8 @@ const mapPurchaseInvoice = (
     endDate: '', // optional
     invoicePeriodDescription: '',
 
-    billingReferenceID: erpData.invnumber!,
-    additionalDocumentReferenceID: '',
+    billingReferenceID: '',
+    additionalDocumentReferenceID: erpData.reference ?? '',
 
     supplierAdditionalAccountID: '',
     supplierIndustryCode: profileData.msicCode, // temp
@@ -188,10 +195,10 @@ const mapPurchaseInvoice = (
     supplierBRN: erpData.supplierBRN!,
     supplierSST: 'NA',
     supplierTTX: 'NA',
-    supplierBusinessActivityDescription: profileData.businessActivityDescription, // temp
+    supplierBusinessActivityDescription: '', // temp
     supplierCity: erpData.vdcity!,
     supplierPostalCode: erpData.vdzip!,
-    supplierCountrySubentityCode: erpData.vdstate!,
+    supplierCountrySubentityCode: erpData.vdstate ?? '17',
     supplierAddressLine1: erpData.vdaddresS1!,
     supplierAddressLine2: erpData.vdaddresS2 ?? '',
     supplierAddressLine3: erpData.vdaddresS3 ?? '',
@@ -201,10 +208,12 @@ const mapPurchaseInvoice = (
     supplierEmail: erpData.vdemail!,
 
     customerTIN: profileData.tin,
+    customerIdType: profileData.schemeId,
     customerBRN: profileData.registrationNumber,
+    customerSST: profileData.sstRegistrationNumber ?? 'NA',
     customerCity: profileData.city ?? '',
     customerPostalCode: profileData.postalCode ?? '',
-    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
+    customerCountrySubentityCode: profileData.state,
     customerAddressLine1: profileData.address1!,
     customerAddressLine2: profileData.address2 ?? '',
     customerAddressLine3: profileData.address3 ?? '',
@@ -218,7 +227,7 @@ const mapPurchaseInvoice = (
     itemList,
 
     taxableAmount: erpData.extended!,
-    taxAmount: Math.max(erpData.doctotal - erpData.extended, 0),
+    taxAmount: Math.max((erpData.doctotal ?? 0) - (erpData.extended ?? 0), 0),
     totalExcludingTax: erpData.extended ?? 0,
     totalIncludingTax: erpData.doctotal ?? 0,
   };
@@ -231,7 +240,7 @@ const mapPurchaseCreditNoteInvoice = (
   erpData: InvoiceData,
   profileData: API.ProfileItem,
 ) => {
-  const itemList = erpData.purchaseCreditDebitNoteDetails.map((item, index) => ({
+  const itemList: API.InvoiceItemRequest[] = erpData.purchaseCreditDebitNoteDetails!.map((item, index) => ({
     id: item.crnhseq.toString(),
     qty: item.rqreturned,
     unit: item.retunit,
@@ -241,6 +250,7 @@ const mapPurchaseCreditNoteInvoice = (
     taxAmount: item.taxamounT1,
     taxableAmount: item.extended,
     taxPercent: item.taxratE1,
+    classificationCode: '', // manually map by user
   }));
 
   let requestBody: API.SubmitInvoiceRequest = {
@@ -253,20 +263,20 @@ const mapPurchaseCreditNoteInvoice = (
     endDate: '', // optional
     invoicePeriodDescription: '',
 
-    billingReferenceID: erpData.invnumber!,
-    additionalDocumentReferenceID: '',
+    billingReferenceID: '',
+    additionalDocumentReferenceID: erpData.reference ?? '',
 
     supplierAdditionalAccountID: '',
-    supplierIndustryCode: profileData.msicCode, // temp
+    supplierIndustryCode: '',
     supplierTIN: erpData.supplierTIN!,
     supplierIdType: 'NRIC', //temp
     supplierBRN: erpData.supplierBRN!,
     supplierSST: 'NA',
     supplierTTX: 'NA',
-    supplierBusinessActivityDescription: profileData.businessActivityDescription, // temp
+    supplierBusinessActivityDescription: '', // temp
     supplierCity: erpData.vdcity!,
     supplierPostalCode: erpData.vdzip!,
-    supplierCountrySubentityCode: erpData.vdstate!,
+    supplierCountrySubentityCode: erpData.vdstate ?? '17',
     supplierAddressLine1: erpData.vdaddresS1!,
     supplierAddressLine2: erpData.vdaddresS2 ?? '',
     supplierAddressLine3: erpData.vdaddresS3 ?? '',
@@ -276,10 +286,12 @@ const mapPurchaseCreditNoteInvoice = (
     supplierEmail: erpData.vdemail!,
 
     customerTIN: profileData.tin,
+    customerIdType: profileData.schemeId,
     customerBRN: profileData.registrationNumber,
+    customerSST: profileData.sstRegistrationNumber ?? 'NA',
     customerCity: profileData.city ?? '',
     customerPostalCode: profileData.postalCode ?? '',
-    customerCountrySubentityCode: erpData.bilstate ?? 'NA',
+    customerCountrySubentityCode: profileData.state,
     customerAddressLine1: profileData.address1!,
     customerAddressLine2: profileData.address2 ?? '',
     customerAddressLine3: profileData.address3 ?? '',
@@ -293,7 +305,7 @@ const mapPurchaseCreditNoteInvoice = (
     itemList,
 
     taxableAmount: erpData.extended!,
-    taxAmount: Math.max(erpData.doctotal - erpData.extended, 0),
+    taxAmount: Math.max((erpData.doctotal ?? 0) - (erpData.extended ?? 0), 0),
     totalExcludingTax: erpData.extended ?? 0,
     totalIncludingTax: erpData.doctotal ?? 0,
   };

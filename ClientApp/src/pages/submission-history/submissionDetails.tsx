@@ -24,7 +24,7 @@ import {
 import { PageContainer } from '@ant-design/pro-components';
 import { DownloadOutlined, ScanOutlined } from '@ant-design/icons';
 import { formatUtcToLocalDateTimeWithAmPm } from '@/helpers/dateFormatter';
-import { formatAddress } from '../dashboard/analysis/utils/utils';
+import { formatAddress } from '../invoice-mapping/utils/invoiceHelperFunctions';
 
 const InvoiceDetail: React.FC = () => {
   const { uuid } = useParams<{ uuid: string }>();

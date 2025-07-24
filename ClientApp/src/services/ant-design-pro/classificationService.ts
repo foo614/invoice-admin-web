@@ -8,7 +8,6 @@ export async function getClassifications(
   params: {
     pageNumber?: number;
     pageSize?: number;
-    userId?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -25,7 +24,7 @@ export async function getClassificationById(id: string, options?: { [key: string
 
 /** Add a new classification */
 export async function addClassification(
-  body: { code: string; description: string; userId: string },
+  body: { code: string; description: string; },
   options?: { [key: string]: any },
 ) {
   return httpClient.post(`${API_VERSION}/classifications`, body, { ...options });

@@ -1,3 +1,4 @@
+import { getCountryCodeOptions } from '@/helpers/countryCodeConverter';
 import { getMsicCodes, getStateCodes } from '@/services/ant-design-pro/invoiceService';
 import { getUserProfile, updateUserProfile } from '@/services/ant-design-pro/profileService';
 import { EditOutlined } from '@ant-design/icons';
@@ -6,24 +7,15 @@ import { useModel } from '@umijs/max';
 import { Button, Card, Col, Form, message, Row } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 
-interface MSICOption {
-  code: string;
-  description: string;
-}
-
-interface StateOption {
-  code: string;
-  state: string;
-}
 
 const BaseView: React.FC = () => {
   const { initialState, setInitialState } = useModel('@@initialState');
   const userEmail = initialState?.currentUser?.email;
 
   const [form] = Form.useForm();
-  const [msicOptions, setMsicOptions] = useState<MSICOption[]>([]);
+  const [msicOptions, setMsicOptions] = useState<API.MSICOption[]>([]);
   const [msicLoading, setMsicLoading] = useState(false);
-  const [stateOptions, setStateOptions] = useState<StateOption[]>([]);
+  const [stateOptions, setStateOptions] = useState<API.StateOption[]>([]);
   const [stateLoading, setStateLoading] = useState(false);
   const [profileData, setProfileData] = useState<API.ProfileItem>();
   const [profileLoading, setProfileLoading] = useState(false);
@@ -233,7 +225,7 @@ const BaseView: React.FC = () => {
                 <Col xs={24} md={12}>
                   <ProFormSelect
                     name="schemeId"
-                    label="Scheme ID"
+                    label="ID Type"
                     tooltip="Identity scheme"
                     disabled={!isEditMode}
                     options={[
@@ -242,7 +234,7 @@ const BaseView: React.FC = () => {
                       { label: 'PASSPORT', value: 'PASSPORT' },
                       { label: 'ARMY', value: 'ARMY' },
                     ]}
-                    rules={[{ required: true, message: 'Please select a scheme ID!' }]}
+                    rules={[{ required: true, message: 'Please select an ID type!' }]}
                   />
                 </Col>
                 <Col xs={24} md={12}>
@@ -367,16 +359,14 @@ const BaseView: React.FC = () => {
                   />
                 </Col>
                 <Col xs={24} md={12}>
-                  <ProFormText
+                  <ProFormSelect
                     name="countryCode"
                     label="Country"
+                    showSearch
                     disabled={!isEditMode}
+                    options={getCountryCodeOptions()}
                     rules={[
-                      { required: true, message: 'Enter country code!' },
-                      {
-                        pattern: /^[A-Z]{3}$/,
-                        message: 'Must be ISO alpha-3 (e.g., MYS)',
-                      },
+                      { required: true, message: 'Select country code!' },
                     ]}
                   />
                 </Col>
