@@ -17,16 +17,6 @@ import {
   removeClassificationMapping,
 } from '@/services/ant-design-pro/classificationMappingService';
 
-interface LhdnClassification {
-  code: string;
-  description: string;
-}
-
-interface LocalClassification {
-  id: number;
-  code: string;
-  description: string;
-}
 
 interface RowData {
   key: string;
@@ -34,24 +24,18 @@ interface RowData {
   classificationId: number[]; // Array to store selected classification classificationId
 }
 
-interface ClassificationMapping {
-  id: string;
-  lhdnClassificationCode?: string;
-  classificationId: number;
-}
-
 const ClassificationMappingPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
-  const [lhdnClassificationList, setLhdnClassificationList] = useState<LhdnClassification[]>([]);
-  const [sellerClassificationList, setSellerClassificationList] = useState<LocalClassification[]>(
+  const [lhdnClassificationList, setLhdnClassificationList] = useState<API.LhdnClassification[]>([]);
+  const [sellerClassificationList, setSellerClassificationList] = useState<API.LocalClassification[]>(
     [],
   );
   const [rows, setRows] = useState<RowData[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [initialClassificationMappings, setInitialClassificationMappings] = useState<
-    ClassificationMapping[]
+    API.ClassificationMapping[]
   >([]);
 
   function transformToRowData(classificationMappings: any[]): RowData[] {

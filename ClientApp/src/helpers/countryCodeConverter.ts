@@ -16,3 +16,13 @@ export const getIsoCountryCode = (input?: string) => {
   const iso3 = countries.getAlpha3Code(input, 'en');
   return iso3 || 'MYS';
 };
+
+export const getCountryCodeOptions = () => {
+  const alpha3Codes = countries.getAlpha2Codes();
+
+  return Object.values(alpha3Codes).map(code => ({
+    label: countries.getName(code, 'en'),
+    value: code
+  }));
+
+};

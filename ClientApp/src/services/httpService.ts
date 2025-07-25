@@ -48,6 +48,19 @@ httpClient.interceptors.response.use(
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      const isLoginRequest = originalRequest.url?.includes('/token');
+
+      if (isLoginRequest) {
+        const detail = error.response?.data?.detail;
+
+        if (detail === 'authentication failed') {
+          message.error('Login failed. Please check your email or password.');
+        } else if (detail) {
+          message.error(detail);
+        }
+        return Promise.reject(error);
+      }
+
       originalRequest._retry = true; // Mark this request as retried
 
       // If we're already refreshing, add to queue

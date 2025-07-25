@@ -16,16 +16,6 @@ import {
 } from '../../../../services/ant-design-pro/uomMappingService';
 import { getUoms } from '../../../../services/ant-design-pro/uomService';
 import { getUnitTypes } from '@/services/ant-design-pro/invoiceService';
-interface LhdnUOM {
-  code: string;
-  name: string;
-}
-
-interface SellerUOM {
-  id: number;
-  code: string;
-  description: string;
-}
 
 interface RowData {
   key: string;
@@ -33,23 +23,17 @@ interface RowData {
   uomId: number[];
 }
 
-interface UomMapping {
-  id: string;
-  lhdnUomCode?: string;
-  uomId: number;
-}
-
 const UOMMappingPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
-  const [lhdnUOMList, setLhdnUOMList] = useState<LhdnUOM[]>([]);
-  const [sellerUOMList, setSellerUOMList] = useState<SellerUOM[]>([]);
+  const [lhdnUOMList, setLhdnUOMList] = useState<API.LhdnUOM[]>([]);
+  const [sellerUOMList, setSellerUOMList] = useState<API.SellerUOM[]>([]);
   const [rows, setRows] = useState<RowData[]>([]);
   const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [initialUomMappings, setInitialUomMappings] = useState<UomMapping[]>([]);
+  const [initialUomMappings, setInitialUomMappings] = useState<API.UomMapping[]>([]);
 
-  function transformToRowData(uomMappings: UomMapping[]): RowData[] {
+  function transformToRowData(uomMappings: API.UomMapping[]): RowData[] {
     const groupedData = uomMappings.reduce(
       (acc, item) => {
         const groupKey = item.lhdnUomCode || 'Default';
@@ -196,13 +180,13 @@ const UOMMappingPage: React.FC = () => {
             options={
               Array.isArray(lhdnUOMList)
                 ? lhdnUOMList
-                    .filter(
-                      (uom) => !selectedLhdnUOMs.has(uom.code) || uom.code === record.lhdnUomCode,
-                    )
-                    .map((uom) => ({
-                      label: `${uom.code} - ${uom.name}`,
-                      value: uom.code,
-                    }))
+                  .filter(
+                    (uom) => !selectedLhdnUOMs.has(uom.code) || uom.code === record.lhdnUomCode,
+                  )
+                  .map((uom) => ({
+                    label: `${uom.code} - ${uom.name}`,
+                    value: uom.code,
+                  }))
                 : []
             }
             placeholder="Select LHDN UOM"
@@ -231,13 +215,13 @@ const UOMMappingPage: React.FC = () => {
             options={
               Array.isArray(sellerUOMList)
                 ? sellerUOMList
-                    .filter(
-                      (uom) => !selectedSellerUOMs.has(uom.id) || record.uomId.includes(uom.id),
-                    )
-                    .map((uom) => ({
-                      label: `${uom.code} - ${uom.description}`,
-                      value: uom.id,
-                    }))
+                  .filter(
+                    (uom) => !selectedSellerUOMs.has(uom.id) || record.uomId.includes(uom.id),
+                  )
+                  .map((uom) => ({
+                    label: `${uom.code} - ${uom.description}`,
+                    value: uom.id,
+                  }))
                 : []
             }
             placeholder="Select Seller UOMs"

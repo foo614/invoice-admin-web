@@ -12,7 +12,6 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
 import { Button, Form, message, Modal } from 'antd';
 import React, { useRef, useState } from 'react';
 
@@ -24,8 +23,6 @@ type Classification = {
 };
 
 const ClassficationList = () => {
-  const { initialState } = useModel('@@initialState');
-  const { currentUser } = initialState || {};
   const actionRef = useRef();
   const [selectedRowsState, setSelectedRowsState] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +36,6 @@ const ClassficationList = () => {
       const response = await getClassifications({
         pageNumber: params.pageNumber,
         pageSize: params.pageSize,
-        userId: currentUser?.id,
       });
 
       setClassficationList(response?.data.data || []);
@@ -91,7 +87,6 @@ const ClassficationList = () => {
     } else {
       await addClassification({
         ...values,
-        userId: currentUser?.id,
       });
     }
     setEditClassification(null);

@@ -24,6 +24,7 @@ import {
 import { PageContainer } from '@ant-design/pro-components';
 import { DownloadOutlined, ScanOutlined } from '@ant-design/icons';
 import { formatUtcToLocalDateTimeWithAmPm } from '@/helpers/dateFormatter';
+import { formatAddress } from '../invoice-mapping/utils/invoiceHelperFunctions';
 
 const InvoiceDetail: React.FC = () => {
   const { uuid } = useParams<{ uuid: string }>();
@@ -271,7 +272,7 @@ const InvoiceDetail: React.FC = () => {
                   {supplier.businessActivityDescription ?? ''}
                 </Descriptions.Item>
                 <Descriptions.Item span={2} label="Address">
-                  {supplier.address ?? ''}
+                  {formatAddress(supplier.address1, supplier.address2, supplier.address3, supplier.postalCode, supplier.city) ?? ''}
                 </Descriptions.Item>
                 <Descriptions.Item label="Email">{supplier.email ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Contact">
@@ -297,7 +298,9 @@ const InvoiceDetail: React.FC = () => {
                 <Descriptions.Item label="SST Registration">
                   {customer.sstRegistrationNumber ?? ''}
                 </Descriptions.Item>
-                <Descriptions.Item label="Address">{customer.address ?? ''}</Descriptions.Item>
+                <Descriptions.Item label="Address">
+                  {formatAddress(customer.address1, customer.address2, customer.address3, customer.postalCode, customer.city) ?? ''}
+                </Descriptions.Item>
                 <Descriptions.Item label="Email">{customer.email ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Contact">
                   {customer.contactNumber ?? ''}

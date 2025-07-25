@@ -13,6 +13,7 @@ import { InvoiceData } from './utils/invoiceData';
 import { calculateDueDate, calculateTotalInvoiceValue } from './utils/invoiceHelperFunctions';
 import { renderProDescriptions } from './utils/proDescriptions';
 import { fetchDataBasedOnInvoiceType, fetchUserProfile } from './utils/useInvoiceData';
+import PreviewForm from './components/PreviewForm';
 
 dayjs.extend(customParseFormat);
 
@@ -36,6 +37,8 @@ const InvoiceSubmission: React.FC = () => {
   const [selectedInvoiceType, setSelectedInvoiceType] = useState<string>('01');
   const actionRef = useRef<ActionType>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [previewPayload, setPreviewPayload] = useState<API.SubmitInvoiceRequest[]>([]);
 
   const { initialState } = useModel('@@initialState');
   const { currentUser } = initialState || {};
@@ -48,32 +51,44 @@ const InvoiceSubmission: React.FC = () => {
     }
   }, [email]);
 
-  const handleInvoiceSubmission = async (record: InvoiceData) => {
-    const dueDate = calculateDueDate(record.terms, record.invdate);
-    const payload = {
-      ...record,
-      dueDate: dueDate !== null ? dueDate.format('YYYY-MM-DD') : null,
-    };
-    const request = buildInvoicePayload(selectedInvoiceType, payload, profileData);
-    console.log(request);
+  const handleInvoiceSubmission = async (records: InvoiceData | InvoiceData[]) => {
+    if (!profileData?.tin) {
+      Modal.error({
+        title: 'Incomplete Profile',
+        content: 'Please configure your profile before submission.',
+        onOk: () => {
+          history.push('/account');
+        },
+      });
+      return;
+    }
+    const recordsArray = Array.isArray(records) ? records : [records];
+    const requests = recordsArray
+      .map((record) => {
+        const dueDate = calculateDueDate(record.terms, `${record.invdate}`);
+        const payload = {
+          ...record,
+          dueDate: dueDate !== null ? dueDate.format('YYYY-MM-DD') : null,
+        };
+        return buildInvoicePayload(selectedInvoiceType, payload, profileData);
+      })
+      .filter(Boolean);
+
+    setPreviewPayload(requests as API.SubmitInvoiceRequest[]);
+    setShowPreview(true);
+  };
+
+  const confirmSubmission = async (request: API.SubmitInvoiceRequest[]) => {
     Modal.confirm({
       title: 'Confirm Submission',
       onOk: async () => {
         try {
-          if (!profileData?.tin) {
-            Modal.error({
-              title: 'Incomplete Profile',
-              content: 'Please configure your profile before submission.',
-              onOk: () => {
-                history.push('/account');
-              },
-            });
-            return;
-          }
-          const response = await submitInvoice(request);
+          const response = await submitInvoice({
+            invoices: request
+          });
           if (response.status) {
             if (response.data.succeeded) {
-              message.success('Invoice submitted successfully.');
+              message.success(response.data.message || 'Invoice submitted successfully.');
             } else {
               const errorList = response.data.errors;
 
@@ -94,6 +109,8 @@ const InvoiceSubmission: React.FC = () => {
                 message.error(response.data.message || 'Failed to submit invoice');
               }
             }
+            setSelectedRows([]);
+            actionRef.current?.reload();
           } else {
             throw new Error('Submission failed');
           }
@@ -102,7 +119,7 @@ const InvoiceSubmission: React.FC = () => {
         }
       },
     });
-  };
+  }
 
   const columns = getInvoiceColumns(
     selectedInvoiceType,
@@ -117,7 +134,7 @@ const InvoiceSubmission: React.FC = () => {
         const invoiceTypeOptions = await getInvoiceTypes();
         setInvoiceType(
           invoiceTypeOptions.data.data.filter(
-            (type) => !type.description.toLowerCase().includes('refund'),
+            (type: { description: string; }) => !type.description.toLowerCase().includes('refund'),
           ),
         );
         await fetchDataBasedOnInvoiceType({
@@ -139,15 +156,15 @@ const InvoiceSubmission: React.FC = () => {
         rowKey={(record) => {
           switch (selectedInvoiceType) {
             case '01':
-              return record.invuniq;
+              return record.invuniq ?? `fallback_${record.invnumber}`;
             case '02':
             case '03':
-              return record.crduniq;
+              return record.crduniq ?? `fallback_${record.invnumber}`;
             case '11':
-              return record.invhseq;
+              return record.invhseq ?? `fallback_${record.invnumber}`;
             case '12':
             case '13':
-              return record.crnhseq;
+              return record.crnhseq ?? `fallback_${record.invnumber}`;
             default:
               return `${record.invnumber}_${Math.random()}`;
           }
@@ -205,12 +222,25 @@ const InvoiceSubmission: React.FC = () => {
               {calculateTotalInvoiceValue(selectedRowsState, selectedInvoiceType)}
             </span>
           </div>
-          <Button onClick={() => setSelectedRows([])}>Batch submission</Button>
+          <Button
+            onClick={() => handleInvoiceSubmission(selectedRowsState)}
+          >
+            Batch submission
+          </Button>
         </FooterToolbar>
       )}
       <Drawer width={800} open={showDetail} onClose={() => setShowDetail(false)} closable={false}>
         {currentRow && renderProDescriptions(selectedInvoiceType, currentRow)}
       </Drawer>
+      <PreviewForm
+        isOpen={showPreview}
+        submitInvoiceRequests={previewPayload}
+        onCancel={() => {
+          setShowPreview(false)
+          setTimeout(() => setPreviewPayload([]), 300);
+        }}
+        onFinish={confirmSubmission}
+      />
     </PageContainer>
   );
 };

@@ -8,7 +8,6 @@ export async function getUoms(
   params: {
     pageNumber?: number;
     pageSize?: number;
-    userId?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -25,7 +24,7 @@ export async function getUomById(id: string, options?: { [key: string]: any }) {
 
 /** Add a new UOM */
 export async function addUom(
-  body: { code: string; description: string; userId: string },
+  body: { code: string; description: string; },
   options?: { [key: string]: any },
 ) {
   return httpClient.post(`${API_VERSION}/uoms`, body, { ...options });

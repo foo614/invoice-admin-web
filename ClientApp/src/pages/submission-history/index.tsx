@@ -9,7 +9,7 @@ const SubmissionHistory: React.FC = () => {
     <PageContainer title={
       <span>
         Submission History{' '}
-        <Tooltip title="LHDN data retention 30 days">
+        <Tooltip title="LHDN data retention 10 days">
           <QuestionCircleOutlined style={{ color: '#999', marginLeft: 8 }} />
         </Tooltip>
       </span>

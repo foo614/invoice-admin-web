@@ -317,6 +317,7 @@ const SubmissionHistoryList: React.FC = () => {
             const values = await exportForm.validateFields();
             setExportModalVisible(false);
             handleExportExcel(values);
+            exportForm.resetFields();
           } catch {
             // validation error
           }
@@ -330,7 +331,7 @@ const SubmissionHistoryList: React.FC = () => {
             <RangePicker format="YYYY-MM-DD" />
           </Form.Item>
           <Form.Item label="Status" name="documentStatus">
-            <Select allowClear placeholder="Select Status">
+            <Select allowClear placeholder="Select Status" mode="multiple">
               <Select.Option value="Valid">Valid</Select.Option>
               <Select.Option value="Invalid">Invalid</Select.Option>
               <Select.Option value="Cancelled">Cancelled</Select.Option>

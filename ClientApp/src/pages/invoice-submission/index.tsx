@@ -62,8 +62,7 @@ interface InvoiceDetails {
   };
 }
 
-// Fetch recent invoices (list)
-const fetchRecentDocuments = async (params: {
+interface RecentDocumentsFilterParams {
   current: number;
   pageSize: number;
   issueDateFrom?: string;
@@ -80,7 +79,10 @@ const fetchRecentDocuments = async (params: {
   issuerIdType?: string;
   issuerId?: string;
   uuid?: string;
-}) => {
+}
+
+// Fetch recent invoices (list)
+const fetchRecentDocuments = async (params: RecentDocumentsFilterParams) => {
   const {
     current,
     pageSize,
@@ -283,7 +285,7 @@ const InvoiceSubmission: React.FC = () => {
       formItemProps: {
         rules: [
           {
-            validator: (_, value) => {
+            validator: (_: any, value: any) => {
               if (!value || value.length !== 2) {
                 return Promise.reject('Please select both start and end dates');
               }
@@ -294,11 +296,11 @@ const InvoiceSubmission: React.FC = () => {
       },
       fieldProps: {
         format: 'YYYY-MM-DD',
-        disabledDate: (current) => {
+        disabledDate: (current: any) => {
           // Disable dates older than 31 days from today
           return current && current < dayjs().subtract(31, 'days').endOf('day');
         },
-        onChange: (dates, dateStrings) => {
+        onChange: (dates: any, dateStrings: any) => {
           if (dates && dates[0] && dates[1]) {
             const diffInDays = dates[1].diff(dates[0], 'days');
             if (diffInDays > 10) {
@@ -310,7 +312,7 @@ const InvoiceSubmission: React.FC = () => {
           }
         },
       },
-      transform: (value) => {
+      transform: (value: string | any[]) => {
         if (value && value.length === 2) {
           return {
             submissionDateFrom: dayjs(value[0]).startOf('day').format('YYYY-MM-DDTHH:mm:ss[Z]'),
@@ -377,7 +379,7 @@ const InvoiceSubmission: React.FC = () => {
         headerTitle={
           <span>
             Recent E-Invoice Transactions{' '}
-            <Tooltip title="LHDN data retention 30 days">
+            <Tooltip title="LHDN data retention 10 days">
               <QuestionCircleOutlined style={{ color: '#999', marginLeft: 8 }} />
             </Tooltip>
           </span>
@@ -386,9 +388,9 @@ const InvoiceSubmission: React.FC = () => {
         rowKey="uuid"
         request={async (params) => {
           // ProTable provides `params` with pagination info.
-          const queryParams = {
-            current: params.current,
-            pageSize: params.pageSize,
+          const queryParams: RecentDocumentsFilterParams = {
+            current: params.current ?? 1,
+            pageSize: params.pageSize ?? 10,
             issueDateFrom: params.issueDateFrom,
             issueDateTo: params.issueDateTo,
             submissionDateFrom: params.submissionDateFrom,

@@ -11,17 +11,24 @@ import UpdateForm from './components/UpdateForm';
 
 const PartnerList = () => {
   const actionRef = useRef();
-  const [selectedRowsState, setSelectedRowsState] = useState([]);
+  const [selectedRowsState, setSelectedRowsState] = useState<API.PartnerListItem[]>([]);
   const [formVisible, setFormVisible] = useState(false);
   const [editingPartner, setEditingPartner] = useState<API.PartnerListItem | null>(null); // To determine add or edit mode
   const [partnerList, setPartnerList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
 
   // Handle status toggle change
   const handleStatusChange = async (record: API.PartnerListItem, isActive: boolean) => {
     await updatePartner(record.id, { ...record, status: isActive });
     message.success(`Partner status updated to ${isActive ? 'Active' : 'Inactive'}`);
     actionRef.current?.reload();
+  };
+
+  const handleView = (record: API.PartnerListItem) => {
+    setEditingPartner(record);
+    setIsViewMode(true);
+    setFormVisible(true);
   };
 
   const handleEdit = (record: API.PartnerListItem) => {
@@ -68,6 +75,15 @@ const PartnerList = () => {
       title: 'Partner Name',
       dataIndex: 'name',
       key: 'name',
+      render: (_: any, record: any) => {
+        return (
+          <>
+            <a key="view" onClick={() => handleView(record)}>
+              {record.name}
+            </a>
+          </>
+        )
+      }
     },
     {
       title: 'Company Name',
@@ -79,7 +95,8 @@ const PartnerList = () => {
       dataIndex: 'address1',
       key: 'address',
       hideInSearch: true,
-      render: (_, record) => {
+      hideInTable: true,
+      render: (_: any, record: API.PartnerListItem) => {
         const { address1, address2, address3 } = record;
         return [address1, address2, address3].filter((line) => line).join(', ');
       },
@@ -96,15 +113,15 @@ const PartnerList = () => {
     },
     {
       title: 'License Key',
-      dataIndex: 'licenseKey',
+      dataIndex: ['licenseKey', 'key'],
       key: 'licenseKey',
-      render: (licenseKey) => (licenseKey ? licenseKey : 'N/A'),
+      render: (licenseKey: any) => (licenseKey ? licenseKey : 'N/A'),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (_, record) => (
+      render: (_: any, record: API.PartnerListItem) => (
         <Switch
           checked={record.status}
           onChange={(checked) => handleStatusChange(record, checked)}
@@ -115,17 +132,17 @@ const PartnerList = () => {
         { text: 'Active', value: true },
         { text: 'Inactive', value: false },
       ],
-      onFilter: (value, record) => record.status === value,
+      onFilter: (value: any, record: { status: any; }) => record.status === value,
     },
     {
       title: 'Submission Count',
-      dataIndex: 'submissionCount',
+      dataIndex: ['licenseKey', 'submissionCount'],
       key: 'submissionCount',
       hideInSearch: true,
     },
     {
       title: 'Max Submissions',
-      dataIndex: 'maxSubmissions',
+      dataIndex: ['licenseKey', 'maxSubmissions'],
       key: 'maxSubmissions',
       hideInSearch: true,
     },
@@ -133,7 +150,7 @@ const PartnerList = () => {
       title: 'Actions',
       key: 'actions',
       hideInSearch: true,
-      render: (_, record) => [
+      render: (_: any, record: API.PartnerListItem) => [
         <a key="edit" onClick={() => handleEdit(record)}>
           Edit
         </a>,
@@ -251,9 +268,10 @@ const PartnerList = () => {
       <UpdateForm
         key={editingPartner ? editingPartner.id : 'add'}
         visible={formVisible}
-        onClose={() => setFormVisible(false)}
+        onClose={() => { setFormVisible(false); setIsViewMode(false); }}
         onFinish={handleFinish}
         initialValues={editingPartner}
+        isViewMode={isViewMode}
       />
     </PageContainer>
   );
