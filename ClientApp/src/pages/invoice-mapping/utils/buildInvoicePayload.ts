@@ -25,8 +25,6 @@ const mapSalesInvoice = (
     issueTime: '', // current time
     invoiceTypeCode: selectedInvoiceType,
     currencyCode: erpData.insourcurr ?? "MYR",
-    startDate: '', // optional
-    endDate: '', // optional
     invoicePeriodDescription: '',
 
     billingReferenceID: '',
@@ -103,8 +101,6 @@ const mapCreditNoteInvoice = (
     issueTime: '', // current time
     invoiceTypeCode: selectedInvoiceType,
     currencyCode: erpData.crsourcurr ?? 'MYR',
-    startDate: '', // optional
-    endDate: '', // optional
     invoicePeriodDescription: '',
 
     billingReferenceID: '',
@@ -181,8 +177,6 @@ const mapPurchaseInvoice = (
     issueTime: '', // current time
     invoiceTypeCode: selectedInvoiceType,
     currencyCode: erpData.currency!,
-    startDate: '', // optional
-    endDate: '', // optional
     invoicePeriodDescription: '',
 
     billingReferenceID: '',
@@ -259,8 +253,6 @@ const mapPurchaseCreditNoteInvoice = (
     issueTime: '', // current time
     invoiceTypeCode: selectedInvoiceType,
     currencyCode: erpData.currency!,
-    startDate: '', // optional
-    endDate: '', // optional
     invoicePeriodDescription: '',
 
     billingReferenceID: '',

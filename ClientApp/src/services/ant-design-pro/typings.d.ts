@@ -188,8 +188,8 @@ declare namespace API {
     currencyCode: string;
 
     // New fields
-    startDate: string;
-    endDate: string;
+    startDate?: string;
+    endDate?: string;
     invoicePeriodDescription: string;
     billingReferenceID: string;
     additionalDocumentReferenceID: string;
