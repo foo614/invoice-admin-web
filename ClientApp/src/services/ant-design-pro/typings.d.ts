@@ -113,11 +113,19 @@ declare namespace API {
     address2?: string;
     address3?: string;
     status: boolean; //'active' | 'inactive';
-    submissionCount: number;
-    maxSubmissions: number;
+    licenseKey: licenseKey;
     createdAt?: string;
     updatedAt?: string;
   };
+
+  type licenseKey = {
+    id: string;
+    expiryDate: string;
+    expiryType: 'Yearly' | 'Monthly';
+    submissionCount: number;
+    maxSubmissions: number;
+    status: number;
+  }
 
   type PartnerList = {
     data: PartnerListItem[];
