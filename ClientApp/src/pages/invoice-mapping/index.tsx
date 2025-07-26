@@ -109,6 +109,7 @@ const InvoiceSubmission: React.FC = () => {
                 message.error(response.data.message || 'Failed to submit invoice');
               }
             }
+            setShowPreview(false);
             setSelectedRows([]);
             actionRef.current?.reload();
           } else {
