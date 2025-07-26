@@ -611,6 +611,7 @@ const PreviewForm: React.FC<PreviewFormProps> = ({
                                                                     ]}
                                                                     fieldProps={{
                                                                         style: { width: '100%' },
+                                                                        getPopupContainer: () => document.body,
                                                                     }}
                                                                     noStyle
                                                                 />
@@ -659,6 +660,7 @@ const PreviewForm: React.FC<PreviewFormProps> = ({
                                                                     ]}
                                                                     fieldProps={{
                                                                         style: { width: '100%' },
+                                                                        getPopupContainer: () => document.body,
                                                                     }}
                                                                     noStyle
                                                                 />
