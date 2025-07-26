@@ -238,7 +238,7 @@ const ClassificationMappingPage: React.FC = () => {
                   record.classificationId.includes(classification.id),
               )
               .map((classification) => ({
-                label: `${classification.code}`,
+                label: `${classification.code} - ${classification.description}`,
                 value: classification.id,
               }))}
             placeholder="Select Local Classifications"
