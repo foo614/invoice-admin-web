@@ -131,6 +131,7 @@ const InvoiceSubmission: React.FC = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        setTableData({ data: [], success: true, total: 0 });
         const invoiceTypeOptions = await getInvoiceTypes();
         setInvoiceType(
           invoiceTypeOptions.data.data.filter(
@@ -146,6 +147,7 @@ const InvoiceSubmission: React.FC = () => {
         message.error('Failed to load initial data.');
       }
     };
+    actionRef.current?.reload();
     loadInitialData();
   }, [selectedInvoiceType]);
 
