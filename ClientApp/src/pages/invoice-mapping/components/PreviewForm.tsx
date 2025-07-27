@@ -746,14 +746,14 @@ const PreviewForm: React.FC<PreviewFormProps> = ({
                                                 <Col xs={24} sm={12} md={4}>
                                                     <ProFormDigit
                                                         name={[name, 'taxableAmount']}
-                                                        label="Taxable Amount"
+                                                        label="Total Taxable Amount"
                                                         rules={[{ required: true, message: 'Taxable Amount is required' }]}
                                                     />
                                                 </Col>
                                                 <Col xs={24} sm={12} md={4}>
                                                     <ProFormDigit
                                                         name={[name, 'taxAmount']}
-                                                        label="Tax Amount"
+                                                        label="Total Tax Amount"
                                                         rules={[{ required: true, message: 'Tax Amount is required' }]}
                                                     />
                                                 </Col>
@@ -774,7 +774,7 @@ const PreviewForm: React.FC<PreviewFormProps> = ({
                                                 <Col xs={24} sm={12} md={4}>
                                                     <ProFormDigit
                                                         name={[name, 'totalPayableAmount']}
-                                                        label="Total Payable"
+                                                        label="Total Payable Amount"
                                                         rules={[{ required: true, message: 'Total Payable is required' }]}
                                                     />
                                                 </Col>
